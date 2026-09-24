@@ -366,7 +366,7 @@ The experience should feel reflective rather than financial or analytical.
 
 # Prototype
 
-Use the [attached HTML prototype](./prototype/index.html) as the visual and interaction reference. Pick the technology you want to work with.
+Use the attached HTML prototype in `./prototype/index.html` as the visual and interaction reference. Pick the technology you want to work with.
 
 The prototype is intended to communicate:
 
