@@ -1,6 +1,6 @@
 # 01 — Remove the router
 
-Status: ready-for-agent
+Status: resolved
 
 First MVP task. It must land before any feature work.
 
@@ -25,3 +25,7 @@ The app is a single page with no routing ([ADR 0001](../../../docs/adr/0001-sing
 - `grep -rn "router" src package.json` finds nothing.
 - `npm run build` succeeds.
 - `npm test -- --watch=false` passes.
+
+## Comments
+
+- 2026-09-24: Implemented by Codex (small lane), reviewed with a clean code review, and merged into `main` from `chore/01-remove-router` (commit `769e2e6`). Build and tests pass locally.
