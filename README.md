@@ -1,59 +1,37 @@
-# SubscriptionReality
+# Subscription Reality
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+> Small monthly payments feel cheap. Annual recurring spending often tells a different story.
 
-## Development server
+Subscription Reality is a small web app for seeing what your subscriptions really cost per year and deciding which ones still deserve to stay. It's meant to feel reflective, like a quick personal check-in, not like a finance dashboard.
 
-To start a local development server, run:
+Everything stays on your device. There's no account, no backend and no bank connection.
 
-```bash
-ng serve
-```
+## How it works
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+1. **Add your subscriptions.** Enter a name, price, whether you pay monthly or yearly, the currency, and why you have it. Your currency is remembered for the next subscription, and the app estimates how often you use each one from your reason.
+2. **See the reality.** Each currency gets its own card showing what you pay per month and, more prominently, per year. Currencies are never mixed or converted.
+3. **Review one at a time.** For each subscription, answer _Why do you still have it?_ and _How often do you actually use it?_, then choose **Keep**, **Unsure** or **Cancel**.
+4. **See what you could save.** Subscriptions marked Cancel add up to your potential annual savings. A short insight names the subscriptions you describe as optional and rarely use.
 
-## Code scaffolding
+You can edit or delete any subscription in place. Deleting asks whether you've actually cancelled it with the provider, because removing it from the app doesn't stop the payment.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+**Currencies:** EUR, USD, GBP and EGP. **Billing:** monthly or yearly. **Storage:** IndexedDB in your browser, so your data survives refreshes and restarts.
 
-```bash
-ng generate component component-name
-```
+## Development
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Built with Angular 22 and SCSS.
 
 ```bash
-ng build
+npm install
+npm start                  # dev server at http://localhost:4200
+npm test -- --watch=false  # unit tests
+npm run build              # production build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Project docs
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [`docs/project-brief.md`](docs/project-brief.md): the original product brief
+- [`docs/agreed-changes.md`](docs/agreed-changes.md): decisions made after the brief, which take precedence over it
+- [`CONTEXT.md`](CONTEXT.md): the domain glossary
+- [`docs/adr/`](docs/adr/): architecture decision records
+- [`docs/prototype/index.html`](docs/prototype/index.html): the visual prototype

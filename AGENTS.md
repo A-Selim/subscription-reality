@@ -3,17 +3,24 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 # Project: Subscription Reality
 
 ## Context
-- Read `docs/project-brief.md` before any task. It is the source of truth for requirements.
-- `docs/prototype/index.html` is the visual reference. Match its layout and behavior.
+
+- Requirements come from two files. Read both before any task:
+  - `docs/project-brief.md`: the original brief, kept unchanged as the starting point.
+  - `docs/agreed-changes.md`: decisions made after the brief (add form, estimated usage, one reality card per currency, review order, edit and delete flow). **It wins over the brief and the prototype wherever they differ.**
+- `docs/prototype/index.html` is the visual reference. Match its look and layout, and follow `docs/agreed-changes.md` for behavior.
   Never edit it or import from it.
+- `CONTEXT.md` is the domain glossary. Name code, UI copy and tests with its terms (e.g. _Review decision_, _Potential savings_, _Review candidate_).
+- `docs/adr/` records deliberate decisions. Read these before changing app structure.
 - Stack: Angular 22 + SCSS.
 
 ## Commands
+
 - Dev: `npm start`
 - Test: `npm test -- --watch=false`
 - Build: `npm run build`
 
 ## Workflow Rules
+
 - Small, focused changes. One task = one concern.
 - No new dependencies without asking.
 - A task is "done" only when it builds and tests pass.
@@ -31,7 +38,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
 - Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
 - Use signals for state management
-- Implement lazy loading for feature routes
+- Build the app as one page, with its sections as components and no router (see `docs/adr/0001-single-page-no-routing.md`). Lazy-load a feature route only if a real second page is ever agreed.
 - Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
 - Use `NgOptimizedImage` for all static images.
   - `NgOptimizedImage` does not work for inline base64 images.
