@@ -30,8 +30,8 @@ Everything survives a refresh, a browser restart and reopening the app.
 3. As a first-time visitor, I want the _Your recurring life_ section to ask "What are you paying for every month?", so that I start thinking about my recurring payments.
 4. As a first-time visitor, I want to see example categories (Streaming, AI tools, Cloud storage, Gym, News, Software), so that I remember subscriptions I'd otherwise forget.
 5. As a first-time visitor, I want one clear primary action, "Add your first subscription", so that I know exactly what to do next.
-6. As a first-time visitor, I want the _See the reality_ and review sections to appear dimmed and out of reach until I add something, so that I can see what's coming without meeting empty numbers or dead buttons.
-7. As a keyboard or screen-reader user, I want the dimmed sections to be skipped by focus and assistive technology, so that I don't land on controls that do nothing.
+6. As a first-time visitor, I want the _See the reality_ and review sections to appear dimmed, with no working controls, until I add something, so that I can see what's coming without meeting dead buttons.
+7. As a keyboard or screen-reader user, I want the dimmed sections' explanatory text to stay readable (by screen readers and at AA contrast) while they contain nothing to focus, so that I understand what unlocks them.
 8. As a returning visitor, I want my saved subscriptions to show immediately, without a flash of the empty state, so that the app feels reliable.
 
 ### Adding a subscription
@@ -68,7 +68,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 32. As a user, I want usage estimated from the reason when I add a subscription (Essential, High Value and Work / Learning → Daily; Convenience → Weekly; Nice to Have → Monthly; Occasional Use → Rarely), so that my rarely used count is sensible from the start.
 33. As a user, I want _Almost Never_ never to be estimated, so that only I can say that about a subscription.
 34. As a user, I want the estimated usage to follow when I change the reason while editing, until I've confirmed usage, so that the estimate stays consistent.
-35. As a user, I want my usage to be confirmed the first time I make a review decision on a subscription, and never overwritten by an estimate after that, so that my own answer wins.
+35. As a user, I want my usage to be confirmed the first time I make a review decision on a subscription in the review, and never overwritten by an estimate after that, so that my own answer wins. Answering "Not yet, keep it" when deleting doesn't count as confirming usage.
 
 ### See the reality
 
@@ -82,7 +82,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 43. As a user, I want a before/after comparison on each card: the annual total now, and the annual total if I cancel the subscriptions marked Cancel, so that I can see what my decisions are worth.
 44. As a user, I want subscriptions marked Cancel to stay in the totals, so that the numbers reflect what I still actually pay until I cancel with the provider.
 45. As a user, I want totals to update immediately when I add, edit, review or delete, so that the picture is always current.
-46. As a user, I want money formatted with the right symbol (€, $, £, E£), annual figures in whole units and monthly figures with 2 decimals, so that the numbers read naturally.
+46. As a user, I want money formatted with the right symbol (€, $, £, E£), annual figures in whole units (with cents only when rounding would turn a non-zero amount into zero) and monthly figures with 2 decimals, so that the numbers read naturally and never show a false zero.
 
 ### Review
 
@@ -107,7 +107,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 ### Potential savings and counts
 
 64. As a user, I want a single dark savings card next to the review, so that the payoff sits beside my decisions.
-65. As a user, I want **Potential savings** shown as one line per currency (the annual cost of subscriptions marked Cancel), so that savings are never combined across currencies.
+65. As a user, I want **Potential savings** shown as one line for each currency I have subscriptions in (the annual cost of subscriptions marked Cancel, zero included), so that savings are never combined across currencies.
 66. As a user, I want a Cancel decision to count toward potential savings immediately, so that I see the effect of each choice.
 67. As a user, I want Keep, Unsure and Cancel counts across all currencies, so that I see how my review is going overall.
 68. As a user, I want Unsure to show only as a count, so that "maybe" doesn't inflate my savings.
@@ -142,7 +142,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 
 86. As a user, I want my subscriptions, their decisions and my preferred currency to survive refreshes, browser restarts and reopening the app, so that my work isn't lost.
 87. As a user, I want my data to stay on my device, with no account, backend or login, so that I can trust the app with my spending.
-88. As a user whose browser blocks storage, I want the app to keep working for the current visit, so that a storage failure doesn't break the page.
+88. As a user whose browser blocks or fails storage, I want the app to keep working for the current visit and to tell me clearly that my changes won't be kept after I leave, so that I don't lose work without knowing.
 
 ### Look, feel and accessibility
 
@@ -166,14 +166,14 @@ A single pure module holds all business rules. It is the domain test seam. It ex
 - recurring cost per currency (monthly and annual), in first-used order among the given subscriptions
 - rarely used check and count per currency
 - estimated usage for a reason (the table in agreed-changes §5; never _Almost Never_)
-- usage confirmed = the subscription has a review decision (see below)
-- review queue: undecided subscriptions in insertion order; the "Review again" pass runs over all subscriptions in insertion order
-- potential savings per currency (annual cost of Cancel decisions); "after" total per currency = annual total − potential savings
+- re-estimating usage on a reason change only while usage isn't confirmed
+- review queue: undecided subscriptions in insertion order; the "Review again" pass runs over the live list of all subscriptions in insertion order
+- potential savings per currency (annual cost of Cancel decisions), with a zero entry for every currency that has subscriptions; "after" total per currency = annual total − potential savings
 - decision counts (Keep / Unsure / Cancel) across all currencies
 - review candidates and their annual cost per currency
 - name normalization (trim; compare case-insensitively) and uniqueness check that can exclude the subscription being edited
 - price validity (> 0, at most 2 decimals) and name validity (required after trim, ≤ 40 chars)
-- money formatting: currency symbols and locales as in the prototype (EUR en-DE €, USD en-US $, GBP en-GB £, EGP en-EG E£); annual amounts with 0 decimals, monthly and per-subscription amounts with 2 decimals
+- money formatting: currency symbols and locales as in the prototype (EUR en-DE €, USD en-US $, GBP en-GB £, EGP en-EG E£); annual amounts with 0 decimals, except that a non-zero amount that would round to zero shows 2 decimals; monthly and per-subscription amounts with 2 decimals
 - joining amounts in prose: "A", "A and B", "A, B and C"
 
 Data shape (a decision shape, adapted from the prototype's stored state):
@@ -194,10 +194,12 @@ interface Subscription {
   currency: Currency;
   reason: Reason;
   usage: Usage;
+  usageConfirmed: boolean;    // true only once the user records a decision in the review
   decision: ReviewDecision | null; // null = undecided
 }
 
 interface AppState {
+  version: 1;
   subscriptions: Subscription[];
   preferredCurrency: Currency | null; // null until the first subscription is created
   nextSequence: number;
@@ -205,21 +207,21 @@ interface AppState {
 ```
 
 - Code and data use `unsure`, never the prototype's `maybe`.
-- No flow ever resets a decision to undecided. So "usage confirmed" is derived from `decision !== null` instead of being stored as a flag. Consequences: re-estimation on reason change happens only while undecided. _Not yet, keep it_ (which sets Cancel) also confirms usage.
+- `usageConfirmed` is stored, not derived from `decision`. Only a Keep, Unsure or Cancel choice made in the review sets it. _Not yet, keep it_ sets `decision` to Cancel but leaves `usageConfirmed` unchanged, because the user never answered the usage question. Reason edits re-estimate usage while `usageConfirmed` is false.
 - The monogram on cards and in the review is derived from the name (first two characters, uppercased, as in the prototype). It is not stored.
 
 ### State service
 
-- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, update, delete, set reason, set usage, decide, keep-as-cancel (from the delete question).
+- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, update, delete, set reason, set usage, decide (sets `decision` and `usageConfirmed`), keep-as-cancel (from the delete question; sets `decision` only).
 - The service sets the preferred currency only in `add`, never in `update`, and never on dropdown changes.
-- Every state change is written through the storage port. Writes save the whole `AppState`; the data is tiny, so there are no per-record writes.
-- The service loads from the storage port before the page renders its sections. Until loading finishes, sections don't render, so the empty state never flashes for returning users. If loading or saving fails, the app keeps working in memory for the current visit and logs a warning.
+- Every state change is written through the storage port. Writes save the whole `AppState`; the data is tiny, so there are no per-record writes. Saves run one at a time: each waits for the previous one, and pending saves may be coalesced into the latest state, so an older save can never land after a newer one.
+- The service loads from the storage port before the page renders its sections. Until loading finishes, sections don't render, so the empty state never flashes for returning users. If loading or saving fails, the app keeps working in memory for the current visit, logs a warning, and shows a calm, persistent notice (a polite live region) saying that changes will only last for this visit. The notice stays until a later save succeeds.
 
 ### Storage port
 
-- A small injectable interface: `load(): Promise<AppState | null>` and `save(state: AppState): Promise<void>`. It is the storage test seam.
-- Production adapter: IndexedDB. One database and one object store, with the whole state under one key, like the prototype. The adapter validates the loaded shape, and treats anything unrecognized as no data.
-- Test adapter: an in-memory fake that keeps the last saved state, so a test can re-render the page on the same fake to simulate a reload.
+- A small port with `load(): Promise<AppState | null>` and `save(state: AppState): Promise<void>`. It is the storage test seam. It is an abstract class, used directly as the Angular injection token: the app config provides the IndexedDB adapter for it, and tests provide the in-memory fake instead.
+- Production adapter: IndexedDB. One database and one object store, with the whole state under one key, like the prototype. `AppState` carries a `version` number. The adapter validates the loaded shape and version. Absent data means a first visit. Data that is present but unreadable is never overwritten silently: the adapter copies it to a backup key, the app starts empty, and the storage notice explains that saved data couldn't be read.
+- Test adapter: an in-memory fake that stores a deep copy of each saved state (so later mutations can't leak into it), can hold a save pending until the test releases it, and can be told to reject loads or saves. A test re-renders the page on the same fake to simulate a reload.
 - No new dependencies. The IndexedDB adapter is kept thin and checked by hand in the browser.
 
 ### Add form
@@ -227,38 +229,38 @@ interface AppState {
 - Built with Signal Forms and schema-based validation. The same form model and schema are reused for editing.
 - Initial values: name empty, price empty, billing frequency blank, currency = preferred currency (blank if none), reason _Essential_.
 - On a successful add: create the subscription with estimated usage and `decision: null`; set the preferred currency to its currency; show a "Subscription added" toast; reset name, price and billing to blank; keep reason _Essential_ and currency = preferred currency.
-- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline and focus, and a toast just above the Add button explains the error. Duplicate-name copy: _"You already have {existing name}. Add something to tell them apart, like '{existing name} Family'."_
+- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"`, and focus. A toast just above the Add button shows and announces the error. Each invalid field is also linked by `aria-describedby` to its own visually hidden error text, which stays until the field is valid again, so the explanation outlives the auto-hiding toast. Duplicate-name copy: _"You already have {existing name}. Add something to tell them apart, like '{existing name} Family'."_
 - The muted helper line at the bottom of the add box says usage is estimated from the reason and can be refined in the review.
-- The empty state shows the add form after "Add your first subscription" (progressive disclosure, as in the prototype). With subscriptions present, the add form stays visible under the card list. "Start adding" in the top bar scrolls to the section and focuses the name field.
-- When the first subscription is added, the page smoothly scrolls to _See the reality_. It respects `prefers-reduced-motion`.
+- The empty state shows the add form after "Add your first subscription" (progressive disclosure, as in the prototype). With subscriptions present, the add form stays visible under the card list. "Start adding" in the top bar scrolls to the section, reveals the add form if it's still hidden, then focuses the name field.
+- When the first subscription is added, the page smoothly scrolls to _See the reality_ and, once the section has rendered, moves focus to its heading (made focusable with `tabindex="-1"`), because the Add button the user activated disappears with the empty state. The scroll respects `prefers-reduced-motion`. Later adds keep focus in the add form's name field.
 
 ### Edit and delete
 
 - Selecting a card (a button, keyboard-operable) turns that card into an in-place edit form with the five creation fields.
 - Changes apply live: whenever the whole edit form is valid, the subscription is updated and saved, so totals update as the user edits. While any field is invalid, the last valid values stay in effect and the field shows its error.
 - A **Done** button closes the edit form. If the form is invalid when Done is pressed, it stays open, the toast shows the error and focus moves to the invalid field. On close, focus returns to the card.
-- Editing never changes `decision` or the preferred currency. Changing the reason while undecided re-estimates usage. Once decided, usage is untouched.
-- **Delete** in the edit view opens an inline question on the card (focus moves to it): _"Did you already cancel {name}? Deleting it here doesn't stop the payment."_ with **Yes, delete it** and **Not yet, keep it**. Yes removes the subscription and moves focus to the next card, or to the add form's name field if none remain. Not yet sets the decision to Cancel, closes the question and editor, and returns focus to the card.
+- Editing never changes `decision`, `usageConfirmed` or the preferred currency. Changing the reason re-estimates usage while `usageConfirmed` is false. After that, usage is untouched.
+- **Delete** in the edit view opens an inline question on the card (focus moves to it): _"Did you already cancel {name}? Deleting it here doesn't stop the payment."_ with **Yes, delete it** and **Not yet, keep it**. Yes removes the subscription and moves focus to the next card. If none remain, the page is back in the empty state: the add form is revealed there first, then its name field gets focus. Not yet sets the decision to Cancel (usage stays unconfirmed), closes the question and editor, and returns focus to the card.
 
 ### Reality section
 
-- Before the first subscription it is shown dimmed and made `inert`, as are the review section and savings card, so focus and assistive technology skip them.
+- Before the first subscription it is shown dimmed, as are the review section and savings card. They are not `inert`: in that state they contain no interactive controls, and their explanatory text ("Add a subscription first", the no-subscriptions insight, zero figures) stays in the accessibility tree. The dimmed styling must still meet WCAG AA contrast, so it can't simply copy the prototype's opacity-based locked look.
 - One card per currency, stacked full-width, in first-used order among current subscriptions (lowest `sequence` per currency). If every subscription in a currency is deleted, its card disappears. If that currency is used again, it goes to the end.
 - Each card: label, annual total (large), monthly total ("every month"), subscription count, rarely used count, and the before/after comparison ("Before review" = annual total; "If you cancel the ones you no longer value" = annual total − potential savings in that currency).
 
 ### Review
 
 - The review shows the first subscription in the queue. The queue position is never saved. In the normal pass, "current" is always the first undecided subscription.
-- _Review again_ starts an in-memory pass over all subscriptions in insertion order, with each one's current decision pressed. Deciding advances within that pass. At its end, _Review complete_ shows again. Adding a subscription during the pass doesn't disrupt it: the new one is undecided and appears once the normal queue resumes.
-- Selecting a review candidate's name in the insight brings that subscription up in the review card, even if it already has a decision, and moves focus to the review card's heading. After a decision, the review goes back to the normal rule (first undecided, or _Review complete_).
+- _Review again_ starts an in-memory pass over all subscriptions in insertion order, with each one's current decision pressed. Deciding advances within that pass. At its end, _Review complete_ shows again. The pass reads the live list, so a subscription added during it appears at the end of that same pass (undecided). A deleted one drops out.
+- Selecting a review candidate's name in the insight brings that subscription up in the review card, even if it already has a decision, and moves focus to the review card's heading. After a decision on it, the review goes back to where it was: if a _Review again_ pass is active, the pass continues from its current position; otherwise the normal rule applies (first undecided, or _Review complete_).
 - Reason and usage choices save immediately. Changing the reason in the review never re-estimates usage, because the usage question sits right below it and the user answers it directly.
-- A decision sets `decision`, which confirms usage, and advances. Focus moves to the next review heading, or to the _Review complete_ heading.
-- Reason, usage and decision controls are buttons with `aria-pressed` reflecting the current value.
+- A decision sets `decision` and `usageConfirmed`, and advances. Focus moves to the next review heading, or to the _Review complete_ heading.
+- Reason, usage and decision controls are buttons with `aria-pressed` reflecting the current value. The reason buttons and the usage buttons each sit in a group (`role="group"`) labelled by their question. After a reason or usage choice saves, focus stays on the chosen button.
 - The progress bar shows decided / total, with an accessible label (e.g. "3 of 7 reviewed").
 
 ### Savings card
 
-- A single dark card with _Potential annual savings_ as one line per currency. When there are no Cancel decisions, it shows a zero amount in the preferred currency (or € if none).
+- A single dark card with _Potential annual savings_ as one line for each currency that has subscriptions, in the same order as the reality cards, including zero lines (e.g. €0 and $0 when nothing is marked Cancel). With no subscriptions at all, it shows a single neutral zero while the card is dimmed.
 - Keep, Unsure and Cancel counts across all currencies.
 - Insight box:
   - no subscriptions → "Add your subscriptions first. Your review insights will appear here."
@@ -273,12 +275,13 @@ interface AppState {
 
 - A good test drives the app the way a user or caller does and asserts on observable outcomes: rendered text, pressed states, focus, what a reload shows. Tests don't reach into component internals, private signals or template structure beyond accessible roles, labels and text.
 - Three seams, in this order of preference:
-  1. **Page seam (primary).** Render the root App with TestBed. Provide the in-memory storage fake in place of the IndexedDB adapter, and interact through the DOM: fill the add form, click buttons, open edit, answer the delete question, select insight names. This covers every user story end to end: empty state, add and validation toasts, preferred currency behavior, per-currency reality cards, review order and _Review again_, savings lines and counts, insight copy and name selection, edit/delete flows, dimmed/inert sections, `aria-pressed` and focus moves.
-  2. **Storage seam.** A reload test: seed or save state through the page, destroy the fixture, create a new App on the same in-memory fake, and assert that subscriptions, decisions and the preferred currency come back and the review resumes at the first undecided subscription. Also test that a failing fake (load or save rejects) leaves the page usable.
-  3. **Domain seam.** Direct unit tests on the pure domain module for the rules with many cases: monthly/annual cost, recurring cost per currency and first-used ordering, estimated usage table, rarely used, review queue order, potential savings and "after" totals, review candidates, name normalization and uniqueness (including excluding self on rename), price validation (0, negative, 3 decimals), money formatting per currency and decimals, and amount joining for 1/2/3+ currencies.
+  1. **Page seam (primary).** Render the root App with TestBed. Provide the in-memory storage fake in place of the IndexedDB adapter, and interact through the DOM: fill the add form, click buttons, open edit, answer the delete question, select insight names. This covers every user story end to end: empty state, add and validation toasts, preferred currency behavior, per-currency reality cards, review order and _Review again_, savings lines and counts, insight copy and name selection, edit/delete flows, dimmed sections with readable text, the storage-failure notice, `aria-pressed` and focus moves.
+  2. **Storage seam.** A reload test: seed or save state through the page, destroy the fixture, create a new App on the same in-memory fake, and assert that subscriptions, decisions and the preferred currency come back and the review resumes at the first undecided subscription. Test that quick edits in a row, with the first save held pending, still land in order: release the saves, wait for them to settle, then reload and see the final state. Test that unreadable stored data leads to an empty page with the notice, and that the unreadable data is kept under the backup key. Also test that a failing fake (load or save rejects) leaves the page usable and shows the notice that changes only last for this visit.
+  3. **Domain seam.** Direct unit tests on the pure domain module for the rules with many cases: monthly/annual cost, recurring cost per currency and first-used ordering, estimated usage table and re-estimation only while usage is unconfirmed, rarely used, review queue order, potential savings and "after" totals, review candidates, name normalization and uniqueness (including excluding self on rename), price validation (0, negative, 3 decimals), money formatting per currency and decimals (including a tiny non-zero annual amount that must not show as zero), and amount joining for 1/2/3+ currencies.
 - The real IndexedDB adapter isn't unit-tested (jsdom has no IndexedDB, and no new dependencies are allowed). Check it by hand in the browser: add, refresh, restart.
 - Prior art: the scaffold's root-component spec, which uses TestBed + Vitest + jsdom via `npm test -- --watch=false`. Its placeholder title assertion is replaced by page-seam tests.
-- Accessibility: page tests assert roles, accessible names, `aria-pressed`, live-region presence, `inert` on dimmed sections, and focus targets. Full AXE and contrast checks are done in the browser.
+- Accessibility: page tests assert roles, accessible names (including the labelled review groups), `aria-pressed`, `aria-invalid` and the persistent `aria-describedby` error text on invalid fields, live-region presence, and focus targets (after the first add, after deleting the last subscription, after review choices and decisions).
+- Accessibility gate (repeatable, manual, no new npm dependency): run axe in the browser (DevTools or the axe extension) and get zero violations, including contrast, on each of these states: empty page; one currency; several currencies; review in progress; review complete; edit open with an invalid field; delete question open; insight with review candidates; storage-failure notice showing.
 
 ## Out of Scope
 
@@ -294,16 +297,21 @@ interface AppState {
 
 ## Further Notes
 
-The agreed documents leave these points open. The spec fills them with the defaults below. Confirm or change them before implementation:
+The agreed documents leave these points open. The spec settles them as below, after two review rounds with Codex (debate lane) and the owner's ruling on annual rounding:
 
-1. **Reason change in the review** never re-estimates usage. Only the edit form does, and only while undecided.
-2. **"Usage confirmed" is derived** from having a decision, not stored. So _Not yet, keep it_ (which sets Cancel) also confirms usage.
+1. **Reason change in the review** never re-estimates usage. Only the edit form does, and only while `usageConfirmed` is false.
+2. **Usage confirmation is stored** as `usageConfirmed` and set only by a decision in the review. _Not yet, keep it_ sets Cancel without confirming usage.
 3. **Edits apply live** whenever the whole edit form is valid. There is no "discard changes". **Done** closes the form and is blocked while the form is invalid.
 4. **Currency card order** is first-used among _current_ subscriptions. Deleting every subscription in a currency drops its card, and reusing that currency later puts its card at the end.
-5. **Before the first subscription**, the reality section, the review section and the savings card are shown dimmed and `inert`, as the prototype's locked styling suggests.
-6. **Insight name selection** can bring up an already-decided subscription. After the next decision, the review goes back to the first undecided one.
+5. **Before the first subscription**, the reality section, the review section and the savings card are dimmed, not `inert`. Their text stays readable to screen readers and meets AA contrast.
+6. **Insight name selection** can bring up an already-decided subscription. After the next decision, the review goes back to where it was: an active _Review again_ pass continues from its position, otherwise the first undecided one.
 7. **Amount joining** for 3+ currencies uses commas and a final "and": "€120, $60 and £40".
 8. **Duplicate-name toast** uses the existing subscription's name in both places ("You already have Netflix. … like 'Netflix Family'.").
-9. **Zero savings** shows a zero in the preferred currency, or € when there is none yet, as the prototype does.
+9. **Zero savings** shows one zero line for each currency that has subscriptions.
+10. **Annual rounding** uses whole units, except that a non-zero amount that would round to zero shows cents (decided by the owner).
+11. **Review again** reads the live list: a subscription added mid-pass appears at the end of the same pass.
+12. **Storage failure** shows a persistent notice that changes only last for this visit.
+13. **Unreadable stored data** is copied to a backup key, the app starts empty, and the storage notice explains what happened.
+14. **Focus after structural changes:** the first add focuses the _See the reality_ heading; deleting the last subscription reveals the add form and focuses its name field.
 
 The prototype stores `usage: "Monthly"` by default, updates the preferred currency on dropdown change, defaults the currency to EUR and uses `maybe`. All four are superseded by agreed-changes and this spec.
