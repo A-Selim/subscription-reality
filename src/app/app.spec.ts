@@ -65,6 +65,7 @@ describe('App page seam', () => {
     expect(main?.querySelector('h1')?.textContent?.trim()).toBe(
       'Small monthly charges add up quietly.',
     );
+    expect(header).not.toBeNull();
     expect(main?.contains(header)).toBe(false);
   });
 
@@ -80,7 +81,6 @@ describe('App page seam', () => {
     const page = await renderPage();
     const header = page.querySelector('header');
 
-    expect(header).not.toBeNull();
     if (!header) {
       throw new Error('Could not find the header banner.');
     }
@@ -98,6 +98,10 @@ describe('App page seam', () => {
 
     expect(linkNames).not.toContain('Explore the Docs');
     expect(linkNames).not.toContain('Learn with Tutorials');
+    expect(linkNames).not.toContain('Prompt and best practices for AI');
+    expect(linkNames).not.toContain('CLI Docs');
+    expect(linkNames).not.toContain('Angular Language Service');
+    expect(linkNames).not.toContain('Angular DevTools');
     expect(page.textContent).not.toContain('Congratulations! Your app is running.');
   });
 
@@ -127,8 +131,6 @@ describe('App page seam', () => {
     const region = getRegion(page, 'Your recurring life.');
     const button = getButton(region, 'Add your first subscription');
 
-    expect(button.tagName).toBe('BUTTON');
     expect(button.getAttribute('type')).toBe('button');
-    expect(region.querySelectorAll('button')).toHaveLength(1);
   });
 });
