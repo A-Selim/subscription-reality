@@ -16,6 +16,18 @@ describe('App page seam', () => {
     expect(headings[0].textContent?.trim()).toBe('Small monthly charges add up quietly.');
   });
 
+  it('places the page heading in main and the header outside main', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+    const main = page.querySelector('main');
+
+    expect(main?.querySelector('h1')?.textContent?.trim()).toBe(
+      'Small monthly charges add up quietly.',
+    );
+    expect(main?.querySelector('header')).toBeNull();
+  });
+
   it('shows the subscriptions explanation', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
