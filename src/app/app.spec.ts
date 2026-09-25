@@ -111,6 +111,7 @@ describe('App page seam', () => {
     const region = getRegion(page, 'Your recurring life.');
 
     expect(main?.contains(region)).toBe(true);
+    expect(region.querySelector('h2')?.textContent?.trim()).toBe('Your recurring life.');
     expect(region.querySelector('h3')?.textContent?.trim()).toBe(
       'What are you paying for every month?',
     );
