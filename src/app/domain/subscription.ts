@@ -1,0 +1,46 @@
+export type Currency = 'EUR' | 'USD' | 'GBP' | 'EGP';
+export type BillingFrequency = 'monthly' | 'yearly';
+export type Reason =
+  | 'Essential'
+  | 'High Value'
+  | 'Convenience'
+  | 'Nice to Have'
+  | 'Occasional Use'
+  | 'Work / Learning';
+export type Usage = 'Daily' | 'Weekly' | 'Monthly' | 'Rarely' | 'Almost Never';
+export type ReviewDecision = 'keep' | 'unsure' | 'cancel';
+
+export interface Subscription {
+  id: string;
+  sequence: number;
+  name: string;
+  price: number;
+  billingFrequency: BillingFrequency;
+  currency: Currency;
+  reason: Reason;
+  usage: Usage;
+  usageConfirmed: boolean;
+  decision: ReviewDecision | null;
+}
+
+export interface AppState {
+  version: 1;
+  subscriptions: Subscription[];
+  preferredCurrency: Currency | null;
+  nextSequence: number;
+}
+
+export function estimateUsage(reason: Reason): Usage {
+  switch (reason) {
+    case 'Essential':
+    case 'High Value':
+    case 'Work / Learning':
+      return 'Daily';
+    case 'Convenience':
+      return 'Weekly';
+    case 'Nice to Have':
+      return 'Monthly';
+    case 'Occasional Use':
+      return 'Rarely';
+  }
+}
