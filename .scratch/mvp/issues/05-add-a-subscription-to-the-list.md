@@ -1,6 +1,6 @@
 # 05: Add a subscription to the list
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 04
 Test seam: Page seam; domain seam for the estimated-usage table
