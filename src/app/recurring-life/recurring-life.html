@@ -40,14 +40,10 @@
           <li>
             <article class="subscription-card" [attr.aria-label]="subscription.name">
               <div class="card-top">
-                <span class="monogram" aria-hidden="true">{{
-                  subscription.name.slice(0, 2).toUpperCase()
-                }}</span>
+                <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
                 <span class="card-price"
                   >{{ subscription.price }}
-                  <small
-                    >/ {{ subscription.billingFrequency === 'monthly' ? 'month' : 'year' }}</small
-                  ></span
+                  <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
                 >
               </div>
               <h3>{{ subscription.name }}</h3>
@@ -62,62 +58,7 @@
     }
 
     @if (showForm() || hasSubscriptions()) {
-      <form class="add-form" (submit)="add($event)" novalidate aria-labelledby="add-heading">
-        <h3 id="add-heading">Add a subscription</h3>
-        <div class="form-grid">
-          <div class="field-group">
-            <label for="subscription-name">Subscription name</label>
-            <input
-              #nameInput
-              id="subscription-name"
-              type="text"
-              autocomplete="off"
-              placeholder="e.g. Spotify"
-              [formField]="addForm.name"
-            />
-          </div>
-          <div class="field-group">
-            <label for="subscription-price">Price</label>
-            <input
-              id="subscription-price"
-              type="number"
-              inputmode="decimal"
-              step="0.01"
-              placeholder="0.00"
-              [formField]="addForm.price"
-            />
-          </div>
-          <div class="field-group">
-            <label for="subscription-billing">Billing frequency</label>
-            <select id="subscription-billing" [formField]="addForm.billingFrequency">
-              <option value="">Choose billing frequency</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label for="subscription-currency">Currency</label>
-            <select id="subscription-currency" [formField]="addForm.currency">
-              <option value="">Choose currency</option>
-              @for (currency of currencies; track currency) {
-                <option [value]="currency">{{ currency }}</option>
-              }
-            </select>
-          </div>
-          <div class="field-group">
-            <label for="subscription-reason">Reason</label>
-            <select id="subscription-reason" [formField]="addForm.reason">
-              @for (reason of reasons; track reason) {
-                <option [value]="reason">{{ reason }}</option>
-              }
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="primary">Add</button>
-        <p class="usage-note">
-          Usage is estimated from your reason. You can refine it in the review.
-        </p>
-      </form>
+      <app-add-subscription-form />
     }
   </div>
 </section>

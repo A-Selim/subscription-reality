@@ -30,6 +30,14 @@ export interface AppState {
   nextSequence: number;
 }
 
+export function monogram(name: string): string {
+  return name.slice(0, 2).toUpperCase();
+}
+
+export function billingUnitLabel(frequency: BillingFrequency): string {
+  return frequency === 'monthly' ? 'month' : 'year';
+}
+
 export function estimateUsage(reason: Reason): Usage {
   switch (reason) {
     case 'Essential':
