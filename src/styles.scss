@@ -1,1 +1,51 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg: #f6f6f2;
+  --paper: #fffdf8;
+  --ink: #171717;
+  --muted: #6e6e68;
+  --line: #deded6;
+  --accent: #6f5cff;
+  --accent-soft: #ece9ff;
+  --green: #207a53;
+  --green-soft: #e8f6ee;
+  --amber: #9a6b00;
+  --amber-soft: #fff4d7;
+  --red: #b33d46;
+  --red-soft: #fdecee;
+  --shadow: 0 20px 60px rgba(30, 30, 20, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 5%, rgba(111, 92, 255, 0.1), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(255, 197, 92, 0.12), transparent 25%), var(--bg);
+  color: var(--ink);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
