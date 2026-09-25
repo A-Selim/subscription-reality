@@ -1,6 +1,6 @@
 # 04: Dimmed sections before the first subscription
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 03
 Test seam: Page seam
