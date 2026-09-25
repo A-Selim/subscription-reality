@@ -154,8 +154,8 @@ Everything survives a refresh, a browser restart and reopening the app.
 
 ### Structure
 
-- One page with no router (ADR 0001). The root component composes the section components in order: top bar and hero, _Your recurring life_, _See the reality_, then the review area with the review card and the savings card side by side (stacked on small screens).
-- Components are standalone, small and focused: top bar/hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view, in-place edit view, delete question), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
+- One page with no router (ADR 0001). The root component composes the section components in order: the top bar as the page `header`, then inside `main` the hero, _Your recurring life_, _See the reality_, then the review area with the review card and the savings card side by side (stacked on small screens). The hero holds the page's only `h1`, so it sits inside `main`.
+- Components are standalone, small and focused: top bar, hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view, in-place edit view, delete question), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
 - Visual styling follows the prototype. The prototype's markup and scripts are never imported.
 
 ### Domain module (pure, no Angular)
