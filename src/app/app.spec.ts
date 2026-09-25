@@ -44,6 +44,14 @@ function getList(root: HTMLElement, label: string): HTMLUListElement {
   return list;
 }
 
+function getFocusableElements(root: HTMLElement): Element[] {
+  return Array.from(
+    root.querySelectorAll(
+      'a[href], area[href], button, input, select, textarea, summary, iframe, [tabindex], [contenteditable]',
+    ),
+  );
+}
+
 describe('App page seam', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({ imports: [App] }).compileComponents();
@@ -133,5 +141,61 @@ describe('App page seam', () => {
     const button = getButton(region, 'Add your first subscription');
 
     expect(button.getAttribute('type')).toBe('button');
+  });
+
+  it('shows readable empty copy and zero figures in the reality, review and savings regions', async () => {
+    const page = await renderPage();
+    const reality = getRegion(page, 'See the reality.');
+    const review = getRegion(page, 'Add a subscription first');
+    const savings = getRegion(page, 'Potential annual savings');
+
+    expect(reality.textContent).toContain('Add a subscription first');
+    expect(reality.textContent).toContain('0 every month');
+    expect(reality.textContent).toContain('0 / year');
+    expect(review.textContent).toContain(
+      'Your review will start here once there is something to reflect on.',
+    );
+    expect(savings.textContent).toContain(
+      'Add your subscriptions first. Your review insights will appear here.',
+    );
+    expect(savings.textContent).toContain('0 / year');
+    expect(savings.textContent?.match(/0/g)).toHaveLength(1);
+
+    for (const region of [reality, review, savings]) {
+      expect(region.closest('[inert], [aria-hidden="true"]')).toBeNull();
+      for (const textElement of region.querySelectorAll('h2, h3, p, dt, dd')) {
+        expect(textElement.closest('[inert], [aria-hidden="true"]')).toBeNull();
+      }
+    }
+  });
+
+  it('places the dimmed areas after recurring life without adding tab stops', async () => {
+    const page = await renderPage();
+    const main = page.querySelector('main');
+    const recurringLife = getRegion(page, 'Your recurring life.');
+    const reality = getRegion(page, 'See the reality.');
+    const reviewArea = getRegion(page, 'Would you still subscribe today?');
+    const review = getRegion(page, 'Add a subscription first');
+    const savings = getRegion(page, 'Potential annual savings');
+
+    expect(main?.contains(reality)).toBe(true);
+    expect(main?.contains(reviewArea)).toBe(true);
+    expect(
+      recurringLife.compareDocumentPosition(reality) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      reality.compareDocumentPosition(reviewArea) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(reviewArea.contains(review)).toBe(true);
+    expect(reviewArea.contains(savings)).toBe(true);
+
+    for (const region of [reality, reviewArea, review, savings]) {
+      expect(getFocusableElements(region)).toEqual([]);
+      expect(region.querySelector('button')).toBeNull();
+    }
+
+    expect(getFocusableElements(main as HTMLElement)).toEqual([
+      getButton(recurringLife, 'Add your first subscription'),
+    ]);
   });
 });

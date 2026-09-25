@@ -1,0 +1,42 @@
+section {
+  min-height: 330px;
+  padding: 28px;
+  border: 1px solid #6a6a63;
+  border-radius: 32px;
+  background: #3c3c39;
+  color: #f3f3ed;
+}
+
+h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.amount {
+  margin: 8px 0 0;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.amount span {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.insight {
+  margin: 28px 0 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: #4b4b46;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  section {
+    border-radius: 26px;
+    padding: 22px;
+  }
+}

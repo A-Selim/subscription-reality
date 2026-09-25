@@ -1,6 +1,6 @@
 # 02: Top bar and hero
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: None (can start immediately)
 Test seam: Page seam (render the root App with TestBed)

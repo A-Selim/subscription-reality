@@ -1,6 +1,6 @@
 # 03: Empty _Your recurring life_ section
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 02
 Test seam: Page seam
