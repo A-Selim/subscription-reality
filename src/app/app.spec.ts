@@ -1,3 +1,4 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
@@ -50,6 +51,22 @@ function getFocusableElements(root: HTMLElement): Element[] {
       'a[href], area[href], button, input, select, textarea, summary, iframe, [tabindex], [contenteditable]',
     ),
   );
+}
+
+async function settlePage(): Promise<void> {
+  await TestBed.inject(ApplicationRef).whenStable();
+}
+
+function setField(root: HTMLElement, id: string, value: string): void {
+  const field = root.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`);
+  if (!field) {
+    throw new Error(`Could not find field "${id}".`);
+  }
+  field.value = value;
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+  if (field instanceof HTMLSelectElement) {
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+  }
 }
 
 describe('App page seam', () => {
@@ -141,6 +158,103 @@ describe('App page seam', () => {
     const button = getButton(region, 'Add your first subscription');
 
     expect(button.getAttribute('type')).toBe('button');
+  });
+
+  it('reveals the add form with its initial values and estimated Usage note', async () => {
+    const page = await renderPage();
+    const region = getRegion(page, 'Your recurring life.');
+
+    expect(region.querySelector('form')).toBeNull();
+    getButton(region, 'Add your first subscription').click();
+    await settlePage();
+
+    expect(region.querySelector<HTMLSelectElement>('#subscription-reason')?.value).toBe(
+      'Essential',
+    );
+    expect(region.querySelector<HTMLSelectElement>('#subscription-billing')?.value).toBe('');
+    expect(region.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe('');
+    expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+    expect(region.querySelector('#subscription-usage')).toBeNull();
+    expect(region.querySelector('form')?.textContent).toContain(
+      'Usage is estimated from your reason. You can refine it in the review.',
+    );
+
+    getButton(region, 'Add').click();
+    await settlePage();
+    expect(region.querySelectorAll('.subscription-card')).toHaveLength(0);
+  });
+
+  it('adds subscriptions in order, estimates Usage, and resets the add form', async () => {
+    const page = await renderPage();
+    const region = getRegion(page, 'Your recurring life.');
+    getButton(region, 'Add your first subscription').click();
+    await settlePage();
+
+    setField(region, 'subscription-name', ' Spotify ');
+    setField(region, 'subscription-price', '9.99');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    setField(region, 'subscription-reason', 'Occasional Use');
+    await settlePage();
+    getButton(region, 'Add').click();
+    await settlePage();
+
+    const cards = () => Array.from(getList(region, 'Subscriptions').querySelectorAll('article'));
+    expect(cards()).toHaveLength(1);
+    expect(cards()[0].textContent).toContain('Spotify');
+    expect(cards()[0].textContent).toContain('9.99');
+    expect(cards()[0].textContent).toContain('/ month');
+    expect(cards()[0].textContent).toContain('Reason: Occasional Use');
+    expect(cards()[0].textContent).toContain('Usage: Rarely');
+    expect(region.querySelector('.empty-state')).toBeNull();
+    expect(region.querySelector('#subscription-name')).not.toBeNull();
+    expect(region.querySelector<HTMLInputElement>('#subscription-name')?.value).toBe('');
+    expect(region.querySelector<HTMLInputElement>('#subscription-price')?.value).toBe('');
+    expect(region.querySelector<HTMLSelectElement>('#subscription-billing')?.value).toBe('');
+    expect(region.querySelector<HTMLSelectElement>('#subscription-reason')?.value).toBe(
+      'Essential',
+    );
+    expect(region.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe('EUR');
+
+    setField(region, 'subscription-name', 'Cloud');
+    setField(region, 'subscription-price', '24');
+    setField(region, 'subscription-billing', 'yearly');
+    setField(region, 'subscription-reason', 'Convenience');
+    await settlePage();
+    getButton(region, 'Add').click();
+    await settlePage();
+
+    expect(cards()).toHaveLength(2);
+    expect(cards().map((card) => card.querySelector('h3')?.textContent?.trim())).toEqual([
+      'Spotify',
+      'Cloud',
+    ]);
+    expect(cards()[1].textContent).toContain('/ year');
+    expect(cards()[1].textContent).toContain('Usage: Weekly');
+    expect(region.querySelector('form')).not.toBeNull();
+  });
+
+  it.each([
+    ['Essential', 'Daily'],
+    ['Nice to Have', 'Monthly'],
+  ])('shows %s Reason with estimated %s Usage on a card', async (reason, usage) => {
+    const page = await renderPage();
+    const region = getRegion(page, 'Your recurring life.');
+    getButton(region, 'Add your first subscription').click();
+    await settlePage();
+
+    setField(region, 'subscription-name', 'Example');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'USD');
+    setField(region, 'subscription-reason', reason);
+    await settlePage();
+    getButton(region, 'Add').click();
+    await settlePage();
+
+    const card = getList(region, 'Subscriptions').querySelector('article');
+    expect(card?.textContent).toContain(`Reason: ${reason}`);
+    expect(card?.textContent).toContain(`Usage: ${usage}`);
   });
 
   it('shows readable empty copy and zero figures in the reality, review and savings regions', async () => {

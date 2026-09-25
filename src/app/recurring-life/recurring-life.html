@@ -10,24 +10,55 @@
   </div>
 
   <div class="recurring-shell">
-    <div class="empty-state">
-      <div>
-        <div class="empty-icon" aria-hidden="true">↻</div>
-        <h3>What are you paying for every month?</h3>
-        <p>
-          Most people underestimate how many recurring payments they have. Add your first
-          subscription and start building the full picture.
-        </p>
-        <ul class="motivation" aria-label="Examples">
-          <li>Streaming</li>
-          <li>AI tools</li>
-          <li>Cloud storage</li>
-          <li>Gym</li>
-          <li>News</li>
-          <li>Software</li>
-        </ul>
-        <button type="button" class="primary">Add your first subscription</button>
+    @if (!hasSubscriptions()) {
+      <div class="empty-state">
+        <div>
+          <div class="empty-icon" aria-hidden="true">↻</div>
+          <h3>What are you paying for every month?</h3>
+          <p>
+            Most people underestimate how many recurring payments they have. Add your first
+            subscription and start building the full picture.
+          </p>
+          <ul class="motivation" aria-label="Examples">
+            <li>Streaming</li>
+            <li>AI tools</li>
+            <li>Cloud storage</li>
+            <li>Gym</li>
+            <li>News</li>
+            <li>Software</li>
+          </ul>
+          @if (!showForm()) {
+            <button type="button" class="primary" (click)="revealForm()">
+              Add your first subscription
+            </button>
+          }
+        </div>
       </div>
-    </div>
+    } @else {
+      <ul class="subscription-list" aria-label="Subscriptions">
+        @for (subscription of subscriptions(); track subscription.id) {
+          <li>
+            <article class="subscription-card" [attr.aria-label]="subscription.name">
+              <div class="card-top">
+                <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
+                <span class="card-price"
+                  >{{ subscription.price }}
+                  <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
+                >
+              </div>
+              <h3>{{ subscription.name }}</h3>
+              <div class="card-details">
+                <span class="reason">Reason: {{ subscription.reason }}</span>
+                <span class="usage">Usage: {{ subscription.usage }}</span>
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (showForm() || hasSubscriptions()) {
+      <app-add-subscription-form />
+    }
   </div>
 </section>

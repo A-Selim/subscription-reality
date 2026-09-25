@@ -104,6 +104,87 @@ h2 {
   outline-offset: 3px;
 }
 
+.subscription-list {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0 0 10px;
+  list-style: none;
+}
+
+.subscription-list li {
+  flex: 0 0 min(250px, 100%);
+}
+
+.subscription-card {
+  min-height: 182px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.monogram {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.card-price {
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.card-price small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subscription-card h3 {
+  margin: 18px 0 0;
+  font-size: 18px;
+}
+
+.card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.card-details span {
+  padding: 7px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reason {
+  background: var(--accent-soft);
+  color: #5645d8;
+}
+
+.usage {
+  background: #edf6ff;
+  color: #356b9c;
+}
+
 @media (max-width: 560px) {
   section {
     padding: 50px 0;
