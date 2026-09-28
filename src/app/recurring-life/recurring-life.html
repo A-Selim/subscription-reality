@@ -42,11 +42,12 @@
               <div class="card-top">
                 <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
                 <span class="card-price"
-                  >{{ subscription.price }}
+                  >{{ priceText(subscription) }}
                   <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
                 >
               </div>
               <h3>{{ subscription.name }}</h3>
+              <p class="yearly">Annual cost {{ annualCostText(subscription) }}</p>
               <div class="card-details">
                 <span class="reason">Reason: {{ subscription.reason }}</span>
                 <span class="usage">Usage: {{ subscription.usage }}</span>

@@ -202,8 +202,11 @@ describe('App page seam', () => {
     const cards = () => Array.from(getList(region, 'Subscriptions').querySelectorAll('article'));
     expect(cards()).toHaveLength(1);
     expect(cards()[0].textContent).toContain('Spotify');
-    expect(cards()[0].textContent).toContain('9.99');
-    expect(cards()[0].textContent).toContain('/ month');
+    expect(cards()[0].querySelector('.monogram')?.textContent?.trim()).toBe('SP');
+    expect(cards()[0].querySelector('.card-price')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '€9.99 / month',
+    );
+    expect(cards()[0].querySelector('.yearly')?.textContent?.trim()).toBe('Annual cost €120');
     expect(cards()[0].textContent).toContain('Reason: Occasional Use');
     expect(cards()[0].textContent).toContain('Usage: Rarely');
     expect(region.querySelector('.empty-state')).toBeNull();
@@ -229,10 +232,42 @@ describe('App page seam', () => {
       'Spotify',
       'Cloud',
     ]);
-    expect(cards()[1].textContent).toContain('/ year');
+    expect(cards()[1].querySelector('.card-price')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '€24.00 / year',
+    );
+    expect(cards()[1].querySelector('.yearly')?.textContent?.trim()).toBe('Annual cost €24');
     expect(cards()[1].textContent).toContain('Usage: Weekly');
     expect(region.querySelector('form')).not.toBeNull();
   });
+
+  it.each([
+    ['USD', 'netflix', '$60.00 / year', 'Annual cost $60', 'NE'],
+    ['GBP', 'BritBox', '£60.00 / year', 'Annual cost £60', 'BR'],
+    ['EGP', 'Cinema', 'E£60.00 / year', 'Annual cost E£60', 'CI'],
+  ])(
+    'shows %s price, Annual cost, and monogram on a card',
+    async (currency, name, price, annual, initials) => {
+      const page = await renderPage();
+      const region = getRegion(page, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      await settlePage();
+
+      setField(region, 'subscription-name', name);
+      setField(region, 'subscription-price', '60');
+      setField(region, 'subscription-billing', 'yearly');
+      setField(region, 'subscription-currency', currency);
+      await settlePage();
+      getButton(region, 'Add').click();
+      await settlePage();
+
+      const card = getList(region, 'Subscriptions').querySelector('article');
+      expect(card?.querySelector('.monogram')?.textContent?.trim()).toBe(initials);
+      expect(card?.querySelector('.card-price')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+        price,
+      );
+      expect(card?.querySelector('.yearly')?.textContent?.trim()).toBe(annual);
+    },
+  );
 
   it.each([
     ['Essential', 'Daily'],
