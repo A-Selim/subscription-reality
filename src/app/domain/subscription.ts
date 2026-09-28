@@ -1,12 +1,15 @@
-export type Currency = 'EUR' | 'USD' | 'GBP' | 'EGP';
+export const CURRENCIES = ['EUR', 'USD', 'GBP', 'EGP'] as const;
+export type Currency = (typeof CURRENCIES)[number];
 export type BillingFrequency = 'monthly' | 'yearly';
-export type Reason =
-  | 'Essential'
-  | 'High Value'
-  | 'Convenience'
-  | 'Nice to Have'
-  | 'Occasional Use'
-  | 'Work / Learning';
+export const REASONS = [
+  'Essential',
+  'High Value',
+  'Convenience',
+  'Nice to Have',
+  'Occasional Use',
+  'Work / Learning',
+] as const;
+export type Reason = (typeof REASONS)[number];
 export type Usage = 'Daily' | 'Weekly' | 'Monthly' | 'Rarely' | 'Almost Never';
 export type ReviewDecision = 'keep' | 'unsure' | 'cancel';
 

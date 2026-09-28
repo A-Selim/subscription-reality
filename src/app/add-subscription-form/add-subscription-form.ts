@@ -8,7 +8,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
-import { type BillingFrequency, type Currency, type Reason } from '../domain/subscription';
+import {
+  CURRENCIES,
+  REASONS,
+  type BillingFrequency,
+  type Currency,
+  type Reason,
+} from '../domain/subscription';
 import { SubscriptionsState } from '../state/subscriptions-state';
 
 interface AddSubscriptionFields {
@@ -40,15 +46,8 @@ export class AddSubscriptionForm {
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
-  readonly currencies: readonly Currency[] = ['EUR', 'USD', 'GBP', 'EGP'];
-  readonly reasons: readonly Reason[] = [
-    'Essential',
-    'High Value',
-    'Convenience',
-    'Nice to Have',
-    'Occasional Use',
-    'Work / Learning',
-  ];
+  readonly currencies = CURRENCIES;
+  readonly reasons = REASONS;
 
   readonly addModel = signal<AddSubscriptionFields>(
     createEmptyFields(this.subscriptionsState.preferredCurrency()),
