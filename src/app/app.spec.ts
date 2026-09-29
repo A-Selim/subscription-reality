@@ -74,8 +74,12 @@ function addSubscription(fixture: ComponentFixture<App>, region: HTMLElement, na
   setField(region, 'subscription-price', '9.99');
   setField(region, 'subscription-billing', 'monthly');
   setField(region, 'subscription-currency', 'EUR');
-  getButton(region, 'Add').click();
+  clickAdd(region);
   fixture.detectChanges();
+}
+
+function clickAdd(region: HTMLElement): void {
+  getButton(region, 'Add subscription').click();
 }
 
 function setField(root: HTMLElement, id: string, value: string): void {
@@ -200,9 +204,70 @@ describe('App page seam', () => {
       'Usage is estimated from your reason. You can refine it in the review.',
     );
 
-    getButton(region, 'Add').click();
+    clickAdd(region);
     await settlePage();
     expect(region.querySelectorAll('.subscription-card')).toHaveLength(0);
+  });
+
+  it('gives add controls accessible names from visually hidden labels and heading', async () => {
+    const { region } = await prepareAddForm();
+    const form = region.querySelector<HTMLFormElement>('form');
+    const expectedNames = new Map([
+      ['subscription-name', 'Subscription name'],
+      ['subscription-price', 'Price'],
+      ['subscription-billing', 'Billing frequency'],
+      ['subscription-currency', 'Currency'],
+      ['subscription-reason', 'Reason'],
+    ]);
+
+    expect(form?.getAttribute('aria-labelledby')).toBe('add-heading');
+    expect(region.querySelector('#add-heading')?.textContent?.trim()).toBe('Add a subscription');
+    for (const [id, name] of expectedNames) {
+      const label = region.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
+      expect(label?.textContent?.trim()).toBe(name);
+      expect(label?.control?.id).toBe(id);
+    }
+  });
+
+  it('shows the compact form placeholders and blank select options', async () => {
+    const { region } = await prepareAddForm();
+    const name = region.querySelector<HTMLInputElement>('#subscription-name');
+    const price = region.querySelector<HTMLInputElement>('#subscription-price');
+    const billing = region.querySelector<HTMLSelectElement>('#subscription-billing');
+    const currency = region.querySelector<HTMLSelectElement>('#subscription-currency');
+
+    expect(name?.placeholder).toBe('Name e.g. Spotify');
+    expect(price?.placeholder).toBe('Price');
+    expect(billing?.options[0]?.text).toBe('Billing');
+    expect(billing?.options[0]?.value).toBe('');
+    expect(currency?.options[0]?.text).toBe('Currency');
+    expect(currency?.options[0]?.value).toBe('');
+  });
+
+  it('updates blank select styling as values are selected and after adding', async () => {
+    const { fixture, region } = await prepareAddForm();
+    const billing = region.querySelector<HTMLSelectElement>('#subscription-billing');
+    const currency = region.querySelector<HTMLSelectElement>('#subscription-currency');
+
+    expect(billing?.classList.contains('is-empty')).toBe(true);
+    expect(currency?.classList.contains('is-empty')).toBe(true);
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    await settlePage();
+    fixture.detectChanges();
+    expect(billing?.classList.contains('is-empty')).toBe(false);
+    expect(currency?.classList.contains('is-empty')).toBe(false);
+
+    setField(region, 'subscription-name', 'Spotify');
+    setField(region, 'subscription-price', '9.99');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+
+    expect(billing?.value).toBe('');
+    expect(billing?.classList.contains('is-empty')).toBe(true);
+    expect(currency?.value).toBe('EUR');
+    expect(currency?.classList.contains('is-empty')).toBe(false);
   });
 
   it('adds subscriptions in order, estimates Usage, and resets the add form', async () => {
@@ -217,7 +282,7 @@ describe('App page seam', () => {
     setField(region, 'subscription-currency', 'EUR');
     setField(region, 'subscription-reason', 'Occasional Use');
     await settlePage();
-    getButton(region, 'Add').click();
+    clickAdd(region);
     await settlePage();
 
     const cards = () => Array.from(getList(region, 'Subscriptions').querySelectorAll('article'));
@@ -245,7 +310,7 @@ describe('App page seam', () => {
     setField(region, 'subscription-billing', 'yearly');
     setField(region, 'subscription-reason', 'Convenience');
     await settlePage();
-    getButton(region, 'Add').click();
+    clickAdd(region);
     await settlePage();
 
     expect(cards()).toHaveLength(2);
@@ -266,7 +331,8 @@ describe('App page seam', () => {
     vi.useFakeTimers();
     try {
       const status = region.querySelector<HTMLElement>('[role="status"]');
-      const addButton = getButton(region, 'Add');
+      const addButton = region.querySelector<HTMLButtonElement>('button.primary');
+      if (!addButton) throw new Error('Could not find the Add subscription button.');
       expect(status?.getAttribute('role')).toBe('status');
       expect(status?.textContent?.trim()).toBe('');
       expect(status?.nextElementSibling).toBe(addButton);
@@ -354,7 +420,7 @@ describe('App page seam', () => {
       setField(region, 'subscription-billing', 'yearly');
       setField(region, 'subscription-currency', currency);
       await settlePage();
-      getButton(region, 'Add').click();
+      clickAdd(region);
       await settlePage();
 
       const card = getList(region, 'Subscriptions').querySelector('article');
@@ -381,7 +447,7 @@ describe('App page seam', () => {
     setField(region, 'subscription-currency', 'USD');
     setField(region, 'subscription-reason', reason);
     await settlePage();
-    getButton(region, 'Add').click();
+    clickAdd(region);
     await settlePage();
 
     const card = getList(region, 'Subscriptions').querySelector('article');

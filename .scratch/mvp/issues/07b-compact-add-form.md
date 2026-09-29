@@ -1,6 +1,6 @@
 # 07b: Compact add form
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 07
 Test seam: Page seam
@@ -11,7 +11,7 @@ Spec: `.scratch/mvp/spec.md` › Implementation Decisions › Add form (layout);
 Restyle the add form so it feels small and quick to fill, like the prototype (`docs/prototype/index.html`: `.add-inline`, `.form-grid`, `.field`, `.helper`). Nothing about what the form does changes. This is layout, copy and labels only.
 
 - **One row on wide screens:** name, price, billing frequency, currency, reason. Two columns under 960px (not the prototype's 820px, so select text isn't clipped), one column under 560px. The form keeps its current width (no 760px cap). Use the prototype's column weights (`1.4fr .7fr .7fr .75fr 1fr`) as the starting point and adjust only if something clips.
-- **Prototype field style:** 16px radius, about 10px gap, compact padding, no big heading. Keep a clearly visible focus ring (2px `--accent` outline is fine; a soft ring alone is not enough).
+- **Prototype field style:** 16px radius, about 10px gap, compact padding, no big heading. Keep a clearly visible focus ring (2px `--accent` outline is fine; a soft ring alone is not enough). **Exception to the prototype:** the field border is `#8a8a84` (about 3.5:1 on white, WCAG 1.4.11), not the faint `--line`, because the border is the only cue for a field's edge once labels are hidden. A select showing its blank option ("Billing", "Currency") uses the muted text colour like the placeholders (class bound to the form model, not `:invalid`).
 - **Labels stay, hidden.** Each control keeps its real `<label>` (same `for`/`id` as today) but visually hidden (a shared visually-hidden utility class, not `display:none`). The heading "Add a subscription" is also visually hidden and still names the form (`aria-labelledby`).
 - **Placeholders:** name `Name e.g. Spotify`, price `Price`. They show whenever the field is empty, including after the user erases it. They must meet AA contrast.
 - **Blank select options:** billing `Billing`, currency `Currency`. Values stay blank (`''`), and the fields stay required and blank by default as agreed. The billing label (hidden) still reads "Billing frequency".
@@ -28,6 +28,6 @@ Update the existing page tests for the new button text and blank-option text. Fi
 - [ ] Name and price show their placeholders when empty, including after the user types and then erases the value.
 - [ ] The blank billing and currency options read "Billing" and "Currency", are not clipped, and still submit as blank. The billing control's accessible name is still "Billing frequency".
 - [ ] The submit button is named "Add subscription"; the toast still sits directly above it.
-- [ ] Focus rings are clearly visible on every field and the button; placeholder and helper text meet WCAG AA contrast.
+- [ ] Focus rings are clearly visible on every field and the button; placeholder and helper text meet WCAG AA contrast, and the field border meets 3:1 (`#8a8a84`).
 - [ ] Adding a subscription behaves exactly as before (reset, name refocus, toast, preferred currency).
 - [ ] `npm run build` and `npm test -- --watch=false` pass.
