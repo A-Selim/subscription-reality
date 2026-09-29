@@ -1,6 +1,7 @@
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { TOAST_DURATION_MS } from './toast/toast';
 
 async function renderPage(): Promise<HTMLElement> {
   const fixture = TestBed.createComponent(App);
@@ -238,6 +239,60 @@ describe('App page seam', () => {
     expect(cards()[1].querySelector('.yearly')?.textContent?.trim()).toBe('Annual cost €24');
     expect(cards()[1].textContent).toContain('Usage: Weekly');
     expect(region.querySelector('form')).not.toBeNull();
+  });
+
+  it('announces successful adds in a persistent status region and restarts the toast timer', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+    const region = getRegion(page, 'Your recurring life.');
+    getButton(region, 'Add your first subscription').click();
+    fixture.detectChanges();
+    await settlePage();
+
+    vi.useFakeTimers();
+    try {
+      const status = region.querySelector<HTMLElement>('[role="status"]');
+      const addButton = getButton(region, 'Add');
+      expect(status).not.toBeNull();
+      expect(status?.getAttribute('role')).toBe('status');
+      expect(status?.textContent?.trim()).toBe('');
+      if (!status) {
+        throw new Error('Could not find the toast status region.');
+      }
+      expect(
+        status.compareDocumentPosition(addButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+
+      const addSubscription = (name: string) => {
+        setField(region, 'subscription-name', name);
+        setField(region, 'subscription-price', '9.99');
+        setField(region, 'subscription-billing', 'monthly');
+        setField(region, 'subscription-currency', 'EUR');
+        getButton(region, 'Add').click();
+        fixture.detectChanges();
+      };
+
+      addSubscription('First');
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 500);
+      fixture.detectChanges();
+      addSubscription('Second');
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 3000);
+      fixture.detectChanges();
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 999);
+      fixture.detectChanges();
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(region.querySelector('[role="status"]')).toBe(status);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it.each([

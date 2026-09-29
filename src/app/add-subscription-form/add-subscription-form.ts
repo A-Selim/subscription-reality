@@ -16,6 +16,7 @@ import {
   type Reason,
 } from '../domain/subscription';
 import { SubscriptionsState } from '../state/subscriptions-state';
+import { Toast, type ToastMessage } from '../toast/toast';
 
 interface AddSubscriptionFields {
   name: string;
@@ -37,7 +38,7 @@ function createEmptyFields(preferredCurrency: Currency | null): AddSubscriptionF
 
 @Component({
   selector: 'app-add-subscription-form',
-  imports: [FormField],
+  imports: [FormField, Toast],
   templateUrl: './add-subscription-form.html',
   styleUrl: './add-subscription-form.scss',
 })
@@ -48,6 +49,8 @@ export class AddSubscriptionForm {
 
   readonly currencies = CURRENCIES;
   readonly reasons = REASONS;
+  readonly toastMessage = signal<ToastMessage | null>(null);
+  private toastId = 0;
 
   readonly addModel = signal<AddSubscriptionFields>(
     createEmptyFields(this.subscriptionsState.preferredCurrency()),
@@ -81,6 +84,7 @@ export class AddSubscriptionForm {
       currency,
       reason,
     });
+    this.toastMessage.set({ id: ++this.toastId, text: 'Subscription added' });
     this.addModel.set(createEmptyFields(this.subscriptionsState.preferredCurrency()));
     this.focusNameAfterRender();
   }
