@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 Lane: feature
-Blocked by: 09
+Blocked by: 09, 07b
 Test seam: Page seam; domain seam for price and name validity
 Spec: `.scratch/mvp/spec.md` › User Stories 18, 20–24; Implementation Decisions › Add form (validation failure), Domain module (price and name validity)
 
@@ -23,7 +23,7 @@ The duplicate-name rule is ticket 11.
 
 ## Acceptance criteria
 
-- [ ] Pressing Add with an empty form adds nothing, focuses the name field, outlines it in red and shows a toast above Add.
+- [ ] Pressing Add subscription with an empty form adds nothing, focuses the name field, outlines it in red and shows a toast above Add.
 - [ ] A price of 0, a negative price, or 9.999 is refused with a toast, and the price field gets focus.
 - [ ] Missing billing frequency or currency is refused in the same way.
 - [ ] A name with surrounding spaces is saved trimmed; a name longer than 40 characters cannot be saved.

@@ -45,6 +45,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 ## Accessibility Requirements
 
+- Every form control MUST have a real `<label>`. In compact layouts (such as the add form) the label may be visually hidden, but a placeholder is never the only label. Placeholder text must still meet AA contrast.
 - It MUST pass all AXE checks.
 - It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
 
