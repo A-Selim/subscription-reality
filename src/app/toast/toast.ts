@@ -1,8 +1,8 @@
-import { Component, computed, effect, input, linkedSignal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 
 export const TOAST_DURATION_MS = 4000;
 
-export interface ToastMessage {
+interface ToastMessage {
   id: number;
   text: string;
 }
@@ -10,26 +10,46 @@ export interface ToastMessage {
 @Component({
   selector: 'app-toast',
   template: `
-    <div class="toast" role="status" [class.toast-visible]="visible()">{{ text() }}</div>
+    @for (message of current(); track message.id) {
+      <span>{{ message.text }}</span>
+    }
   `,
   styleUrl: './toast.scss',
   host: {
-    '[class.toast-host-visible]': 'visible()',
+    role: 'status',
+    '[class.toast-visible]': 'visible()',
   },
 })
 export class Toast {
-  readonly message = input<ToastMessage | null>(null);
-  protected readonly text = computed(() => this.message()?.text ?? '');
-  protected readonly visible = linkedSignal(() => this.message() !== null);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly message = signal<ToastMessage | null>(null);
+  private nextId = 0;
+  private timeout: ReturnType<typeof setTimeout> | undefined;
+
+  protected readonly current = computed(() => {
+    const message = this.message();
+    return message ? [message] : [];
+  });
+  protected readonly visible = signal(false);
 
   constructor() {
-    effect((onCleanup) => {
-      if (!this.message()) {
-        return;
-      }
+    this.destroyRef.onDestroy(() => this.clearTimer());
+  }
 
-      const timeout = setTimeout(() => this.visible.set(false), TOAST_DURATION_MS);
-      onCleanup(() => clearTimeout(timeout));
-    });
+  show(text: string): void {
+    this.clearTimer();
+    this.message.set({ id: ++this.nextId, text });
+    this.visible.set(true);
+    this.timeout = setTimeout(() => {
+      this.visible.set(false);
+      this.timeout = undefined;
+    }, TOAST_DURATION_MS);
+  }
+
+  private clearTimer(): void {
+    if (this.timeout !== undefined) {
+      clearTimeout(this.timeout);
+      this.timeout = undefined;
+    }
   }
 }
