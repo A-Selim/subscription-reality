@@ -2,7 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
-import { InMemoryAppStorage } from './state/in-memory-app-storage';
+import { InMemoryAppStorage } from './testing/in-memory-app-storage';
 import { SubscriptionsState } from './state/subscriptions-state';
 import { renderApp } from './testing/render-app';
 

@@ -1,5 +1,12 @@
 import { Service } from '@angular/core';
-import { CURRENCIES, REASONS, type AppState } from '../domain/subscription';
+import {
+  BILLING_FREQUENCIES,
+  CURRENCIES,
+  REASONS,
+  REVIEW_DECISIONS,
+  USAGES,
+  type AppState,
+} from '../domain/subscription';
 import { AppStorage } from './app-storage';
 
 const DATABASE = 'subscription-reality';
@@ -10,6 +17,10 @@ function isOneOf<T extends string>(value: unknown, choices: readonly T[]): value
   return typeof value === 'string' && choices.some((choice) => choice === value);
 }
 
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
 function isAppState(value: unknown): value is AppState {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
@@ -17,8 +28,7 @@ function isAppState(value: unknown): value is AppState {
     state['version'] !== 1 ||
     !Array.isArray(state['subscriptions']) ||
     !(state['preferredCurrency'] === null || isOneOf(state['preferredCurrency'], CURRENCIES)) ||
-    !Number.isSafeInteger(state['nextSequence']) ||
-    (state['nextSequence'] as number) < 0
+    !isNonNegativeInteger(state['nextSequence'])
   )
     return false;
 
@@ -28,19 +38,16 @@ function isAppState(value: unknown): value is AppState {
     return (
       typeof subscription['id'] === 'string' &&
       typeof subscription['name'] === 'string' &&
-      Number.isSafeInteger(subscription['sequence']) &&
-      (subscription['sequence'] as number) >= 0 &&
+      isNonNegativeInteger(subscription['sequence']) &&
       typeof subscription['price'] === 'number' &&
       Number.isFinite(subscription['price']) &&
       subscription['price'] > 0 &&
-      (subscription['billingFrequency'] === 'monthly' ||
-        subscription['billingFrequency'] === 'yearly') &&
+      isOneOf(subscription['billingFrequency'], BILLING_FREQUENCIES) &&
       isOneOf(subscription['currency'], CURRENCIES) &&
       isOneOf(subscription['reason'], REASONS) &&
-      isOneOf(subscription['usage'], ['Daily', 'Weekly', 'Monthly', 'Rarely', 'Almost Never']) &&
+      isOneOf(subscription['usage'], USAGES) &&
       typeof subscription['usageConfirmed'] === 'boolean' &&
-      (subscription['decision'] === null ||
-        isOneOf(subscription['decision'], ['keep', 'unsure', 'cancel']))
+      (subscription['decision'] === null || isOneOf(subscription['decision'], REVIEW_DECISIONS))
     );
   });
 }

@@ -21,10 +21,13 @@ export class SubscriptionsState {
   private saving = false;
 
   readonly loaded = this.loadedState.asReadonly();
-  readonly ready = this.load();
 
   readonly subscriptions = computed(() => this.state().subscriptions);
   readonly preferredCurrency = computed(() => this.state().preferredCurrency);
+
+  constructor() {
+    void this.load();
+  }
 
   add(input: NewSubscription): void {
     this.state.update((current) => ({

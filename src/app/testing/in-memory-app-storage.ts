@@ -1,5 +1,5 @@
 import type { AppState } from '../domain/subscription';
-import { AppStorage } from './app-storage';
+import { AppStorage } from '../state/app-storage';
 
 export class InMemoryAppStorage extends AppStorage {
   private state: AppState | null = null;

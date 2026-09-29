@@ -1,6 +1,7 @@
 export const CURRENCIES = ['EUR', 'USD', 'GBP', 'EGP'] as const;
 export type Currency = (typeof CURRENCIES)[number];
-export type BillingFrequency = 'monthly' | 'yearly';
+export const BILLING_FREQUENCIES = ['monthly', 'yearly'] as const;
+export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
 export const REASONS = [
   'Essential',
   'High Value',
@@ -10,8 +11,10 @@ export const REASONS = [
   'Work / Learning',
 ] as const;
 export type Reason = (typeof REASONS)[number];
-export type Usage = 'Daily' | 'Weekly' | 'Monthly' | 'Rarely' | 'Almost Never';
-export type ReviewDecision = 'keep' | 'unsure' | 'cancel';
+export const USAGES = ['Daily', 'Weekly', 'Monthly', 'Rarely', 'Almost Never'] as const;
+export type Usage = (typeof USAGES)[number];
+export const REVIEW_DECISIONS = ['keep', 'unsure', 'cancel'] as const;
+export type ReviewDecision = (typeof REVIEW_DECISIONS)[number];
 
 export interface Subscription {
   id: string;
