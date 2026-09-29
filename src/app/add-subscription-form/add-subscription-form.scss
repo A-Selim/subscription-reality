@@ -69,10 +69,12 @@
   opacity: 1;
 }
 
-.field-group input:focus-visible,
-.field-group select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.field-group input:focus,
+.field-group select:focus {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  /* Transparent, not none: keeps a visible outline in forced-colors (high contrast) mode. */
+  outline: 2px solid transparent;
 }
 
 .usage-note {
