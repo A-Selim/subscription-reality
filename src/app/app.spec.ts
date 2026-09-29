@@ -2,12 +2,9 @@ import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
-
-async function renderPage(): Promise<HTMLElement> {
-  const fixture = TestBed.createComponent(App);
-  await fixture.whenStable();
-  return fixture.nativeElement as HTMLElement;
-}
+import { InMemoryAppStorage } from './state/in-memory-app-storage';
+import { SubscriptionsState } from './state/subscriptions-state';
+import { renderApp } from './testing/render-app';
 
 function getRegion(root: HTMLElement, name: string): HTMLElement {
   const heading = Array.from(root.querySelectorAll('h1, h2, h3')).find(
@@ -59,9 +56,7 @@ async function settlePage(): Promise<void> {
 }
 
 async function prepareAddForm() {
-  const fixture = TestBed.createComponent(App);
-  await fixture.whenStable();
-  const page = fixture.nativeElement as HTMLElement;
+  const { fixture, root: page } = await renderApp();
   const region = getRegion(page, 'Your recurring life.');
   getButton(region, 'Add your first subscription').click();
   fixture.detectChanges();
@@ -95,12 +90,8 @@ function setField(root: HTMLElement, id: string, value: string): void {
 }
 
 describe('App page seam', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [App] }).compileComponents();
-  });
-
   it('renders the page heading as its only h1', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const headings = page.querySelectorAll('h1');
 
     expect(headings).toHaveLength(1);
@@ -108,7 +99,7 @@ describe('App page seam', () => {
   });
 
   it('places the page heading in main and the header outside main', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const main = page.querySelector('main');
     const header = page.querySelector('header');
 
@@ -120,7 +111,7 @@ describe('App page seam', () => {
   });
 
   it('shows the subscriptions explanation', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
 
     expect(page.textContent).toContain(
       'Add the subscriptions you pay for. We’ll turn them into one clear picture of what they really cost — and help you decide what still deserves to stay.',
@@ -128,7 +119,7 @@ describe('App page seam', () => {
   });
 
   it('places the Start adding button inside the header banner', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const header = page.querySelector('header');
 
     if (!header) {
@@ -139,7 +130,7 @@ describe('App page seam', () => {
   });
 
   it('does not render scaffold links or greeting text', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
 
     expect(page.textContent).not.toContain('Hello,');
     const linkNames = Array.from(page.querySelectorAll('a')).map(
@@ -156,7 +147,7 @@ describe('App page seam', () => {
   });
 
   it('shows the recurring life empty state in main', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const main = page.querySelector('main');
     const region = getRegion(page, 'Your recurring life.');
 
@@ -168,7 +159,7 @@ describe('App page seam', () => {
   });
 
   it('shows the six examples in order', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const recurringLife = getRegion(page, 'Your recurring life.');
     const examples = Array.from(getList(recurringLife, 'Examples').querySelectorAll('li')).map(
       (item) => item.textContent?.trim(),
@@ -178,7 +169,7 @@ describe('App page seam', () => {
   });
 
   it('offers one Add your first subscription button in the empty state', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const region = getRegion(page, 'Your recurring life.');
     const button = getButton(region, 'Add your first subscription');
 
@@ -186,7 +177,7 @@ describe('App page seam', () => {
   });
 
   it('reveals the add form with its initial values and estimated Usage note', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const region = getRegion(page, 'Your recurring life.');
 
     expect(region.querySelector('form')).toBeNull();
@@ -271,7 +262,7 @@ describe('App page seam', () => {
   });
 
   it('adds subscriptions in order, estimates Usage, and resets the add form', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const region = getRegion(page, 'Your recurring life.');
     getButton(region, 'Add your first subscription').click();
     await settlePage();
@@ -410,7 +401,7 @@ describe('App page seam', () => {
   ])(
     'shows %s price, Annual cost, and monogram on a card',
     async (currency, name, price, annual, initials) => {
-      const page = await renderPage();
+      const page = (await renderApp()).root;
       const region = getRegion(page, 'Your recurring life.');
       getButton(region, 'Add your first subscription').click();
       await settlePage();
@@ -436,7 +427,7 @@ describe('App page seam', () => {
     ['Essential', 'Daily'],
     ['Nice to Have', 'Monthly'],
   ])('shows %s Reason with estimated %s Usage on a card', async (reason, usage) => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const region = getRegion(page, 'Your recurring life.');
     getButton(region, 'Add your first subscription').click();
     await settlePage();
@@ -456,7 +447,7 @@ describe('App page seam', () => {
   });
 
   it('shows readable empty copy and zero figures in the reality, review and savings regions', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const reality = getRegion(page, 'See the reality.');
     const review = getRegion(page, 'Add a subscription first');
     const savings = getRegion(page, 'Potential annual savings');
@@ -482,7 +473,7 @@ describe('App page seam', () => {
   });
 
   it('places the dimmed areas after recurring life without adding tab stops', async () => {
-    const page = await renderPage();
+    const page = (await renderApp()).root;
     const main = page.querySelector('main');
     const recurringLife = getRegion(page, 'Your recurring life.');
     const reality = getRegion(page, 'See the reality.');
@@ -509,5 +500,109 @@ describe('App page seam', () => {
     expect(getFocusableElements(main as HTMLElement)).toEqual([
       getButton(recurringLife, 'Add your first subscription'),
     ]);
+  });
+});
+
+describe('subscription storage', () => {
+  async function addThree(storage: InMemoryAppStorage) {
+    const { fixture, root } = await renderApp(storage);
+    const region = getRegion(root, 'Your recurring life.');
+    getButton(region, 'Add your first subscription').click();
+    fixture.detectChanges();
+    for (const name of ['Spotify', 'Cloud', 'Gym']) {
+      addSubscription(fixture, region, name);
+    }
+    return fixture;
+  }
+
+  it('reloads subscriptions in the order they were added', async () => {
+    const storage = new InMemoryAppStorage();
+    const fixture = await addThree(storage);
+    await settlePage();
+    fixture.destroy();
+
+    const { root } = await renderApp(storage);
+    const cards = getList(root, 'Subscriptions').querySelectorAll('article h3');
+    expect(Array.from(cards, (card) => card.textContent?.trim())).toEqual([
+      'Spotify',
+      'Cloud',
+      'Gym',
+    ]);
+  });
+
+  it('serializes saves and coalesces quick additions to the latest state', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.holdSaves();
+    const fixture = await addThree(storage);
+    expect(storage.activeSaves).toBe(1);
+    expect(storage.maxActiveSaves).toBe(1);
+    storage.releaseSaves();
+    await settlePage();
+    expect(storage.maxActiveSaves).toBe(1);
+    expect(storage.savedStates).toHaveLength(2);
+    expect(storage.savedStates.at(-1)?.subscriptions.map((entry) => entry.name)).toEqual([
+      'Spotify',
+      'Cloud',
+      'Gym',
+    ]);
+    fixture.destroy();
+
+    const { root } = await renderApp(storage);
+    expect(getList(root, 'Subscriptions').querySelectorAll('article')).toHaveLength(3);
+  });
+
+  it('shows saved cards on a returning visit without empty-state text', async () => {
+    const storage = new InMemoryAppStorage();
+    const fixture = await addThree(storage);
+    await settlePage();
+    fixture.destroy();
+
+    const { root } = await renderApp(storage);
+    expect(root.textContent).toContain('Spotify');
+    expect(root.textContent).not.toContain('What are you paying for every month?');
+  });
+
+  it('renders the empty state when loading fails', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.rejectLoads = true;
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { root } = await renderApp(storage);
+      expect(root.textContent).toContain('What are you paying for every month?');
+      expect(warning).toHaveBeenCalled();
+    } finally {
+      warning.mockRestore();
+    }
+  });
+
+  it('keeps working in memory and saves later changes after a failed save', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.rejectSaves = true;
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await renderApp(storage);
+      const state = TestBed.inject(SubscriptionsState);
+      const input = {
+        name: 'Spotify',
+        price: 9.99,
+        billingFrequency: 'monthly' as const,
+        currency: 'EUR' as const,
+        reason: 'Essential' as const,
+      };
+      state.add(input);
+      await settlePage();
+      expect(state.subscriptions()).toHaveLength(1);
+      expect(warning).toHaveBeenCalled();
+
+      storage.rejectSaves = false;
+      state.add({ ...input, name: 'Cloud' });
+      await settlePage();
+      expect((await storage.load())?.subscriptions.map((entry) => entry.name)).toEqual([
+        'Spotify',
+        'Cloud',
+      ]);
+    } finally {
+      warning.mockRestore();
+    }
   });
 });

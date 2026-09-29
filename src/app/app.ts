@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { TopBar } from './top-bar/top-bar';
 import { Hero } from './hero/hero';
 import { RecurringLife } from './recurring-life/recurring-life';
 import { Reality } from './reality/reality';
 import { ReviewArea } from './review-area/review-area';
+import { SubscriptionsState } from './state/subscriptions-state';
 
 @Component({
   selector: 'app-root',
@@ -11,4 +12,6 @@ import { ReviewArea } from './review-area/review-area';
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
-export class App {}
+export class App {
+  readonly loaded = inject(SubscriptionsState).loaded;
+}

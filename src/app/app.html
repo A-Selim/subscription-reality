@@ -1,9 +1,11 @@
 <div class="shell">
   <app-top-bar />
-  <main>
-    <app-hero />
-    <app-recurring-life />
-    <app-reality />
-    <app-review-area />
-  </main>
+  @if (loaded()) {
+    <main>
+      <app-hero />
+      <app-recurring-life />
+      <app-reality />
+      <app-review-area />
+    </main>
+  }
 </div>
