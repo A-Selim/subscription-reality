@@ -41,6 +41,40 @@ export function billingUnitLabel(frequency: BillingFrequency): string {
   return frequency === 'monthly' ? 'month' : 'year';
 }
 
+type CostInput = Pick<Subscription, 'price' | 'billingFrequency'>;
+
+export function monthlyCost(subscription: CostInput): number {
+  return subscription.billingFrequency === 'monthly' ? subscription.price : subscription.price / 12;
+}
+
+export function annualCost(subscription: CostInput): number {
+  return subscription.billingFrequency === 'monthly' ? subscription.price * 12 : subscription.price;
+}
+
+const currencySymbols: Record<Currency, string> = {
+  EUR: '€',
+  USD: '$',
+  GBP: '£',
+  EGP: 'E£',
+};
+
+function formatAmount(amount: number, currency: Currency, decimals: number): string {
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(amount);
+
+  return `${currencySymbols[currency]}${formatted}`;
+}
+
+export function formatMoney(amount: number, currency: Currency): string {
+  return formatAmount(amount, currency, 2);
+}
+
+export function formatAnnualMoney(amount: number, currency: Currency): string {
+  return formatAmount(amount, currency, amount !== 0 && Math.abs(amount) < 0.5 ? 2 : 0);
+}
+
 export function estimateUsage(reason: Reason): Usage {
   switch (reason) {
     case 'Essential':
