@@ -46,6 +46,15 @@ describe('money formatting', () => {
     );
     expect(formatAnnualMoney(0, 'EUR')).toBe('€0');
   });
+
+  it('keeps cents below the whole-unit rounding boundary', () => {
+    expect(formatAnnualMoney(0.49, 'EUR')).toBe('€0.49');
+    expect(formatAnnualMoney(0.5, 'EUR')).toBe('€1');
+  });
+
+  it('groups thousands in en-US style', () => {
+    expect(formatMoney(1234.5, 'EUR')).toBe('€1,234.50');
+  });
 });
 
 describe('monogram', () => {

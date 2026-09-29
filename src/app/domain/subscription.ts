@@ -51,29 +51,20 @@ export function annualCost(subscription: CostInput): number {
   return subscription.billingFrequency === 'monthly' ? subscription.price * 12 : subscription.price;
 }
 
-const currencyMeta: Record<Currency, { locale: string; symbol: string }> = {
-  EUR: { locale: 'en-DE', symbol: '€' },
-  USD: { locale: 'en-US', symbol: '$' },
-  GBP: { locale: 'en-GB', symbol: '£' },
-  EGP: { locale: 'en-EG', symbol: 'E£' },
+const currencySymbols: Record<Currency, string> = {
+  EUR: '€',
+  USD: '$',
+  GBP: '£',
+  EGP: 'E£',
 };
 
 function formatAmount(amount: number, currency: Currency, decimals: number): string {
-  const { locale, symbol } = currencyMeta[currency];
-  const parts = new Intl.NumberFormat(locale, {
-    numberingSystem: 'latn',
+  const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).formatToParts(amount);
-  const number = parts
-    .map((part) => {
-      if (part.type === 'decimal') return '.';
-      if (part.type === 'group') return ',';
-      return part.value;
-    })
-    .join('');
+  }).format(amount);
 
-  return `${symbol}${number}`;
+  return `${currencySymbols[currency]}${formatted}`;
 }
 
 export function formatMoney(amount: number, currency: Currency): string {
