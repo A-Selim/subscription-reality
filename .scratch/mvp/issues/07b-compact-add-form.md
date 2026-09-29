@@ -28,6 +28,7 @@ Update the existing page tests for the new button text and blank-option text. Fi
 - [ ] Name and price show their placeholders when empty, including after the user types and then erases the value.
 - [ ] The blank billing and currency options read "Billing" and "Currency", are not clipped, and still submit as blank. The billing control's accessible name is still "Billing frequency".
 - [ ] The submit button is named "Add subscription"; the toast still sits directly above it.
+- [ ] The five fields and the submit button are all 45px tall at normal text size (one shared `--control-height`, used as `min-height`, not a fixed `height`), at every breakpoint, with no clipped text.
 - [ ] Focus rings are clearly visible on every field and the button; placeholder and helper text meet WCAG AA contrast, and the field border meets 3:1 (`#8a8a84`).
 - [ ] Adding a subscription behaves exactly as before (reset, name refocus, toast, preferred currency).
 - [ ] `npm run build` and `npm test -- --watch=false` pass.
