@@ -1,6 +1,7 @@
 import { ApplicationRef } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
 
 async function renderPage(): Promise<HTMLElement> {
   const fixture = TestBed.createComponent(App);
@@ -55,6 +56,26 @@ function getFocusableElements(root: HTMLElement): Element[] {
 
 async function settlePage(): Promise<void> {
   await TestBed.inject(ApplicationRef).whenStable();
+}
+
+async function prepareAddForm() {
+  const fixture = TestBed.createComponent(App);
+  await fixture.whenStable();
+  const page = fixture.nativeElement as HTMLElement;
+  const region = getRegion(page, 'Your recurring life.');
+  getButton(region, 'Add your first subscription').click();
+  fixture.detectChanges();
+  await settlePage();
+  return { fixture, region };
+}
+
+function addSubscription(fixture: ComponentFixture<App>, region: HTMLElement, name: string): void {
+  setField(region, 'subscription-name', name);
+  setField(region, 'subscription-price', '9.99');
+  setField(region, 'subscription-billing', 'monthly');
+  setField(region, 'subscription-currency', 'EUR');
+  getButton(region, 'Add').click();
+  fixture.detectChanges();
 }
 
 function setField(root: HTMLElement, id: string, value: string): void {
@@ -238,6 +259,82 @@ describe('App page seam', () => {
     expect(cards()[1].querySelector('.yearly')?.textContent?.trim()).toBe('Annual cost €24');
     expect(cards()[1].textContent).toContain('Usage: Weekly');
     expect(region.querySelector('form')).not.toBeNull();
+  });
+
+  it('announces adds in a persistent status region immediately before Add', async () => {
+    const { fixture, region } = await prepareAddForm();
+    vi.useFakeTimers();
+    try {
+      const status = region.querySelector<HTMLElement>('[role="status"]');
+      const addButton = getButton(region, 'Add');
+      expect(status?.getAttribute('role')).toBe('status');
+      expect(status?.textContent?.trim()).toBe('');
+      expect(status?.nextElementSibling).toBe(addButton);
+
+      addSubscription(fixture, region, 'First');
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+
+      vi.advanceTimersByTime(TOAST_DURATION_MS);
+      fixture.detectChanges();
+      expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      vi.advanceTimersByTime(TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status?.textContent).toBe('');
+      expect(
+        Array.from(status?.childNodes ?? []).filter((node) => node.nodeType === Node.TEXT_NODE),
+      ).toHaveLength(0);
+      expect(region.querySelector('[role="status"]')).toBe(status);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows the toast again after it has hidden', async () => {
+    const { fixture, region } = await prepareAddForm();
+    vi.useFakeTimers();
+    try {
+      const status = region.querySelector<HTMLElement>('[role="status"]');
+      addSubscription(fixture, region, 'First');
+      vi.advanceTimersByTime(TOAST_DURATION_MS);
+      fixture.detectChanges();
+      expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+
+      vi.advanceTimersByTime(TOAST_FADE_MS / 2);
+      addSubscription(fixture, region, 'Second');
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      expect(status?.classList.contains('toast-visible')).toBe(true);
+
+      vi.advanceTimersByTime(TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('replaces the toast text node on repeated messages and clears its timer on destroy', async () => {
+    const { fixture, region } = await prepareAddForm();
+    vi.useFakeTimers();
+    try {
+      const status = region.querySelector<HTMLElement>('[role="status"]');
+      addSubscription(fixture, region, 'First');
+      const firstMessage = status?.firstElementChild;
+
+      addSubscription(fixture, region, 'Second');
+      expect(region.querySelector('[role="status"]')).toBe(status);
+      expect(status?.firstElementChild).not.toBe(firstMessage);
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      expect(vi.getTimerCount()).toBe(1);
+
+      fixture.destroy();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(() => vi.advanceTimersByTime(TOAST_DURATION_MS)).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it.each([

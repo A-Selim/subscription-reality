@@ -1,6 +1,6 @@
 # 07: Toast and "Subscription added"
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 06
 Test seam: Page seam
