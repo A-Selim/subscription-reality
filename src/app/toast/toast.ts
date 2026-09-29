@@ -1,6 +1,7 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 
 export const TOAST_DURATION_MS = 4000;
+export const TOAST_FADE_MS = 180;
 
 interface ToastMessage {
   id: number;
@@ -24,7 +25,8 @@ export class Toast {
   private readonly destroyRef = inject(DestroyRef);
   private readonly message = signal<ToastMessage | null>(null);
   private nextId = 0;
-  private timeout: ReturnType<typeof setTimeout> | undefined;
+  private hideTimeout: ReturnType<typeof setTimeout> | undefined;
+  private clearMessageTimeout: ReturnType<typeof setTimeout> | undefined;
 
   protected readonly current = computed(() => {
     const message = this.message();
@@ -40,16 +42,24 @@ export class Toast {
     this.clearTimer();
     this.message.set({ id: ++this.nextId, text });
     this.visible.set(true);
-    this.timeout = setTimeout(() => {
+    this.hideTimeout = setTimeout(() => {
       this.visible.set(false);
-      this.timeout = undefined;
+      this.hideTimeout = undefined;
+      this.clearMessageTimeout = setTimeout(() => {
+        this.message.set(null);
+        this.clearMessageTimeout = undefined;
+      }, TOAST_FADE_MS);
     }, TOAST_DURATION_MS);
   }
 
   private clearTimer(): void {
-    if (this.timeout !== undefined) {
-      clearTimeout(this.timeout);
-      this.timeout = undefined;
+    if (this.hideTimeout !== undefined) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = undefined;
+    }
+    if (this.clearMessageTimeout !== undefined) {
+      clearTimeout(this.clearMessageTimeout);
+      this.clearMessageTimeout = undefined;
     }
   }
 }

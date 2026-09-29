@@ -1,7 +1,7 @@
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { TOAST_DURATION_MS } from './toast/toast';
+import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
 
 async function renderPage(): Promise<HTMLElement> {
   const fixture = TestBed.createComponent(App);
@@ -278,6 +278,13 @@ describe('App page seam', () => {
       vi.advanceTimersByTime(TOAST_DURATION_MS);
       fixture.detectChanges();
       expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(status?.textContent?.trim()).toBe('Subscription added');
+      vi.advanceTimersByTime(TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status?.textContent).toBe('');
+      expect(
+        Array.from(status?.childNodes ?? []).filter((node) => node.nodeType === Node.TEXT_NODE),
+      ).toHaveLength(0);
       expect(region.querySelector('[role="status"]')).toBe(status);
     } finally {
       vi.useRealTimers();
@@ -293,10 +300,16 @@ describe('App page seam', () => {
       vi.advanceTimersByTime(TOAST_DURATION_MS);
       fixture.detectChanges();
       expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(status?.textContent?.trim()).toBe('Subscription added');
 
+      vi.advanceTimersByTime(TOAST_FADE_MS / 2);
       addSubscription(fixture, region, 'Second');
       expect(status?.textContent?.trim()).toBe('Subscription added');
       expect(status?.classList.contains('toast-visible')).toBe(true);
+
+      vi.advanceTimersByTime(TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status?.textContent?.trim()).toBe('Subscription added');
     } finally {
       vi.useRealTimers();
     }
