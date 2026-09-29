@@ -17,6 +17,8 @@ Rules (schema-based, reusable for editing later):
 
 On a failed add, nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"` and focus. The toast from ticket 07 shows the error just above Add and announces it. Each invalid field also links through `aria-describedby` to its own visually hidden error text, which stays until the field is valid again.
 
+Error toast style: the toast from ticket 07 gets a `variant` (`success` or `error`, default `success`), for example `show(text, variant)`. Validation toasts use the `error` variant: `--red-soft` background, `--red` text (5.01:1 contrast, passes AA), a 1px `--red` border and a decorative ⚠ icon (`aria-hidden="true"`, so colour is not the only cue). The `success` look stays as it is. It uses only existing palette tokens, the same pair as the Cancel decision and the invalid-field outline. The error toast keeps the same 4-second delay and the same rules: always-present `role="status"` region, no focus steal, repeated messages announced again.
+
 The duplicate-name rule is ticket 11.
 
 ## Acceptance criteria
@@ -26,5 +28,7 @@ The duplicate-name rule is ticket 11.
 - [ ] Missing billing frequency or currency is refused in the same way.
 - [ ] A name with surrounding spaces is saved trimmed; a name longer than 40 characters cannot be saved.
 - [ ] An invalid field has `aria-invalid="true"` and an `aria-describedby` error text that stays after the toast hides and goes away once the field is valid.
+- [ ] Validation toasts use the error variant (`--red-soft` background, `--red` text, `--red` border, decorative ⚠ icon), while "Subscription added" keeps the success look. The error text meets WCAG AA contrast.
+- [ ] Refusing the same invalid add twice in a row shows and announces the error toast both times.
 - [ ] Domain tests cover price 0, negative, 3 decimals, 2 decimals, and name empty, whitespace-only, 40 and 41 characters.
 - [ ] `npm run build` and `npm test -- --watch=false` pass.
