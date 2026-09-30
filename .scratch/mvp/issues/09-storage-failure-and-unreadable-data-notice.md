@@ -1,6 +1,6 @@
 # 09: Storage failure and unreadable data notice
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 08
 Test seam: Storage seam (fake told to reject loads/saves, or seeded with unreadable data)
@@ -19,12 +19,26 @@ If data is present but unreadable (wrong shape or version), it is never overwrit
 - The state service treats `UnreadableStateError` as "start empty, show the couldn't-be-read notice", and any other rejection as "start empty, show the only-for-this-visit notice".
 - The in-memory fake can be told to reject `load()` with `UnreadableStateError`. The backup copy lives only in the IndexedDB adapter and is checked by hand in the browser.
 
+### Two notices (decided 2026-09-30, see `docs/agreed-changes.md` › Storage)
+
+The two notices are separate facts, so they can show together:
+- _Couldn't be read_: set by an unreadable load. It stays for the whole visit; no save clears it.
+- _Only for this visit_: set by any other failed load or by a failed save. It goes away when a later save succeeds.
+
+Saving is never blocked after a failed load. The one exception stays: if the unreadable data can't be copied to the backup key, saves stop for that visit.
+
+### Ask the browser to keep the data
+
+After the first successful save of a visit, the IndexedDB adapter calls `navigator.storage.persist()` once, unless `navigator.storage.persisted()` already says yes. It never calls it on page load, because Firefox shows a permission prompt. If the API is missing, refuses or throws, nothing changes and no notice shows. Research: `docs/research/browser-storage.md`.
+
 ## Acceptance criteria
 
-- [ ] With a failing load, the page renders the empty state, adding still works, and the notice says changes only last for this visit.
-- [ ] With a failing save, the added subscription still shows, and the notice appears.
-- [ ] After a failing save, a later successful save removes the notice.
-- [ ] With the fake rejecting `load()` with `UnreadableStateError`, the page starts empty and the notice explains the saved data couldn't be read.
-- [ ] By hand in the browser: write a malformed value under the state key in DevTools and reload. The page starts empty with the notice, and the malformed value is still there under the backup key.
-- [ ] The notice is a polite live region and meets AA contrast.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With a failing load, the page renders the empty state, adding still works, and the notice says changes only last for this visit.
+- [x] With a failing save, the added subscription still shows, and the notice appears.
+- [x] After a failing save, a later successful save removes the notice.
+- [x] With the fake rejecting `load()` with `UnreadableStateError`, the page starts empty and the notice explains the saved data couldn't be read.
+- [x] By hand in the browser: write a malformed value under the state key in DevTools and reload. The page starts empty with the notice, and the malformed value is still there under the backup key.
+- [x] With an unreadable load, then a failing save, both messages show. After a later successful save, only the couldn't-be-read message stays.
+- [x] The notice is a polite live region and meets AA contrast.
+- [x] By hand in the browser: `navigator.storage.persist()` is not called on page load. It is called once after the first successful save of the visit, and a refusal shows no notice.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
