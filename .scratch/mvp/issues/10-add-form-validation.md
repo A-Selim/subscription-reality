@@ -1,6 +1,6 @@
 # 10: Add form validation
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 09, 07b
 Test seam: Page seam; domain seam for price and name validity
@@ -25,12 +25,12 @@ The duplicate-name rule is ticket 11.
 
 ## Acceptance criteria
 
-- [ ] Pressing Add subscription with an empty form adds nothing, focuses the name field, outlines it in red and shows a toast above Add.
-- [ ] A price of 0, a negative price, or 9.999 is refused with a toast, and the price field gets focus.
-- [ ] Missing billing frequency or currency is refused in the same way.
-- [ ] A name with surrounding spaces is saved trimmed; a name longer than 40 characters cannot be saved.
-- [ ] An invalid field has `aria-invalid="true"` and an `aria-describedby` error text that stays after the toast hides and goes away once the field is valid.
-- [ ] Validation toasts use the error variant (`--red-soft` background, `--red` text, `--red` border, decorative ⚠ icon), while "Subscription added" keeps the success look. The error text meets WCAG AA contrast.
-- [ ] Refusing the same invalid add twice in a row shows and announces the error toast both times.
-- [ ] Domain tests cover price 0, negative, 3 decimals, 2 decimals, and name empty, whitespace-only, 40 and 41 characters.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Pressing Add subscription with an empty form adds nothing, focuses the name field, outlines it in red and shows a toast above Add.
+- [x] A price of 0, a negative price, or 9.999 is refused with a toast, and the price field gets focus.
+- [x] Missing billing frequency or currency is refused in the same way.
+- [x] A name with surrounding spaces is saved trimmed; a name longer than 40 characters cannot be saved.
+- [x] An invalid field has `aria-invalid="true"` and an `aria-describedby` error text that stays after the toast hides and goes away once the field is valid.
+- [x] Validation toasts use the error variant (`--red-soft` background, `--red` text, `--red` border, decorative ⚠ icon), while "Subscription added" keeps the success look. The error text meets WCAG AA contrast.
+- [x] Refusing the same invalid add twice in a row shows and announces the error toast both times.
+- [x] Domain tests cover price 0, negative, 3 decimals, 2 decimals, and name empty, whitespace-only, 40 and 41 characters.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
