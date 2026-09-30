@@ -92,3 +92,15 @@ export function estimateUsage(reason: Reason): Usage {
       return 'Rarely';
   }
 }
+
+export const NAME_MAX_LENGTH = 40;
+
+export function isValidName(name: string): boolean {
+  const trimmedName = name.trim();
+  return trimmedName.length > 0 && trimmedName.length <= NAME_MAX_LENGTH;
+}
+
+export function isValidPrice(price: number): boolean {
+  // Compare in price units: multiplying by 100 introduces rounding errors for 1.1 and 0.07.
+  return Number.isFinite(price) && price > 0 && price === Number(price.toFixed(2));
+}
