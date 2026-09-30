@@ -504,6 +504,11 @@ describe('App page seam', () => {
 });
 
 describe('subscription storage', () => {
+  const unreadableDataNotice =
+    "Your saved data couldn't be read, so the app started empty. A copy of the old data was kept in this browser.";
+  const onlyForThisVisitNotice =
+    "Your browser couldn't save your changes, so they'll only last for this visit.";
+
   async function addThree(storage: InMemoryAppStorage) {
     const { fixture, root } = await renderApp(storage);
     const region = getRegion(root, 'Your recurring life.');
@@ -560,6 +565,71 @@ describe('subscription storage', () => {
     const { root } = await renderApp(storage);
     expect(root.textContent).toContain('Spotify');
     expect(root.textContent).not.toContain('What are you paying for every month?');
+    expect(root.querySelector('app-storage-notice')?.textContent?.trim()).toBe('');
+  });
+
+  it('keeps an empty polite status region on a normal first visit', async () => {
+    const { root } = await renderApp();
+    const notice = root.querySelector('app-storage-notice');
+    expect(notice).not.toBeNull();
+    expect(notice?.getAttribute('role')).toBe('status');
+    expect(notice?.textContent?.trim()).toBe('');
+    expect(root.querySelector('app-top-bar')?.nextElementSibling).toBe(notice);
+  });
+
+  it('starts empty with an unreadable-data notice that survives a successful save', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.rejectLoadsAsUnreadable = true;
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { fixture, root } = await renderApp(storage);
+      expect(root.textContent).toContain('What are you paying for every month?');
+      const notice = root.querySelector('app-storage-notice');
+      expect(notice?.textContent?.trim()).toBe(unreadableDataNotice);
+      expect(warning).toHaveBeenCalled();
+      const region = getRegion(root, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      fixture.detectChanges();
+      addSubscription(fixture, region, 'Spotify');
+      await settlePage();
+      fixture.detectChanges();
+      expect(notice?.textContent?.trim()).toBe(unreadableDataNotice);
+    } finally {
+      warning.mockRestore();
+    }
+  });
+
+  it('keeps the unreadable-data notice when saving fails and later succeeds', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.rejectLoadsAsUnreadable = true;
+    storage.rejectSaves = true;
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { fixture, root } = await renderApp(storage);
+      const notice = root.querySelector('app-storage-notice');
+      expect(notice?.textContent?.trim()).toBe(unreadableDataNotice);
+      const region = getRegion(root, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      fixture.detectChanges();
+      addSubscription(fixture, region, 'Spotify');
+      await settlePage();
+      fixture.detectChanges();
+      expect(notice?.textContent).toContain(unreadableDataNotice);
+      expect(notice?.textContent).toContain(onlyForThisVisitNotice);
+      expect(warning).toHaveBeenCalledTimes(2);
+
+      storage.rejectSaves = false;
+      addSubscription(fixture, region, 'Cloud');
+      await settlePage();
+      fixture.detectChanges();
+      expect(root.querySelector('app-storage-notice')).toBe(notice);
+      expect(notice?.textContent?.trim()).toBe(unreadableDataNotice);
+      expect(notice?.textContent).not.toContain(onlyForThisVisitNotice);
+      expect(getList(root, 'Subscriptions').querySelectorAll('article')).toHaveLength(2);
+      expect(warning).toHaveBeenCalledTimes(2);
+    } finally {
+      warning.mockRestore();
+    }
   });
 
   it('renders the empty state when loading fails', async () => {
@@ -567,9 +637,42 @@ describe('subscription storage', () => {
     storage.rejectLoads = true;
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      const { root } = await renderApp(storage);
+      const { fixture, root } = await renderApp(storage);
       expect(root.textContent).toContain('What are you paying for every month?');
+      expect(root.querySelector('app-storage-notice')?.textContent?.trim()).toBe(
+        onlyForThisVisitNotice,
+      );
+      const region = getRegion(root, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      fixture.detectChanges();
+      addSubscription(fixture, region, 'Spotify');
+      await settlePage();
+      fixture.detectChanges();
+      expect(getList(root, 'Subscriptions').textContent).toContain('Spotify');
       expect(warning).toHaveBeenCalled();
+    } finally {
+      warning.mockRestore();
+    }
+  });
+
+  it('clears the only-for-this-visit storage notice after a failed load and successful save', async () => {
+    const storage = new InMemoryAppStorage();
+    storage.rejectLoads = true;
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { fixture, root } = await renderApp(storage);
+      const notice = root.querySelector('app-storage-notice');
+      expect(notice?.textContent?.trim()).toBe(onlyForThisVisitNotice);
+      const region = getRegion(root, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      fixture.detectChanges();
+      addSubscription(fixture, region, 'Spotify');
+      await settlePage();
+      fixture.detectChanges();
+      expect(root.querySelector('app-storage-notice')).toBe(notice);
+      expect(notice?.textContent?.trim()).toBe('');
+      expect(getList(root, 'Subscriptions').textContent).toContain('Spotify');
+      expect(warning).toHaveBeenCalledTimes(1);
     } finally {
       warning.mockRestore();
     }
@@ -580,23 +683,24 @@ describe('subscription storage', () => {
     storage.rejectSaves = true;
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      await renderApp(storage);
-      const state = TestBed.inject(SubscriptionsState);
-      const input = {
-        name: 'Spotify',
-        price: 9.99,
-        billingFrequency: 'monthly' as const,
-        currency: 'EUR' as const,
-        reason: 'Essential' as const,
-      };
-      state.add(input);
+      const { fixture, root } = await renderApp(storage);
+      const region = getRegion(root, 'Your recurring life.');
+      getButton(region, 'Add your first subscription').click();
+      fixture.detectChanges();
+      addSubscription(fixture, region, 'Spotify');
       await settlePage();
-      expect(state.subscriptions()).toHaveLength(1);
+      fixture.detectChanges();
+      expect(getList(root, 'Subscriptions').textContent).toContain('Spotify');
+      expect(root.querySelector('app-storage-notice')?.textContent?.trim()).toBe(
+        onlyForThisVisitNotice,
+      );
       expect(warning).toHaveBeenCalled();
 
       storage.rejectSaves = false;
-      state.add({ ...input, name: 'Cloud' });
+      addSubscription(fixture, region, 'Cloud');
       await settlePage();
+      fixture.detectChanges();
+      expect(root.querySelector('app-storage-notice')?.textContent?.trim()).toBe('');
       expect((await storage.load())?.subscriptions.map((entry) => entry.name)).toEqual([
         'Spotify',
         'Cloud',

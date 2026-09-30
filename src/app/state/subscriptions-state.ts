@@ -1,6 +1,6 @@
 import { computed, inject, signal, Service } from '@angular/core';
 import { estimateUsage, type AppState, type Subscription } from '../domain/subscription';
-import { AppStorage } from './app-storage';
+import { AppStorage, UnreadableStateError } from './app-storage';
 
 export type NewSubscription = Pick<
   Subscription,
@@ -17,10 +17,14 @@ export class SubscriptionsState {
     nextSequence: 0,
   });
   private readonly loadedState = signal(false);
+  private readonly dataUnreadableState = signal(false);
+  private readonly onlyForThisVisitState = signal(false);
   private pendingSave: AppState | null = null;
   private saving = false;
 
   readonly loaded = this.loadedState.asReadonly();
+  readonly dataUnreadable = this.dataUnreadableState.asReadonly();
+  readonly onlyForThisVisit = this.onlyForThisVisitState.asReadonly();
 
   readonly subscriptions = computed(() => this.state().subscriptions);
   readonly preferredCurrency = computed(() => this.state().preferredCurrency);
@@ -54,6 +58,8 @@ export class SubscriptionsState {
       const saved = await this.storage.load();
       if (saved !== null) this.state.set(saved);
     } catch (error) {
+      if (error instanceof UnreadableStateError) this.dataUnreadableState.set(true);
+      else this.onlyForThisVisitState.set(true);
       console.warn('Could not load subscriptions.', error);
     } finally {
       this.loadedState.set(true);
@@ -72,7 +78,9 @@ export class SubscriptionsState {
       this.pendingSave = null;
       try {
         await this.storage.save(next);
+        this.onlyForThisVisitState.set(false);
       } catch (error) {
+        this.onlyForThisVisitState.set(true);
         console.warn('Could not save subscriptions.', error);
       }
     }

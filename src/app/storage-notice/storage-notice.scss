@@ -1,0 +1,15 @@
+:host {
+  display: grid;
+  gap: 10px;
+}
+
+p {
+  margin: 0;
+  padding: 18px 22px;
+  border: 1px solid var(--amber);
+  border-radius: 20px;
+  background: var(--amber-soft);
+  color: var(--ink);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

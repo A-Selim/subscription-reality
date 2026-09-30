@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { StorageNotice } from './storage-notice/storage-notice';
 import { TopBar } from './top-bar/top-bar';
 import { Hero } from './hero/hero';
 import { RecurringLife } from './recurring-life/recurring-life';
@@ -8,7 +9,7 @@ import { SubscriptionsState } from './state/subscriptions-state';
 
 @Component({
   selector: 'app-root',
-  imports: [TopBar, Hero, RecurringLife, Reality, ReviewArea],
+  imports: [StorageNotice, TopBar, Hero, RecurringLife, Reality, ReviewArea],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })

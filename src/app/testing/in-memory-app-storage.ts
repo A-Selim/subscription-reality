@@ -1,17 +1,19 @@
 import type { AppState } from '../domain/subscription';
-import { AppStorage } from '../state/app-storage';
+import { AppStorage, UnreadableStateError } from '../state/app-storage';
 
 export class InMemoryAppStorage extends AppStorage {
   private state: AppState | null = null;
   private holdingSaves = false;
   private pendingReleases: Array<() => void> = [];
   rejectLoads = false;
+  rejectLoadsAsUnreadable = false;
   rejectSaves = false;
   activeSaves = 0;
   maxActiveSaves = 0;
   readonly savedStates: AppState[] = [];
 
   async load(): Promise<AppState | null> {
+    if (this.rejectLoadsAsUnreadable) throw new UnreadableStateError();
     if (this.rejectLoads) throw new Error('Load failed');
     return this.state === null ? null : structuredClone(this.state);
   }
