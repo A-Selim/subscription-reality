@@ -1,5 +1,8 @@
 import {
   annualCost,
+  isValidName,
+  isValidPrice,
+  NAME_MAX_LENGTH,
   estimateUsage,
   formatAnnualMoney,
   formatMoney,
@@ -81,5 +84,28 @@ describe('estimateUsage', () => {
     for (const [reason] of cases) {
       expect(estimateUsage(reason)).not.toBe('Almost Never');
     }
+  });
+});
+
+describe('subscription validation', () => {
+  it.each([0, -1, 9.999, 0.001, NaN, Infinity, -Infinity])('refuses price %s', (price) => {
+    expect(isValidPrice(price)).toBe(false);
+  });
+
+  it.each([9.99, 1.1, 0.07, 10, 0.01])(
+    'accepts price %s without floating-point errors',
+    (price) => {
+      expect(isValidPrice(price)).toBe(true);
+    },
+  );
+
+  it.each(['', '   ', 'a'.repeat(41)])('refuses invalid name %j', (name) => {
+    expect(isValidName(name)).toBe(false);
+  });
+
+  it('accepts 40 characters and measures the trimmed name', () => {
+    expect(NAME_MAX_LENGTH).toBe(40);
+    expect(isValidName('a'.repeat(40))).toBe(true);
+    expect(isValidName(`  ${'a'.repeat(40)}  `)).toBe(true);
   });
 });

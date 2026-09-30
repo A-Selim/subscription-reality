@@ -106,6 +106,15 @@
   outline: 2px solid transparent;
 }
 
+.field-group input[aria-invalid='true'],
+.field-group select[aria-invalid='true'],
+.field-group input[aria-invalid='true']:focus,
+.field-group select[aria-invalid='true']:focus {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red);
+  outline: 2px solid transparent;
+}
+
 .usage-note {
   margin: 10px 0 0;
   color: var(--muted);

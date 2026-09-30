@@ -25,6 +25,16 @@
   opacity: 1;
 }
 
+:host(.toast-error) {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+/* Border only while visible, so the collapsed toast stays 0px tall. */
+:host(.toast-error.toast-visible) {
+  border: 1px solid var(--red);
+}
+
 span {
   overflow: hidden;
   min-height: 0;

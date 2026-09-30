@@ -8,25 +8,15 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
-import {
-  CURRENCIES,
-  REASONS,
-  type BillingFrequency,
-  type Currency,
-  type Reason,
-} from '../domain/subscription';
+import { CURRENCIES, REASONS, type Currency } from '../domain/subscription';
 import { SubscriptionsState } from '../state/subscriptions-state';
 import { Toast } from '../toast/toast';
+import { subscriptionFormSchema, type SubscriptionFormFields } from './subscription-form-schema';
 
-interface AddSubscriptionFields {
-  name: string;
-  price: number | null;
-  billingFrequency: BillingFrequency | '';
-  currency: Currency | '';
-  reason: Reason;
-}
+type ValidatedField = 'name' | 'price' | 'billingFrequency' | 'currency';
+const FIELD_ORDER: readonly ValidatedField[] = ['name', 'price', 'billingFrequency', 'currency'];
 
-function createEmptyFields(preferredCurrency: Currency | null): AddSubscriptionFields {
+function createEmptyFields(preferredCurrency: Currency | null): SubscriptionFormFields {
   return {
     name: '',
     price: null,
@@ -50,10 +40,11 @@ export class AddSubscriptionForm {
 
   readonly currencies = CURRENCIES;
   readonly reasons = REASONS;
-  readonly addModel = signal<AddSubscriptionFields>(
+  readonly addModel = signal<SubscriptionFormFields>(
     createEmptyFields(this.subscriptionsState.preferredCurrency()),
   );
-  readonly addForm = form(this.addModel);
+  readonly addForm = form(this.addModel, subscriptionFormSchema);
+  private readonly attempted = signal(false);
 
   constructor() {
     this.focusNameAfterRender();
@@ -61,30 +52,36 @@ export class AddSubscriptionForm {
 
   add(event: Event): void {
     event.preventDefault();
-    const { name, price, billingFrequency, currency, reason } = this.addModel();
-    const trimmedName = name.trim();
-
-    if (
-      !trimmedName ||
-      typeof price !== 'number' ||
-      !Number.isFinite(price) ||
-      price <= 0 ||
-      !billingFrequency ||
-      !currency
-    ) {
+    this.attempted.set(true);
+    const firstInvalid = FIELD_ORDER.find((field) => this.addForm[field]().invalid());
+    if (firstInvalid) {
+      this.toast().show(this.errorText(firstInvalid) ?? 'Check this field.', 'error');
+      this.addForm[firstInvalid]().focusBoundControl();
       return;
     }
 
+    const { name, price, billingFrequency, currency, reason } = this.addModel();
+    // Narrow the required fields after schema validation.
+    if (price === null || !billingFrequency || !currency) return;
+
     this.subscriptionsState.add({
-      name: trimmedName,
+      name: name.trim(),
       price,
       billingFrequency,
       currency,
       reason,
     });
     this.toast().show('Subscription added');
-    this.addModel.set(createEmptyFields(this.subscriptionsState.preferredCurrency()));
+    this.attempted.set(false);
+    this.addForm().reset(createEmptyFields(this.subscriptionsState.preferredCurrency()));
     this.focusNameAfterRender();
+  }
+
+  errorText(field: ValidatedField): string | null {
+    const state = this.addForm[field]();
+    return this.attempted() && state.invalid()
+      ? (state.errors()[0]?.message ?? 'Check this field.')
+      : null;
   }
 
   private focusNameAfterRender(): void {

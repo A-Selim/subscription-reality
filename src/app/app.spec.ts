@@ -1,6 +1,7 @@
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { AppStorage } from './state/app-storage';
 import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
 import { InMemoryAppStorage } from './testing/in-memory-app-storage';
 import { SubscriptionsState } from './state/subscriptions-state';
@@ -501,6 +502,201 @@ describe('App page seam', () => {
       getButton(recurringLife, 'Add your first subscription'),
     ]);
   });
+});
+
+describe('add form validation', () => {
+  function fillValidFields(region: HTMLElement): void {
+    setField(region, 'subscription-name', 'Spotify');
+    setField(region, 'subscription-price', '9.99');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+  }
+
+  function expectFieldError(region: HTMLElement, id: string, message: string): HTMLElement {
+    const field = region.querySelector<HTMLElement>(`#${id}`)!;
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    const errorId = field.getAttribute('aria-describedby');
+    expect(errorId).toBeTruthy();
+    const error = region.querySelector<HTMLElement>(`#${errorId}`)!;
+    expect(error.textContent?.trim()).toBe(message);
+    expect(error.classList.contains('visually-hidden')).toBe(true);
+    return field;
+  }
+
+  it('refuses an empty form, focuses the first invalid field and explains every required field', async () => {
+    const { fixture, region } = await prepareAddForm();
+    const name = region.querySelector('#subscription-name');
+    expect(name?.getAttribute('aria-invalid')).not.toBe('true');
+    clickAdd(region);
+    fixture.detectChanges();
+
+    expect(region.querySelector('[aria-label="Subscriptions"]')).toBeNull();
+    expect(region.textContent).toContain('What are you paying for every month?');
+    expect(document.activeElement).toBe(name);
+    expectFieldError(region, 'subscription-name', 'Enter a subscription name.');
+    expectFieldError(region, 'subscription-price', 'Enter a price.');
+    expectFieldError(region, 'subscription-billing', 'Choose a billing frequency.');
+    expectFieldError(region, 'subscription-currency', 'Choose a currency.');
+    const status = region.querySelector<HTMLElement>('[role="status"]')!;
+    expect(status.nextElementSibling).toBe(getButton(region, 'Add subscription'));
+    expect(status.classList.contains('toast-visible')).toBe(true);
+    expect(status.classList.contains('toast-error')).toBe(true);
+    expect(status.textContent).toContain('Enter a subscription name.');
+    expect(status.querySelector('[aria-hidden="true"]')?.textContent?.trim()).toBe('⚠');
+  });
+
+  it.each([
+    ['subscription-name', '   ', 'Enter a subscription name.'],
+    ['subscription-name', 'a'.repeat(41), 'Use a subscription name with at most 40 characters.'],
+    ['subscription-price', '', 'Enter a price.'],
+    ['subscription-price', '0', 'Enter a price greater than 0 with at most 2 decimal places.'],
+    ['subscription-price', '-1', 'Enter a price greater than 0 with at most 2 decimal places.'],
+    ['subscription-price', '9.999', 'Enter a price greater than 0 with at most 2 decimal places.'],
+    ['subscription-billing', '', 'Choose a billing frequency.'],
+    ['subscription-currency', '', 'Choose a currency.'],
+  ])('refuses %s = %j with focus and an error toast', async (id, value, message) => {
+    const { fixture, region } = await prepareAddForm();
+    fillValidFields(region);
+    setField(region, id, value);
+    clickAdd(region);
+    fixture.detectChanges();
+
+    expect(region.querySelector('[aria-label="Subscriptions"]')).toBeNull();
+    expect(document.activeElement).toBe(expectFieldError(region, id, message));
+    const status = region.querySelector('[role="status"]');
+    expect(status?.textContent).toContain(message);
+    expect(status?.classList.contains('toast-error')).toBe(true);
+  });
+
+  it('moves focus through invalid fields in form order as they are corrected', async () => {
+    const { fixture, region } = await prepareAddForm();
+    const fields = [
+      ['subscription-name', 'Spotify'],
+      ['subscription-price', '0.07'],
+      ['subscription-billing', 'yearly'],
+      ['subscription-currency', 'GBP'],
+    ];
+    for (const [id, value] of fields) {
+      clickAdd(region);
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(region.querySelector(`#${id}`));
+      setField(region, id, value);
+      fixture.detectChanges();
+      expect(region.querySelector(`#${id}`)?.getAttribute('aria-invalid')).not.toBe('true');
+    }
+    clickAdd(region);
+    fixture.detectChanges();
+    expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
+  });
+
+  it('keeps individual error descriptions after the toast hides and removes them on correction', async () => {
+    const { fixture, region } = await prepareAddForm();
+    vi.useFakeTimers();
+    try {
+      clickAdd(region);
+      fixture.detectChanges();
+      const status = region.querySelector('[role="status"]');
+      vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status?.textContent).toBe('');
+      expect(region.querySelector('[role="status"]')).toBe(status);
+
+      for (const [id, value, message] of [
+        ['subscription-name', 'Spotify', 'Enter a subscription name.'],
+        ['subscription-price', '1.1', 'Enter a price.'],
+        ['subscription-billing', 'monthly', 'Choose a billing frequency.'],
+        ['subscription-currency', 'EUR', 'Choose a currency.'],
+      ]) {
+        const field = expectFieldError(region, id, message);
+        const errorId = field.getAttribute('aria-describedby');
+        setField(region, id, value);
+        fixture.detectChanges();
+        expect(field.getAttribute('aria-invalid')).not.toBe('true');
+        expect(field.hasAttribute('aria-describedby')).toBe(false);
+        expect(region.querySelector(`#${errorId}`)).toBeNull();
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('replaces repeated error messages, restarts the delay and returns to the success look', async () => {
+    const { fixture, region } = await prepareAddForm();
+    vi.useFakeTimers();
+    try {
+      const status = region.querySelector<HTMLElement>('[role="status"]')!;
+      clickAdd(region);
+      fixture.detectChanges();
+      const firstMessage = status.firstElementChild;
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 1);
+      clickAdd(region);
+      fixture.detectChanges();
+      expect(status.firstElementChild).not.toBe(firstMessage);
+      expect(status.textContent).toContain('Enter a subscription name.');
+      expect(status.classList.contains('toast-visible')).toBe(true);
+      expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+      vi.advanceTimersByTime(1);
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-visible')).toBe(true);
+      vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
+      fixture.detectChanges();
+      expect(status.textContent).toBe('');
+      clickAdd(region);
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-error')).toBe(true);
+      expect(status.classList.contains('toast-visible')).toBe(true);
+
+      fillValidFields(region);
+      clickAdd(region);
+      fixture.detectChanges();
+      expect(status.textContent?.trim()).toBe('Subscription added');
+      expect(status.classList.contains('toast-error')).toBe(false);
+      expect(status.querySelector('[aria-hidden="true"]')).toBeNull();
+      expect(region.querySelector('[aria-invalid="true"]')).toBeNull();
+      expect(region.querySelector('[aria-describedby]')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps invalid inputs and selects marked while focused and unfocused', async () => {
+    const { fixture, region } = await prepareAddForm();
+    clickAdd(region);
+    fixture.detectChanges();
+    for (const id of [
+      'subscription-name',
+      'subscription-price',
+      'subscription-billing',
+      'subscription-currency',
+    ]) {
+      const field = region.querySelector<HTMLElement>(`#${id}`)!;
+      field.focus();
+      fixture.detectChanges();
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(field.getAttribute('aria-describedby')).toBeTruthy();
+      field.blur();
+      fixture.detectChanges();
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+    }
+  });
+
+  it.each(['1.1', '0.07', '9.99'])(
+    'saves a trimmed 40-character name with price %s',
+    async (price) => {
+      const { fixture, region } = await prepareAddForm();
+      fillValidFields(region);
+      const name = 'a'.repeat(40);
+      setField(region, 'subscription-name', `  ${name}  `);
+      setField(region, 'subscription-price', price);
+      clickAdd(region);
+      fixture.detectChanges();
+      await settlePage();
+      expect(getList(region, 'Subscriptions').querySelector('h3')?.textContent).toBe(name);
+      // The saved state also keeps the trimmed name.
+      const storage = TestBed.inject(AppStorage);
+      expect((await storage.load())?.subscriptions[0].name).toBe(name);
+    },
+  );
 });
 
 describe('subscription storage', () => {

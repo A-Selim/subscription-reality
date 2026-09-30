@@ -10,7 +10,12 @@
         autocomplete="off"
         placeholder="Name e.g. Spotify"
         [formField]="addForm.name"
+        [attr.aria-invalid]="errorText('name') ? 'true' : null"
+        [attr.aria-describedby]="errorText('name') ? 'subscription-name-error' : null"
       />
+      @if (errorText('name'); as error) {
+        <span id="subscription-name-error" class="visually-hidden">{{ error }}</span>
+      }
     </div>
     <div class="field-group">
       <label class="visually-hidden" for="subscription-price">Price</label>
@@ -21,7 +26,12 @@
         step="0.01"
         placeholder="Price"
         [formField]="addForm.price"
+        [attr.aria-invalid]="errorText('price') ? 'true' : null"
+        [attr.aria-describedby]="errorText('price') ? 'subscription-price-error' : null"
       />
+      @if (errorText('price'); as error) {
+        <span id="subscription-price-error" class="visually-hidden">{{ error }}</span>
+      }
     </div>
     <div class="field-group">
       <label class="visually-hidden" for="subscription-billing">Billing frequency</label>
@@ -29,11 +39,18 @@
         id="subscription-billing"
         [class.is-empty]="!addModel().billingFrequency"
         [formField]="addForm.billingFrequency"
+        [attr.aria-invalid]="errorText('billingFrequency') ? 'true' : null"
+        [attr.aria-describedby]="
+          errorText('billingFrequency') ? 'subscription-billing-error' : null
+        "
       >
         <option value="">Billing</option>
         <option value="monthly">Monthly</option>
         <option value="yearly">Yearly</option>
       </select>
+      @if (errorText('billingFrequency'); as error) {
+        <span id="subscription-billing-error" class="visually-hidden">{{ error }}</span>
+      }
     </div>
     <div class="field-group">
       <label class="visually-hidden" for="subscription-currency">Currency</label>
@@ -41,12 +58,17 @@
         id="subscription-currency"
         [class.is-empty]="!addModel().currency"
         [formField]="addForm.currency"
+        [attr.aria-invalid]="errorText('currency') ? 'true' : null"
+        [attr.aria-describedby]="errorText('currency') ? 'subscription-currency-error' : null"
       >
         <option value="">Currency</option>
         @for (currency of currencies; track currency) {
           <option [value]="currency">{{ currency }}</option>
         }
       </select>
+      @if (errorText('currency'); as error) {
+        <span id="subscription-currency-error" class="visually-hidden">{{ error }}</span>
+      }
     </div>
     <div class="field-group">
       <label class="visually-hidden" for="subscription-reason">Reason</label>
