@@ -65,3 +65,17 @@ _Avoid_: Savings, saved
 **Review candidate**:
 A subscription whose reason is Nice to Have, Convenience or Occasional Use and whose usage is Rarely or Almost Never.
 _Avoid_: Wasteful subscription, flagged
+
+### Storage
+
+**Storage notice**:
+A calm, persistent message at the top of the page about saving. It has two kinds, which can show together: _Couldn't be read_ (the saved data is unreadable; it stays for the whole visit) and _Only for this visit_ (a load or a save failed; it goes away when a later save succeeds).
+_Avoid_: Error, alert, warning, toast
+
+**Unreadable data**:
+Saved data that is present but has the wrong shape or version, so the app can't use it. It is never overwritten without a backup copy.
+_Avoid_: Corrupt data, invalid data
+
+**Backup copy**:
+The unchanged copy of unreadable data, kept in the browser under a separate key before the app starts empty. The app can't restore it.
+_Avoid_: Export, snapshot

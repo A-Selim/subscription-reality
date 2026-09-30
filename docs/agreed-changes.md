@@ -103,8 +103,23 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
   - **Not yet, keep it:** keeps it and sets its decision to _Cancel_, so it counts toward potential savings.
   - _Why:_ deleting from the app doesn't cancel the real subscription.
 
+## Storage (new)
+
+Decided on 2026-09-30, after ticket 09 and the research in [`research/browser-storage.md`](research/browser-storage.md).
+
+- **Keep IndexedDB.** No browser storage can guarantee 100% that data is kept: the browser or the user can clear it, and private windows drop it. localStorage follows the same rules and adds nothing.
+  - _Why:_ switching APIs would not make saving safer, and IndexedDB is already built.
+- **Saving is never blocked after a failed load.** The app keeps saving, so the user's work in this visit is not lost. The one exception stays: if unreadable data can't be copied to the backup key, saves stop for that visit, so the unreadable data is never overwritten without a copy.
+  - _Why:_ blocking saves would lose everything the user does in that visit, to protect against a very rare browser error.
+- **Two storage notices, which can show together:**
+  - _Couldn't be read_: shown when saved data is unreadable. It stays for the whole visit, because a later save doesn't bring the old data back.
+  - _Only for this visit_: shown when a load or a save fails. It goes away when a later save succeeds.
+- **Ask the browser to keep the data.** After the first successful save of a visit, the app calls `navigator.storage.persist()` once, unless the data is already persisted. It doesn't call it on page load, because Firefox shows a permission prompt. A refusal is normal and shows no notice.
+  - _Why:_ it stops the browser from clearing the data automatically when disk space is low. It doesn't stop the user from clearing it.
+
 ---
 
 ## Later (out of MVP scope)
 
 - **One total in a chosen currency:** let the user pick a currency and show every total converted into it. This needs exchange rates, and the source is still open. The brief lists currency conversion as out of scope for the MVP.
+- **Export and import a JSON file:** let the user download their data as a file and load it back. It's the only way, with no server, to keep a copy that survives clearing site data. The UI and the logic (merge or replace, validation, where the buttons go) still need a discussion. Tracked as ticket 29, at the end of the project.
