@@ -1,4 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { AddSubscriptionForm } from '../add-subscription-form/add-subscription-form';
 import {
   annualCost,
@@ -18,6 +27,9 @@ import { SubscriptionsState } from '../state/subscriptions-state';
 })
 export class RecurringLife {
   private readonly subscriptionsState = inject(SubscriptionsState);
+  private readonly injector = inject(Injector);
+  private readonly section = viewChild.required<ElementRef<HTMLElement>>('section');
+  private readonly addSubscriptionForm = viewChild(AddSubscriptionForm);
 
   readonly subscriptions = this.subscriptionsState.subscriptions;
   readonly showForm = signal(false);
@@ -35,5 +47,15 @@ export class RecurringLife {
 
   revealForm(): void {
     this.showForm.set(true);
+  }
+
+  startAdding(): void {
+    this.revealForm();
+    this.section().nativeElement.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+    afterNextRender(() => this.addSubscriptionForm()?.focusName({ preventScroll: true }), {
+      injector: this.injector,
+    });
   }
 }

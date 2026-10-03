@@ -1,6 +1,6 @@
 # 13: "Start adding" action
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 12
 Test seam: Page seam
@@ -14,7 +14,7 @@ jsdom has no `Element.scrollIntoView` or `window.matchMedia`. Stub both in the t
 
 ## Acceptance criteria
 
-- [ ] On an empty page, "Start adding" shows the add form and focuses the name field.
-- [ ] With subscriptions present, "Start adding" focuses the name field of the visible add form.
-- [ ] By hand in the browser: with reduced motion turned on in the OS, the jump happens without smooth scrolling.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] On an empty page, "Start adding" shows the add form and focuses the name field.
+- [x] With subscriptions present, "Start adding" focuses the name field of the visible add form.
+- [x] By hand in the browser: with reduced motion turned on in the OS, the jump happens without smooth scrolling.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

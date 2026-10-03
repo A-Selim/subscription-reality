@@ -90,7 +90,13 @@ export class AddSubscriptionForm {
       : null;
   }
 
+  focusName(options?: FocusOptions): void {
+    this.nameInput()?.nativeElement.focus(options);
+  }
+
   private focusNameAfterRender(): void {
-    afterNextRender(() => this.nameInput()?.nativeElement.focus(), { injector: this.injector });
+    afterNextRender(() => this.focusName(), {
+      injector: this.injector,
+    });
   }
 }

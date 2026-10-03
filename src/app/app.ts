@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { StorageNotice } from './storage-notice/storage-notice';
 import { TopBar } from './top-bar/top-bar';
 import { Hero } from './hero/hero';
@@ -15,4 +15,9 @@ import { SubscriptionsState } from './state/subscriptions-state';
 })
 export class App {
   readonly loaded = inject(SubscriptionsState).loaded;
+  private readonly recurringLife = viewChild(RecurringLife);
+
+  startAdding(): void {
+    this.recurringLife()?.startAdding();
+  }
 }

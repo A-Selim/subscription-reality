@@ -136,6 +136,31 @@ describe('App page seam', () => {
     expect(button.getAttribute('type')).toBe('button');
   });
 
+  it('reveals the add form and focuses its name field from Start adding on an empty page', async () => {
+    const { fixture, root: page } = await renderApp();
+    const region = getRegion(page, 'Your recurring life.');
+
+    getButton(page, 'Start adding').click();
+    fixture.detectChanges();
+    await settlePage();
+
+    expect(region.querySelector('form')).not.toBeNull();
+    expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+  });
+
+  it('focuses the visible add form name field from Start adding with subscriptions present', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    getButton(region, 'Add subscription').focus();
+
+    getButton(fixture.nativeElement as HTMLElement, 'Start adding').click();
+    fixture.detectChanges();
+    await settlePage();
+
+    expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+  });
+
   it('does not render scaffold links or greeting text', async () => {
     const page = (await renderApp()).root;
 
