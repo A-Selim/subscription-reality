@@ -11,7 +11,10 @@ import { FormField, form } from '@angular/forms/signals';
 import { CURRENCIES, REASONS, type Currency } from '../domain/subscription';
 import { SubscriptionsState } from '../state/subscriptions-state';
 import { Toast } from '../toast/toast';
-import { subscriptionFormSchema, type SubscriptionFormFields } from './subscription-form-schema';
+import {
+  createSubscriptionFormSchema,
+  type SubscriptionFormFields,
+} from './subscription-form-schema';
 
 type ValidatedField = 'name' | 'price' | 'billingFrequency' | 'currency';
 const FIELD_ORDER: readonly ValidatedField[] = ['name', 'price', 'billingFrequency', 'currency'];
@@ -43,7 +46,10 @@ export class AddSubscriptionForm {
   readonly addModel = signal<SubscriptionFormFields>(
     createEmptyFields(this.subscriptionsState.preferredCurrency()),
   );
-  readonly addForm = form(this.addModel, subscriptionFormSchema);
+  readonly addForm = form(
+    this.addModel,
+    createSubscriptionFormSchema(this.subscriptionsState.subscriptions),
+  );
   private readonly attempted = signal(false);
 
   constructor() {

@@ -589,6 +589,32 @@ describe('add form validation', () => {
     expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
   });
 
+  it('refuses a duplicate subscription name and lets a distinct name be added', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Netflix');
+    await settlePage();
+
+    setField(region, 'subscription-name', ' netflix ');
+    setField(region, 'subscription-price', '19.99');
+    setField(region, 'subscription-billing', 'yearly');
+    clickAdd(region);
+    fixture.detectChanges();
+
+    const duplicateMessage =
+      "You already have Netflix. Add something to tell them apart, like 'Netflix Family'.";
+    const name = region.querySelector<HTMLElement>('#subscription-name')!;
+    expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
+    expect(document.activeElement).toBe(name);
+    expectFieldError(region, 'subscription-name', duplicateMessage);
+    expect(region.querySelector('[role="status"]')?.textContent).toContain(duplicateMessage);
+
+    setField(region, 'subscription-name', 'Netflix Family');
+    clickAdd(region);
+    fixture.detectChanges();
+
+    expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(2);
+  });
+
   it('keeps individual error descriptions after the toast hides and removes them on correction', async () => {
     const { fixture, region } = await prepareAddForm();
     vi.useFakeTimers();

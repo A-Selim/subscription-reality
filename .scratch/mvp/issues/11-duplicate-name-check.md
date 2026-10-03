@@ -1,6 +1,6 @@
 # 11: Duplicate name check
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 10
 Test seam: Page seam; domain seam for name normalization and uniqueness
@@ -16,7 +16,7 @@ The uniqueness check takes an optional subscription to exclude, so editing (tick
 
 ## Acceptance criteria
 
-- [ ] With "Netflix" in the list, adding " netflix " is refused, the name field gets focus, and the toast shows the message above with "Netflix" in both places.
-- [ ] Adding "Netflix Family" works.
-- [ ] Domain tests cover case differences, surrounding spaces, and excluding a given subscription from the check.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With "Netflix" in the list, adding " netflix " is refused, the name field gets focus, and the toast shows the message above with "Netflix" in both places.
+- [x] Adding "Netflix Family" works.
+- [x] Domain tests cover case differences, surrounding spaces, and excluding a given subscription from the check.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

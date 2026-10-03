@@ -1,5 +1,6 @@
 import {
   annualCost,
+  findSubscriptionNameMatch,
   isValidName,
   isValidPrice,
   NAME_MAX_LENGTH,
@@ -10,6 +11,7 @@ import {
   monogram,
   type Currency,
   type Reason,
+  type Subscription,
   type Usage,
 } from './subscription';
 
@@ -107,5 +109,32 @@ describe('subscription validation', () => {
     expect(NAME_MAX_LENGTH).toBe(40);
     expect(isValidName('a'.repeat(40))).toBe(true);
     expect(isValidName(`  ${'a'.repeat(40)}  `)).toBe(true);
+  });
+});
+
+describe('subscription name uniqueness', () => {
+  const netflix: Subscription = {
+    id: 'netflix',
+    sequence: 0,
+    name: 'Netflix',
+    price: 9.99,
+    billingFrequency: 'monthly',
+    currency: 'EUR',
+    reason: 'Essential',
+    usage: 'Daily',
+    usageConfirmed: false,
+    decision: null,
+  };
+
+  it.each(['netflix', ' NETFLIX '])('finds a match for %j', (candidateName) => {
+    expect(findSubscriptionNameMatch([netflix], candidateName)).toBe(netflix);
+  });
+
+  it('does not match a distinct subscription name', () => {
+    expect(findSubscriptionNameMatch([netflix], 'Netflix Family')).toBeUndefined();
+  });
+
+  it('excludes the subscription being edited', () => {
+    expect(findSubscriptionNameMatch([netflix], ' netflix ', netflix.id)).toBeUndefined();
   });
 });

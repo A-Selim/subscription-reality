@@ -100,6 +100,24 @@ export function isValidName(name: string): boolean {
   return trimmedName.length > 0 && trimmedName.length <= NAME_MAX_LENGTH;
 }
 
+export function normalizeSubscriptionName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+export function findSubscriptionNameMatch(
+  subscriptions: readonly Subscription[],
+  candidateName: string,
+  excludedId?: string,
+): Subscription | undefined {
+  const normalizedCandidateName = normalizeSubscriptionName(candidateName);
+
+  return subscriptions.find(
+    (subscription) =>
+      subscription.id !== excludedId &&
+      normalizeSubscriptionName(subscription.name) === normalizedCandidateName,
+  );
+}
+
 export function isValidPrice(price: number): boolean {
   // Compare in price units: multiplying by 100 introduces rounding errors for 1.1 and 0.07.
   return Number.isFinite(price) && price > 0 && price === Number(price.toFixed(2));
