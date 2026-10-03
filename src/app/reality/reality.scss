@@ -26,6 +26,10 @@ h2 {
   background: #f0f0eb;
 }
 
+.reality-card + .reality-card {
+  margin-top: 24px;
+}
+
 .reality-top {
   display: flex;
   align-items: flex-end;

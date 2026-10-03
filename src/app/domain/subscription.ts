@@ -143,3 +143,22 @@ export function isRarelyUsed(subscription: Pick<Subscription, 'usage'>): boolean
 export function rarelyUsedCount(subscriptions: readonly Pick<Subscription, 'usage'>[]): number {
   return subscriptions.filter(isRarelyUsed).length;
 }
+
+export function recurringCostPerCurrency(subscriptions: readonly Subscription[]) {
+  const groups = new Map<Currency, Subscription[]>();
+  for (const subscription of [...subscriptions].sort((a, b) => a.sequence - b.sequence)) {
+    const group = groups.get(subscription.currency);
+    if (group) {
+      group.push(subscription);
+    } else {
+      groups.set(subscription.currency, [subscription]);
+    }
+  }
+
+  return Array.from(groups, ([currency, group]) => ({
+    currency,
+    ...recurringCost(group),
+    subscriptionCount: group.length,
+    rarelyUsedCount: rarelyUsedCount(group),
+  }));
+}

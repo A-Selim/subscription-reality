@@ -1,6 +1,7 @@
 import {
   annualCost,
   recurringCost,
+  recurringCostPerCurrency,
   isRarelyUsed,
   rarelyUsedCount,
   findSubscriptionNameMatch,
@@ -173,5 +174,78 @@ describe('Rarely used subscriptions', () => {
       rarelyUsedCount([{ usage: 'Daily' }, { usage: 'Rarely' }, { usage: 'Almost Never' }]),
     ).toBe(2);
     expect(rarelyUsedCount([])).toBe(0);
+  });
+});
+
+describe('Recurring cost per currency', () => {
+  function subscription(overrides: Partial<Subscription>): Subscription {
+    return {
+      id: 'subscription',
+      sequence: 0,
+      name: 'Subscription',
+      price: 10,
+      billingFrequency: 'monthly',
+      currency: 'EUR',
+      reason: 'Essential',
+      usage: 'Daily',
+      usageConfirmed: false,
+      decision: null,
+      ...overrides,
+    };
+  }
+
+  it('keeps totals and subscription and Rarely used counts separate per currency', () => {
+    expect(
+      recurringCostPerCurrency([
+        subscription({ sequence: 0, usage: 'Rarely' }),
+        subscription({
+          sequence: 1,
+          currency: 'USD',
+          price: 24,
+          billingFrequency: 'yearly',
+          usage: 'Almost Never',
+          usageConfirmed: true,
+        }),
+        subscription({ sequence: 2, price: 60, billingFrequency: 'yearly', decision: 'cancel' }),
+      ]),
+    ).toEqual([
+      { currency: 'EUR', annual: 180, monthly: 15, subscriptionCount: 2, rarelyUsedCount: 1 },
+      { currency: 'USD', annual: 24, monthly: 2, subscriptionCount: 1, rarelyUsedCount: 1 },
+    ]);
+  });
+
+  it('orders currencies by their lowest sequence independently of array order', () => {
+    const subscriptions = [
+      subscription({ sequence: 8 }),
+      subscription({ sequence: 4, currency: 'USD' }),
+      subscription({ sequence: 2 }),
+    ];
+    expect(recurringCostPerCurrency(subscriptions).map((cost) => cost.currency)).toEqual([
+      'EUR',
+      'USD',
+    ]);
+    expect(subscriptions.map((item) => item.sequence)).toEqual([8, 4, 2]);
+  });
+
+  it('omits currencies without subscriptions', () => {
+    expect(recurringCostPerCurrency([])).toEqual([]);
+    expect(recurringCostPerCurrency([subscription({})]).map((cost) => cost.currency)).toEqual([
+      'EUR',
+    ]);
+  });
+
+  it('puts a re-used currency after currencies with earlier current subscriptions', () => {
+    const earlierEuro = subscription({ sequence: 0 });
+    const dollar = subscription({ sequence: 1, currency: 'USD' });
+    expect(recurringCostPerCurrency([earlierEuro, dollar]).map((cost) => cost.currency)).toEqual([
+      'EUR',
+      'USD',
+    ]);
+    expect(recurringCostPerCurrency([dollar]).map((cost) => cost.currency)).toEqual(['USD']);
+    expect(
+      recurringCostPerCurrency([subscription({ sequence: 5 }), dollar]).map(
+        (cost) => cost.currency,
+      ),
+    ).toEqual(['USD', 'EUR']);
   });
 });

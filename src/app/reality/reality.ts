@@ -7,12 +7,7 @@ import {
   Injector,
   viewChild,
 } from '@angular/core';
-import {
-  formatAnnualMoney,
-  formatMoney,
-  rarelyUsedCount,
-  recurringCost,
-} from '../domain/subscription';
+import { formatAnnualMoney, formatMoney, recurringCostPerCurrency } from '../domain/subscription';
 import { scrollIntoView } from '../shared/scroll-into-view';
 import { SubscriptionsState } from '../state/subscriptions-state';
 
@@ -28,19 +23,26 @@ export class Reality {
   private readonly heading = viewChild.required<ElementRef<HTMLHeadingElement>>('heading');
 
   readonly isLive = computed(() => this.subscriptions().length > 0);
-  readonly card = computed(() => {
-    const subscriptions = this.subscriptions();
-    const currency = subscriptions[0]?.currency;
-    if (!currency) {
-      return { annual: '0', monthly: '0', subscriptionCount: 0, rarelyUsedCount: 0 };
+  readonly cards = computed(() => {
+    const costs = recurringCostPerCurrency(this.subscriptions());
+    if (costs.length === 0) {
+      return [
+        {
+          currency: null,
+          label: null,
+          annual: '0',
+          monthly: '0',
+          subscriptionCount: 0,
+          rarelyUsedCount: 0,
+        },
+      ];
     }
-    const cost = recurringCost(subscriptions);
-    return {
-      annual: formatAnnualMoney(cost.annual, currency),
-      monthly: formatMoney(cost.monthly, currency),
-      subscriptionCount: subscriptions.length,
-      rarelyUsedCount: rarelyUsedCount(subscriptions),
-    };
+    return costs.map((cost) => ({
+      ...cost,
+      label: `Subscription reality in ${cost.currency}`,
+      annual: formatAnnualMoney(cost.annual, cost.currency),
+      monthly: formatMoney(cost.monthly, cost.currency),
+    }));
   });
 
   showReality(): void {

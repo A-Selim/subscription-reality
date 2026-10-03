@@ -1029,6 +1029,57 @@ describe('Subscription reality', () => {
       ?.nextElementSibling?.textContent?.trim();
   }
 
+  it('shows one named card when subscriptions share a currency', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    addSubscription(fixture, region, 'Cloud');
+    await settlePage();
+    const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
+    const cards = reality.querySelectorAll('.reality-card');
+    expect(cards).toHaveLength(1);
+    expect(cards[0].getAttribute('aria-label')).toBe('Subscription reality in EUR');
+  });
+
+  it('shows separate Recurring cost and counts in first-used currency order', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify', 'EUR');
+    await settlePage();
+    addSubscription(fixture, region, 'Cloud', 'USD');
+    await settlePage();
+    setField(region, 'subscription-reason', 'Occasional Use');
+    addSubscription(fixture, region, 'Adobe', 'EUR');
+    await settlePage();
+    const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
+    const cards = reality.querySelectorAll<HTMLElement>('.reality-card');
+    expect(cards).toHaveLength(2);
+    const expected = [
+      {
+        currency: 'EUR',
+        annual: '€240',
+        monthly: '€19.98 every month',
+        subscriptions: '2',
+        rarelyUsed: '1',
+      },
+      {
+        currency: 'USD',
+        annual: '$120',
+        monthly: '$9.99 every month',
+        subscriptions: '1',
+        rarelyUsed: '0',
+      },
+    ];
+    expected.forEach((cost, index) => {
+      const card = cards[index];
+      expect(card.getAttribute('aria-label')).toBe(`Subscription reality in ${cost.currency}`);
+      expect(card.querySelector('.annual')?.textContent?.trim()).toBe(cost.annual);
+      expect(card.querySelector('.monthly')?.textContent?.trim()).toBe(cost.monthly);
+      expect(stat(card, 'Subscriptions')).toBe(cost.subscriptions);
+      expect(stat(card, 'Rarely used')).toBe(cost.rarelyUsed);
+      expect(card.textContent).not.toContain('Before review');
+    });
+  });
+
   it('updates Recurring cost and subscription count after monthly and yearly adds', async () => {
     const { fixture, region } = await prepareAddForm();
     const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');

@@ -7,39 +7,40 @@
     </p>
   </div>
 
-  <div class="reality-card">
-    <div class="reality-top">
-      <div>
-        <p class="label">Your subscription reality</p>
-        <p class="annual">{{ card().annual }}</p>
-        <p class="monthly">{{ card().monthly }} every month</p>
-        @if (!isLive()) {
-          <p class="empty-copy">Add a subscription first</p>
-        }
+  @for (card of cards(); track card.currency ?? 'empty') {
+    <article class="reality-card" [attr.aria-label]="card.label">
+      <div class="reality-top">
+        <div>
+          <p class="label">Your subscription reality</p>
+          <p class="annual">{{ card.annual }}</p>
+          <p class="monthly">{{ card.monthly }} every month</p>
+          @if (!isLive()) {
+            <p class="empty-copy">Add a subscription first</p>
+          }
+        </div>
+        <dl class="mini-stats">
+          <div>
+            <dt>Subscriptions</dt>
+            <dd>{{ card.subscriptionCount }}</dd>
+          </div>
+          <div>
+            <dt>Rarely used</dt>
+            <dd>{{ card.rarelyUsedCount }}</dd>
+          </div>
+        </dl>
       </div>
-      <dl class="mini-stats">
-        <div>
-          <dt>Subscriptions</dt>
-          <dd>{{ card().subscriptionCount }}</dd>
-        </div>
-        <div>
-          <dt>Rarely used</dt>
-          <dd>{{ card().rarelyUsedCount }}</dd>
-        </div>
-      </dl>
-    </div>
-
-    @if (!isLive()) {
-      <dl class="comparison">
-        <div>
-          <dt>Before review</dt>
-          <dd>0 / year</dd>
-        </div>
-        <div>
-          <dt>If you cancel the ones you no longer value</dt>
-          <dd>0 / year</dd>
-        </div>
-      </dl>
-    }
-  </div>
+      @if (!isLive()) {
+        <dl class="comparison">
+          <div>
+            <dt>Before review</dt>
+            <dd>0 / year</dd>
+          </div>
+          <div>
+            <dt>If you cancel the ones you no longer value</dt>
+            <dd>0 / year</dd>
+          </div>
+        </dl>
+      }
+    </article>
+  }
 </section>
