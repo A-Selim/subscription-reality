@@ -362,7 +362,9 @@ describe('App page seam', () => {
 
       addSubscription(fixture, region, 'First');
       expect(status?.textContent?.trim()).toBe('Subscription added');
-      expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+      expect(document.activeElement).toBe(
+        getRegion(fixture.nativeElement as HTMLElement, 'See the reality.').querySelector('h2'),
+      );
 
       vi.advanceTimersByTime(TOAST_DURATION_MS);
       fixture.detectChanges();
@@ -416,6 +418,8 @@ describe('App page seam', () => {
       expect(region.querySelector('[role="status"]')).toBe(status);
       expect(status?.firstElementChild).not.toBe(firstMessage);
       expect(status?.textContent?.trim()).toBe('Subscription added');
+      await vi.advanceTimersByTimeAsync(0);
+      await settlePage();
       expect(vi.getTimerCount()).toBe(1);
 
       fixture.destroy();
@@ -1015,5 +1019,68 @@ describe('subscription storage', () => {
     } finally {
       warning.mockRestore();
     }
+  });
+});
+
+describe('Subscription reality', () => {
+  function stat(region: HTMLElement, label: string): string | undefined {
+    return Array.from(region.querySelectorAll('dt'))
+      .find((term) => term.textContent?.trim() === label)
+      ?.nextElementSibling?.textContent?.trim();
+  }
+
+  it('updates Recurring cost and subscription count after monthly and yearly adds', async () => {
+    const { fixture, region } = await prepareAddForm();
+    const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
+    setField(region, 'subscription-name', 'Spotify');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    expect(reality.querySelector('.annual')?.textContent?.trim()).toBe('€120');
+    expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€10.00 every month');
+    expect(reality.querySelector('.label')?.textContent?.trim()).toBe('Your subscription reality');
+    expect(reality.classList.contains('live')).toBe(true);
+    expect(stat(reality, 'Subscriptions')).toBe('1');
+    expect(reality.textContent).not.toContain('Add a subscription first');
+    expect(reality.textContent).not.toContain('Before review');
+    expect(reality.textContent).not.toContain('If you cancel the ones you no longer value');
+
+    setField(region, 'subscription-name', 'Cloud storage');
+    setField(region, 'subscription-price', '60');
+    setField(region, 'subscription-billing', 'yearly');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    expect(reality.querySelector('.annual')?.textContent?.trim()).toBe('€180');
+    expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€15.00 every month');
+    expect(stat(reality, 'Subscriptions')).toBe('2');
+  });
+
+  it('counts estimated Rarely used subscriptions from Occasional Use', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
+    expect(stat(reality, 'Rarely used')).toBe('0');
+    setField(region, 'subscription-reason', 'Occasional Use');
+    addSubscription(fixture, region, 'Adobe');
+    await settlePage();
+    expect(stat(reality, 'Rarely used')).toBe('1');
+  });
+
+  it('focuses the live reality heading after the first add and the name field after later adds', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
+    expect(document.activeElement).toBe(reality.querySelector('h2'));
+    expect(reality.querySelector('h2')?.getAttribute('tabindex')).toBe('-1');
+
+    addSubscription(fixture, region, 'Adobe');
+    await settlePage();
+    expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
   });
 });

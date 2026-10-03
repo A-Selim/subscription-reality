@@ -1,5 +1,8 @@
 import {
   annualCost,
+  recurringCost,
+  isRarelyUsed,
+  rarelyUsedCount,
   findSubscriptionNameMatch,
   isValidName,
   isValidPrice,
@@ -136,5 +139,39 @@ describe('subscription name uniqueness', () => {
 
   it('excludes the subscription being edited', () => {
     expect(findSubscriptionNameMatch([netflix], ' netflix ', netflix.id)).toBeUndefined();
+  });
+});
+
+describe('Recurring cost', () => {
+  it('sums monthly and yearly subscriptions as annual and monthly costs', () => {
+    expect(
+      recurringCost([
+        { price: 10, billingFrequency: 'monthly' },
+        { price: 60, billingFrequency: 'yearly' },
+      ]),
+    ).toEqual({ annual: 180, monthly: 15 });
+  });
+
+  it('has zero recurring cost without subscriptions', () => {
+    expect(recurringCost([])).toEqual({ annual: 0, monthly: 0 });
+  });
+});
+
+describe('Rarely used subscriptions', () => {
+  it.each<readonly [Usage, boolean]>([
+    ['Daily', false],
+    ['Weekly', false],
+    ['Monthly', false],
+    ['Rarely', true],
+    ['Almost Never', true],
+  ])('checks %s usage', (usage, expected) => {
+    expect(isRarelyUsed({ usage })).toBe(expected);
+  });
+
+  it('counts Rarely and Almost Never usage', () => {
+    expect(
+      rarelyUsedCount([{ usage: 'Daily' }, { usage: 'Rarely' }, { usage: 'Almost Never' }]),
+    ).toBe(2);
+    expect(rarelyUsedCount([])).toBe(0);
   });
 });

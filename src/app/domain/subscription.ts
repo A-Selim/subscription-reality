@@ -122,3 +122,24 @@ export function isValidPrice(price: number): boolean {
   // Compare in price units: multiplying by 100 introduces rounding errors for 1.1 and 0.07.
   return Number.isFinite(price) && price > 0 && price === Number(price.toFixed(2));
 }
+
+export function recurringCost(subscriptions: readonly CostInput[]): {
+  annual: number;
+  monthly: number;
+} {
+  return subscriptions.reduce(
+    (cost, subscription) => ({
+      annual: cost.annual + annualCost(subscription),
+      monthly: cost.monthly + monthlyCost(subscription),
+    }),
+    { annual: 0, monthly: 0 },
+  );
+}
+
+export function isRarelyUsed(subscription: Pick<Subscription, 'usage'>): boolean {
+  return subscription.usage === 'Rarely' || subscription.usage === 'Almost Never';
+}
+
+export function rarelyUsedCount(subscriptions: readonly Pick<Subscription, 'usage'>[]): number {
+  return subscriptions.filter(isRarelyUsed).length;
+}

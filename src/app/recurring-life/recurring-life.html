@@ -59,7 +59,7 @@
     }
 
     @if (showForm() || hasSubscriptions()) {
-      <app-add-subscription-form />
+      <app-add-subscription-form (firstSubscriptionAdded)="firstSubscriptionAdded.emit()" />
     }
   </div>
 </section>

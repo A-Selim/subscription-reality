@@ -1,6 +1,6 @@
-<section aria-labelledby="reality-heading">
+<section #section [class.live]="isLive()" aria-labelledby="reality-heading">
   <div class="section-head">
-    <h2 id="reality-heading">See the reality.</h2>
+    <h2 #heading id="reality-heading" [attr.tabindex]="isLive() ? -1 : null">See the reality.</h2>
     <p>
       Once you add subscriptions, the monthly number becomes an annual one — and the scale usually
       feels very different.
@@ -11,31 +11,35 @@
     <div class="reality-top">
       <div>
         <p class="label">Your subscription reality</p>
-        <p class="annual">0</p>
-        <p class="monthly">0 every month</p>
-        <p class="empty-copy">Add a subscription first</p>
+        <p class="annual">{{ card().annual }}</p>
+        <p class="monthly">{{ card().monthly }} every month</p>
+        @if (!isLive()) {
+          <p class="empty-copy">Add a subscription first</p>
+        }
       </div>
       <dl class="mini-stats">
         <div>
           <dt>Subscriptions</dt>
-          <dd>0</dd>
+          <dd>{{ card().subscriptionCount }}</dd>
         </div>
         <div>
           <dt>Rarely used</dt>
-          <dd>0</dd>
+          <dd>{{ card().rarelyUsedCount }}</dd>
         </div>
       </dl>
     </div>
 
-    <dl class="comparison">
-      <div>
-        <dt>Before review</dt>
-        <dd>0 / year</dd>
-      </div>
-      <div>
-        <dt>If you cancel the ones you no longer value</dt>
-        <dd>0 / year</dd>
-      </div>
-    </dl>
+    @if (!isLive()) {
+      <dl class="comparison">
+        <div>
+          <dt>Before review</dt>
+          <dd>0 / year</dd>
+        </div>
+        <div>
+          <dt>If you cancel the ones you no longer value</dt>
+          <dd>0 / year</dd>
+        </div>
+      </dl>
+    }
   </div>
 </section>

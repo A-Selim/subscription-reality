@@ -1,6 +1,6 @@
 # 14: Reality card for one currency
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 13
 Test seam: Page seam; domain seam for recurring cost and rarely used
@@ -23,10 +23,10 @@ jsdom has no `Element.scrollIntoView` or `window.matchMedia`. Stub both in the t
 
 ## Acceptance criteria
 
-- [ ] Add a monthly €10 and a yearly €60: the card shows €180 per year, €15.00 every month, 2 subscriptions.
-- [ ] Add one with reason Occasional Use: the rarely used count goes up by one.
-- [ ] After the first add, the page scrolls to _See the reality_ and focus is on its heading.
-- [ ] After a second add, focus is in the name field.
-- [ ] By hand in the browser: with reduced motion turned on in the OS, the first add jumps without smooth scrolling.
-- [ ] Domain tests cover recurring cost (monthly and annual) and the rarely used count.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Add a monthly €10 and a yearly €60: the card shows €180 per year, €15.00 every month, 2 subscriptions.
+- [x] Add one with reason Occasional Use: the rarely used count goes up by one.
+- [x] After the first add, the page scrolls to _See the reality_ and focus is on its heading.
+- [x] After a second add, focus is in the name field.
+- [x] By hand in the browser: with reduced motion turned on in the OS, the first add jumps without smooth scrolling.
+- [x] Domain tests cover recurring cost (monthly and annual) and the rarely used count.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

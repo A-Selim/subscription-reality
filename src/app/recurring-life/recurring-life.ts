@@ -5,6 +5,7 @@ import {
   ElementRef,
   inject,
   Injector,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -17,6 +18,7 @@ import {
   monogram,
   type Subscription,
 } from '../domain/subscription';
+import { scrollIntoView } from '../shared/scroll-into-view';
 import { SubscriptionsState } from '../state/subscriptions-state';
 
 @Component({
@@ -31,6 +33,7 @@ export class RecurringLife {
   private readonly section = viewChild.required<ElementRef<HTMLElement>>('section');
   private readonly addSubscriptionForm = viewChild(AddSubscriptionForm);
 
+  readonly firstSubscriptionAdded = output<void>();
   readonly subscriptions = this.subscriptionsState.subscriptions;
   readonly showForm = signal(false);
   readonly hasSubscriptions = computed(() => this.subscriptions().length > 0);
@@ -51,9 +54,7 @@ export class RecurringLife {
 
   startAdding(): void {
     this.revealForm();
-    this.section().nativeElement.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    });
+    scrollIntoView(this.section().nativeElement);
     afterNextRender(() => this.addSubscriptionForm()?.focusName({ preventScroll: true }), {
       injector: this.injector,
     });

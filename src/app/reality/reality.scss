@@ -122,3 +122,34 @@ dd {
     border-radius: 26px;
   }
 }
+
+.live {
+  color: var(--ink);
+
+  .section-head p,
+  .label,
+  .monthly,
+  dt {
+    color: var(--muted);
+  }
+
+  .reality-card {
+    background: var(--paper);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow);
+  }
+
+  .label {
+    margin-bottom: 8px;
+  }
+
+  .mini-stats > div {
+    background: #fff;
+    border-color: var(--line);
+  }
+
+  dd {
+    margin-top: 3px;
+    letter-spacing: -0.03em;
+  }
+}

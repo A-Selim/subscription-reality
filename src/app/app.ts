@@ -17,6 +17,12 @@ export class App {
   readonly loaded = inject(SubscriptionsState).loaded;
   private readonly recurringLife = viewChild(RecurringLife);
 
+  private readonly reality = viewChild(Reality);
+
+  showReality(): void {
+    this.reality()?.showReality();
+  }
+
   startAdding(): void {
     this.recurringLife()?.startAdding();
   }

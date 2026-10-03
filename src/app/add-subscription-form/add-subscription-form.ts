@@ -4,6 +4,7 @@ import {
   ElementRef,
   inject,
   Injector,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -41,6 +42,8 @@ export class AddSubscriptionForm {
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private readonly toast = viewChild.required(Toast);
 
+  readonly firstSubscriptionAdded = output<void>();
+
   readonly currencies = CURRENCIES;
   readonly reasons = REASONS;
   readonly addModel = signal<SubscriptionFormFields>(
@@ -70,6 +73,7 @@ export class AddSubscriptionForm {
     // Narrow the required fields after schema validation.
     if (price === null || !billingFrequency || !currency) return;
 
+    const isFirstSubscription = this.subscriptionsState.subscriptions().length === 0;
     this.subscriptionsState.add({
       name: name.trim(),
       price,
@@ -80,7 +84,8 @@ export class AddSubscriptionForm {
     this.toast().show('Subscription added');
     this.attempted.set(false);
     this.addForm().reset(createEmptyFields(this.subscriptionsState.preferredCurrency()));
-    this.focusNameAfterRender();
+    if (isFirstSubscription) this.firstSubscriptionAdded.emit();
+    else this.focusNameAfterRender();
   }
 
   errorText(field: ValidatedField): string | null {
