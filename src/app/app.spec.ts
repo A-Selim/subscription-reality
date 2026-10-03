@@ -6,6 +6,7 @@ import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
 import { InMemoryAppStorage } from './testing/in-memory-app-storage';
 import { SubscriptionsState } from './state/subscriptions-state';
 import { renderApp } from './testing/render-app';
+import type { Currency } from './domain/subscription';
 
 function getRegion(root: HTMLElement, name: string): HTMLElement {
   const heading = Array.from(root.querySelectorAll('h1, h2, h3')).find(
@@ -56,20 +57,25 @@ async function settlePage(): Promise<void> {
   await TestBed.inject(ApplicationRef).whenStable();
 }
 
-async function prepareAddForm() {
-  const { fixture, root: page } = await renderApp();
+async function prepareAddForm(storage = new InMemoryAppStorage()) {
+  const { fixture, root: page } = await renderApp(storage);
   const region = getRegion(page, 'Your recurring life.');
   getButton(region, 'Add your first subscription').click();
   fixture.detectChanges();
   await settlePage();
-  return { fixture, region };
+  return { fixture, region, storage };
 }
 
-function addSubscription(fixture: ComponentFixture<App>, region: HTMLElement, name: string): void {
+function addSubscription(
+  fixture: ComponentFixture<App>,
+  region: HTMLElement,
+  name: string,
+  currency: Currency = 'EUR',
+): void {
   setField(region, 'subscription-name', name);
   setField(region, 'subscription-price', '9.99');
   setField(region, 'subscription-billing', 'monthly');
-  setField(region, 'subscription-currency', 'EUR');
+  setField(region, 'subscription-currency', currency);
   clickAdd(region);
   fixture.detectChanges();
 }
@@ -723,6 +729,60 @@ describe('add form validation', () => {
       expect((await storage.load())?.subscriptions[0].name).toBe(name);
     },
   );
+});
+
+describe('Preferred currency', () => {
+  async function addUsdSubscription() {
+    const { fixture, region, storage } = await prepareAddForm();
+    setField(region, 'subscription-reason', 'Occasional Use');
+    addSubscription(fixture, region, 'Spotify', 'USD');
+    await settlePage();
+    return { fixture, region, storage };
+  }
+
+  it('resets the add form with USD as the Preferred currency after creating a subscription', async () => {
+    const { region } = await addUsdSubscription();
+
+    expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
+    expect(region.querySelector<HTMLInputElement>('#subscription-name')?.value).toBe('');
+    expect(region.querySelector<HTMLInputElement>('#subscription-price')?.value).toBe('');
+    expect(region.querySelector<HTMLSelectElement>('#subscription-billing')?.value).toBe('');
+    expect(region.querySelector<HTMLSelectElement>('#subscription-reason')?.value).toBe(
+      'Essential',
+    );
+    expect(region.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe('USD');
+  });
+
+  it('creates a USD subscription, changes the dropdown to GBP without adding, and reloads with USD', async () => {
+    const { fixture, region, storage } = await addUsdSubscription();
+    setField(region, 'subscription-currency', 'GBP');
+    fixture.detectChanges();
+    await settlePage();
+    expect(region.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe('GBP');
+    fixture.destroy();
+
+    const { root } = await renderApp(storage);
+    const reloadedRegion = getRegion(root, 'Your recurring life.');
+    expect(reloadedRegion.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe(
+      'USD',
+    );
+    expect(getList(reloadedRegion, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
+  });
+
+  it('reloads with EGP as the Preferred currency after creating a later subscription in EGP', async () => {
+    const { fixture, region, storage } = await addUsdSubscription();
+    addSubscription(fixture, region, 'Gym', 'EGP');
+    await settlePage();
+    expect(region.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe('EGP');
+    fixture.destroy();
+
+    const { root } = await renderApp(storage);
+    const reloadedRegion = getRegion(root, 'Your recurring life.');
+    expect(reloadedRegion.querySelector<HTMLSelectElement>('#subscription-currency')?.value).toBe(
+      'EGP',
+    );
+    expect(getList(reloadedRegion, 'Subscriptions').querySelectorAll('article')).toHaveLength(2);
+  });
 });
 
 describe('subscription storage', () => {

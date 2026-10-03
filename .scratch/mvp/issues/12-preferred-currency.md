@@ -1,6 +1,6 @@
 # 12: Preferred currency
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 11
 Test seam: Page seam; storage seam for the reload case
@@ -12,8 +12,8 @@ The currency field starts blank on a first visit. When a subscription is created
 
 ## Acceptance criteria
 
-- [ ] First visit: the currency field is blank.
-- [ ] Add a subscription in USD: the form resets with currency USD.
-- [ ] Change the dropdown to GBP, don't add, and reload: the currency field starts on USD.
-- [ ] Add one in EGP, then reload: the currency field starts on EGP.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] First visit: the currency field is blank.
+- [x] Add a subscription in USD: the form resets with currency USD.
+- [x] Change the dropdown to GBP, don't add, and reload: the currency field starts on USD.
+- [x] Add one in EGP, then reload: the currency field starts on EGP.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
