@@ -162,3 +162,9 @@ export function recurringCostPerCurrency(subscriptions: readonly Subscription[])
     rarelyUsedCount: rarelyUsedCount(group),
   }));
 }
+
+export function reviewQueue(subscriptions: readonly Subscription[]): Subscription[] {
+  return subscriptions
+    .filter((subscription) => subscription.decision === null)
+    .sort((a, b) => a.sequence - b.sequence);
+}

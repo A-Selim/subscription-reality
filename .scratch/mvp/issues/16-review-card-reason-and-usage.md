@@ -1,6 +1,6 @@
 # 16: Review card: reason and usage
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 15
 Test seam: Page seam; domain seam for the review queue
@@ -16,11 +16,11 @@ The Keep / Unsure / Cancel decisions are ticket 17.
 
 ## Acceptance criteria
 
-- [ ] With two subscriptions, the review shows the first one added, with its annual and monthly cost.
-- [ ] Its current reason and usage buttons are pressed (`aria-pressed="true"`); the others are not.
-- [ ] Choosing usage Rarely updates the rarely used count on the reality card at once, and the subscription card shows Rarely.
-- [ ] Choosing a new reason in the review does not change usage.
-- [ ] Both groups have an accessible name equal to their question.
-- [ ] After a reload, the review shows the same first undecided subscription with the saved reason and usage.
-- [ ] Domain tests: the queue lists undecided subscriptions in insertion order.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With two subscriptions, the review shows the first one added, with its annual and monthly cost.
+- [x] Its current reason and usage buttons are pressed (`aria-pressed="true"`); the others are not.
+- [x] Choosing usage Rarely updates the rarely used count on the reality card at once, and the subscription card shows Rarely.
+- [x] Choosing a new reason in the review does not change usage.
+- [x] Both groups have an accessible name equal to their question.
+- [x] After a reload, the review shows the same first undecided subscription with the saved reason and usage.
+- [x] Domain tests: the queue lists undecided subscriptions in insertion order.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

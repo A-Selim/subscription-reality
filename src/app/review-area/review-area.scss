@@ -37,3 +37,10 @@
     padding: 50px 0;
   }
 }
+
+:host(.has-subscriptions) .section-head {
+  color: var(--ink);
+}
+:host(.has-subscriptions) .section-head p {
+  color: var(--muted);
+}

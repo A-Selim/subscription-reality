@@ -1,4 +1,5 @@
 import {
+  reviewQueue,
   annualCost,
   recurringCost,
   recurringCostPerCurrency,
@@ -247,5 +248,33 @@ describe('Recurring cost per currency', () => {
         (cost) => cost.currency,
       ),
     ).toEqual(['USD', 'EUR']);
+  });
+});
+
+describe('Review queue', () => {
+  it('lists undecided subscriptions in insertion order and skips decided ones without changing the input', () => {
+    const base: Subscription = {
+      id: 'first',
+      sequence: 1,
+      name: 'First',
+      price: 10,
+      billingFrequency: 'monthly',
+      currency: 'EUR',
+      reason: 'Essential',
+      usage: 'Daily',
+      usageConfirmed: false,
+      decision: null,
+    };
+    const later = { ...base, id: 'later', sequence: 8 };
+    const subscriptions: Subscription[] = [
+      later,
+      { ...base, sequence: 0, decision: 'keep' },
+      base,
+      { ...base, decision: 'unsure' },
+      { ...base, decision: 'cancel' },
+    ];
+    expect(reviewQueue(subscriptions)).toEqual([base, later]);
+    expect(subscriptions[0]).toBe(later);
+    expect(reviewQueue([])).toEqual([]);
   });
 });

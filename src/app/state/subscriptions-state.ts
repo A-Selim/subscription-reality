@@ -1,5 +1,12 @@
 import { computed, inject, signal, Service } from '@angular/core';
-import { estimateUsage, type AppState, type Subscription } from '../domain/subscription';
+import {
+  estimateUsage,
+  reviewQueue,
+  type AppState,
+  type Subscription,
+  type Reason,
+  type Usage,
+} from '../domain/subscription';
 import { AppStorage, UnreadableStateError } from './app-storage';
 
 export type NewSubscription = Pick<
@@ -27,6 +34,8 @@ export class SubscriptionsState {
   readonly onlyForThisVisit = this.onlyForThisVisitState.asReadonly();
 
   readonly subscriptions = computed(() => this.state().subscriptions);
+  readonly hasSubscriptions = computed(() => this.subscriptions().length > 0);
+  readonly currentReviewSubscription = computed(() => reviewQueue(this.subscriptions())[0]);
   readonly preferredCurrency = computed(() => this.state().preferredCurrency);
 
   constructor() {
@@ -49,6 +58,27 @@ export class SubscriptionsState {
       ],
       preferredCurrency: input.currency,
       nextSequence: current.nextSequence + 1,
+    }));
+    this.persist();
+  }
+
+  setReason(id: string, reason: Reason): void {
+    this.updateSubscription(id, { reason });
+  }
+
+  setUsage(id: string, usage: Usage): void {
+    this.updateSubscription(id, { usage });
+  }
+
+  private updateSubscription(
+    id: string,
+    changes: Partial<Pick<Subscription, 'reason' | 'usage'>>,
+  ): void {
+    this.state.update((current) => ({
+      ...current,
+      subscriptions: current.subscriptions.map((subscription) =>
+        subscription.id === id ? { ...subscription, ...changes } : subscription,
+      ),
     }));
     this.persist();
   }

@@ -1,7 +1,47 @@
-<section aria-labelledby="review-card-heading">
+<section [class.active]="hasSubscriptions()" aria-labelledby="review-card-heading">
   <div class="progress" aria-hidden="true"></div>
-  <div class="empty-review">
-    <h3 id="review-card-heading">Add a subscription first</h3>
-    <p>Your review will start here once there is something to reflect on.</p>
-  </div>
+  @if (currentReview(); as subscription) {
+    <div class="review-main">
+      <div class="review-logo" aria-hidden="true">{{ subscription.monogram }}</div>
+      <div>
+        <h3 class="review-title" id="review-card-heading">{{ subscription.name }}</h3>
+        <div class="review-cost">
+          {{ subscription.annualCostText }} per year · {{ subscription.monthlyCostText }} per month
+        </div>
+      </div>
+    </div>
+    <div class="question" id="review-reason-question">Why do you still have it?</div>
+    <div class="reason-row" role="group" aria-labelledby="review-reason-question">
+      @for (reason of reasons; track reason) {
+        <button
+          type="button"
+          class="choice"
+          [class.active]="subscription.reason === reason"
+          [attr.aria-pressed]="subscription.reason === reason"
+          (click)="setReason(reason)"
+        >
+          {{ reason }}
+        </button>
+      }
+    </div>
+    <div class="question" id="review-usage-question">How often do you actually use it?</div>
+    <div class="usage-row" role="group" aria-labelledby="review-usage-question">
+      @for (usage of usages; track usage) {
+        <button
+          type="button"
+          class="choice"
+          [class.active]="subscription.usage === usage"
+          [attr.aria-pressed]="subscription.usage === usage"
+          (click)="setUsage(usage)"
+        >
+          {{ usage }}
+        </button>
+      }
+    </div>
+  } @else if (!hasSubscriptions()) {
+    <div class="empty-review">
+      <h3 id="review-card-heading">Add a subscription first</h3>
+      <p>Your review will start here once there is something to reflect on.</p>
+    </div>
+  }
 </section>

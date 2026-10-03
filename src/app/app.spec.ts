@@ -6,7 +6,7 @@ import { TOAST_DURATION_MS, TOAST_FADE_MS } from './toast/toast';
 import { InMemoryAppStorage } from './testing/in-memory-app-storage';
 import { SubscriptionsState } from './state/subscriptions-state';
 import { renderApp } from './testing/render-app';
-import type { Currency } from './domain/subscription';
+import { REASONS, USAGES, type Currency } from './domain/subscription';
 
 function getRegion(root: HTMLElement, name: string): HTMLElement {
   const heading = Array.from(root.querySelectorAll('h1, h2, h3')).find(
@@ -1133,5 +1133,92 @@ describe('Subscription reality', () => {
     addSubscription(fixture, region, 'Adobe');
     await settlePage();
     expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+  });
+});
+
+describe('Review reason and usage', () => {
+  async function prepareReview() {
+    const { fixture, region, storage } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    addSubscription(fixture, region, 'Cloud', 'USD');
+    await settlePage();
+    const page = fixture.nativeElement as HTMLElement;
+    return {
+      fixture,
+      region,
+      storage,
+      page,
+      review: getRegion(getRegion(page, 'Would you still subscribe today?'), 'Spotify'),
+    };
+  }
+
+  function expectChoices(review: HTMLElement, reason: string, usage: string) {
+    for (const value of REASONS) {
+      expect(getButton(review, value).getAttribute('aria-pressed')).toBe(String(value === reason));
+    }
+    for (const value of USAGES) {
+      expect(getButton(review, value).getAttribute('aria-pressed')).toBe(String(value === usage));
+    }
+  }
+
+  it('shows the first subscription with Annual cost, Monthly cost and current choices in named groups', async () => {
+    const { review } = await prepareReview();
+    expect(review.textContent?.replace(/\s+/g, ' ')).toContain('€120 per year · €9.99 per month');
+    expect(review.textContent).not.toContain('Cloud');
+    expectChoices(review, 'Essential', 'Daily');
+    const groups = Array.from(review.querySelectorAll('[role="group"]'));
+    expect(groups).toHaveLength(2);
+    expect(
+      groups.map((group) => {
+        const ids = group.getAttribute('aria-labelledby')?.split(/\s+/) ?? [];
+        return ids.map((id) => review.querySelector(`[id="${id}"]`)?.textContent?.trim()).join(' ');
+      }),
+    ).toEqual(['Why do you still have it?', 'How often do you actually use it?']);
+    expect(review.querySelector('.review-logo')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('updates Rarely used and subscription usage immediately while preserving button focus', async () => {
+    const { fixture, region, page, review } = await prepareReview();
+    const rarely = getButton(review, 'Rarely');
+    rarely.focus();
+    rarely.click();
+    fixture.detectChanges();
+    await settlePage();
+    const reality = getRegion(page, 'See the reality.');
+    const euro = reality.querySelector('[aria-label="Subscription reality in EUR"]');
+    const count = Array.from(euro?.querySelectorAll('dt') ?? []).find(
+      (term) => term.textContent?.trim() === 'Rarely used',
+    );
+    expect(count?.nextElementSibling?.textContent?.trim()).toBe('1');
+    expect(getList(region, 'Subscriptions').children[0].textContent).toContain('Usage: Rarely');
+    expect(getButton(review, 'Rarely')).toBe(rarely);
+    expect(document.activeElement).toBe(rarely);
+    expectChoices(review, 'Essential', 'Rarely');
+  });
+
+  it('saves reason independently of usage and resumes the same undecided subscription after reload', async () => {
+    const { fixture, storage, review } = await prepareReview();
+    const reason = getButton(review, 'Occasional Use');
+    reason.focus();
+    reason.click();
+    fixture.detectChanges();
+    await settlePage();
+    expectChoices(review, 'Occasional Use', 'Daily');
+    expect(getButton(review, 'Occasional Use')).toBe(reason);
+    expect(document.activeElement).toBe(reason);
+    getButton(review, 'Rarely').click();
+    fixture.detectChanges();
+    await settlePage();
+    fixture.destroy();
+    const { root } = await renderApp(storage);
+    expectChoices(
+      getRegion(getRegion(root, 'Would you still subscribe today?'), 'Spotify'),
+      'Occasional Use',
+      'Rarely',
+    );
+    const saved = await storage.load();
+    expect(saved?.subscriptions[0].usageConfirmed).toBe(false);
+    expect(saved?.subscriptions[0].decision).toBeNull();
   });
 });
