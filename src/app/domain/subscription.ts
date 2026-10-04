@@ -168,3 +168,12 @@ export function reviewQueue(subscriptions: readonly Subscription[]): Subscriptio
     .filter((subscription) => subscription.decision === null)
     .sort((a, b) => a.sequence - b.sequence);
 }
+
+export function nextInReviewAgainPass(
+  subscriptions: readonly Subscription[],
+  afterSequence: number,
+): Subscription | undefined {
+  return subscriptions
+    .filter((subscription) => subscription.sequence > afterSequence)
+    .sort((a, b) => a.sequence - b.sequence)[0];
+}

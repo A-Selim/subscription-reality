@@ -1230,37 +1230,37 @@ describe('Review reason and usage', () => {
   });
 });
 
-describe('Review decisions and progress', () => {
-  async function prepareReview() {
-    const { fixture, region, storage } = await prepareAddForm();
-    for (const name of ['Spotify', 'Cloud', 'Gym']) {
-      addSubscription(fixture, region, name);
-      await settlePage();
-    }
-    const page = fixture.nativeElement as HTMLElement;
-    return {
-      fixture,
-      region,
-      storage,
-      page,
-      review: getRegion(getRegion(page, 'Would you still subscribe today?'), 'Spotify'),
-    };
-  }
-
-  async function decide(fixture: ComponentFixture<App>, review: HTMLElement, decision: string) {
-    getButton(review, decision).click();
-    fixture.detectChanges();
+async function prepareReview() {
+  const { fixture, region, storage } = await prepareAddForm();
+  for (const name of ['Spotify', 'Cloud', 'Gym']) {
+    addSubscription(fixture, region, name);
     await settlePage();
   }
+  const page = fixture.nativeElement as HTMLElement;
+  return {
+    fixture,
+    region,
+    storage,
+    page,
+    review: getRegion(getRegion(page, 'Would you still subscribe today?'), 'Spotify'),
+  };
+}
 
-  function expectProgress(review: HTMLElement, decided: number, total: number) {
-    const progress = review.querySelector('[role="progressbar"]');
-    expect(progress?.getAttribute('aria-label')).toBe(`${decided} of ${total} reviewed`);
-    expect(progress?.getAttribute('aria-valuemin')).toBe('0');
-    expect(progress?.getAttribute('aria-valuemax')).toBe(String(total));
-    expect(progress?.getAttribute('aria-valuenow')).toBe(String(decided));
-  }
+async function decide(fixture: ComponentFixture<App>, review: HTMLElement, decision: string) {
+  getButton(review, decision).click();
+  fixture.detectChanges();
+  await settlePage();
+}
 
+function expectProgress(review: HTMLElement, decided: number, total: number) {
+  const progress = review.querySelector('[role="progressbar"]');
+  expect(progress?.getAttribute('aria-label')).toBe(`${decided} of ${total} reviewed`);
+  expect(progress?.getAttribute('aria-valuemin')).toBe('0');
+  expect(progress?.getAttribute('aria-valuemax')).toBe(String(total));
+  expect(progress?.getAttribute('aria-valuenow')).toBe(String(decided));
+}
+
+describe('Review decisions and progress', () => {
   it('records Keep and shows the second subscription with focus on its review heading', async () => {
     const { fixture, page, review } = await prepareReview();
     for (const label of ['Keep', 'Unsure', 'Cancel']) {
@@ -1291,7 +1291,7 @@ describe('Review decisions and progress', () => {
     expect(heading?.getAttribute('tabindex')).toBe('-1');
     expect(document.activeElement).toBe(heading);
     expectProgress(review, 3, 3);
-    expect(review.querySelector('button')).toBeNull();
+    expect(getButton(review, 'Review again').type).toBe('button');
   });
 
   it('reviews a later add as undecided while keeping focus in the add form name field', async () => {
@@ -1337,5 +1337,137 @@ describe('Review decisions and progress', () => {
       false,
       false,
     ]);
+  });
+});
+
+describe('Review again', () => {
+  async function prepareCompletedReview() {
+    const context = await prepareReview();
+    for (const decision of ['Keep', 'Unsure', 'Cancel']) {
+      await decide(context.fixture, context.review, decision);
+    }
+    return context;
+  }
+
+  async function startPass(fixture: ComponentFixture<App>, review: HTMLElement) {
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+  }
+
+  function expectDecision(review: HTMLElement, decision: string | null) {
+    for (const label of ['Keep', 'Unsure', 'Cancel']) {
+      expect(getButton(review, label).getAttribute('aria-pressed')).toBe(
+        String(label === decision),
+      );
+    }
+  }
+
+  it('starts with the first subscription added and its earlier Review decision pressed', async () => {
+    const { fixture, page, review } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Spotify')).toBe(review);
+    expectDecision(review, 'Keep');
+    expectProgress(review, 3, 3);
+  });
+
+  it('records a changed Cancel decision and advances to the second subscription', async () => {
+    const { fixture, page, review, storage } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    await decide(fixture, review, 'Cancel');
+    expect((await storage.load())?.subscriptions[0].decision).toBe('cancel');
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Cloud')).toBe(review);
+    expectDecision(review, 'Unsure');
+  });
+
+  it('shows Review complete again after the last subscription', async () => {
+    const { fixture, page, review } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    for (const decision of ['Keep', 'Unsure', 'Cancel']) await decide(fixture, review, decision);
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Review complete')).toBe(
+      review,
+    );
+    expect(getButton(review, 'Review again').type).toBe('button');
+    expectProgress(review, 3, 3);
+  });
+
+  it('reviews a subscription added during the pass at its end, undecided', async () => {
+    const { fixture, page, region, review } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    await decide(fixture, review, 'Keep');
+    addSubscription(fixture, region, 'News');
+    await settlePage();
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Cloud')).toBe(review);
+    await decide(fixture, review, 'Unsure');
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Gym')).toBe(review);
+    await decide(fixture, review, 'Cancel');
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'News')).toBe(review);
+    expectDecision(review, null);
+    expectProgress(review, 3, 4);
+    await decide(fixture, review, 'Keep');
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Review complete')).toBe(
+      review,
+    );
+  });
+
+  it('moves focus from Review again to the first subscription review heading', async () => {
+    const { fixture, review } = await prepareCompletedReview();
+    const button = getButton(review, 'Review again');
+    button.focus();
+    await startPass(fixture, review);
+    expect(button.isConnected).toBe(false);
+    expect(review.querySelector('h3')?.textContent?.trim()).toBe('Spotify');
+    expect(review.querySelector('h3')?.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(review.querySelector('h3'));
+  });
+
+  it('moves focus to the next subscription review heading after a decision during the pass', async () => {
+    const { fixture, review } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    getButton(review, 'Cancel').focus();
+    await decide(fixture, review, 'Cancel');
+    const heading = review.querySelector('h3');
+    expect(heading?.textContent?.trim()).toBe('Cloud');
+    expect(heading?.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(heading);
+  });
+
+  it('preserves the pass position when recording a decision on another subscription', async () => {
+    const { fixture, review, storage } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    await decide(fixture, review, 'Keep');
+    const state = TestBed.inject(SubscriptionsState);
+    const subscriptions = state.subscriptions();
+    for (const subscription of [subscriptions[0], subscriptions[2]]) {
+      state.decide(subscription.id, 'unsure');
+      fixture.detectChanges();
+      await settlePage();
+      expect(state.currentReviewSubscription()?.name).toBe('Cloud');
+      expect(
+        (await storage.load())?.subscriptions.find(({ id }) => id === subscription.id)?.decision,
+      ).toBe('unsure');
+    }
+    await decide(fixture, review, 'Cancel');
+    expect(state.currentReviewSubscription()?.name).toBe('Gym');
+  });
+
+  it('keeps reason and usage changes on the same subscription and forgets the pass on reload', async () => {
+    const { fixture, page, review, storage } = await prepareCompletedReview();
+    await startPass(fixture, review);
+    await decide(fixture, review, 'Keep');
+    getButton(review, 'Convenience').click();
+    getButton(review, 'Rarely').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getRegion(getRegion(page, 'Would you still subscribe today?'), 'Cloud')).toBe(review);
+    expectDecision(review, 'Unsure');
+    const saved = await storage.load();
+    expect(saved?.subscriptions[1].reason).toBe('Convenience');
+    expect(saved?.subscriptions[1].usage).toBe('Rarely');
+    fixture.destroy();
+    const { root } = await renderApp(storage);
+    expect(
+      getRegion(getRegion(root, 'Would you still subscribe today?'), 'Review complete'),
+    ).toBeDefined();
   });
 });

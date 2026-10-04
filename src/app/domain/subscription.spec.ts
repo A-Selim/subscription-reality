@@ -1,5 +1,6 @@
 import {
   reviewQueue,
+  nextInReviewAgainPass,
   annualCost,
   recurringCost,
   recurringCostPerCurrency,
@@ -276,5 +277,43 @@ describe('Review queue', () => {
     expect(reviewQueue(subscriptions)).toEqual([base, later]);
     expect(subscriptions[0]).toBe(later);
     expect(reviewQueue([])).toEqual([]);
+  });
+});
+
+describe('Review again pass', () => {
+  const first: Subscription = {
+    id: 'first',
+    sequence: 0,
+    name: 'First',
+    price: 10,
+    billingFrequency: 'monthly',
+    currency: 'EUR',
+    reason: 'Essential',
+    usage: 'Daily',
+    usageConfirmed: true,
+    decision: 'keep',
+  };
+  const second = { ...first, id: 'second', sequence: 2 };
+  const third = { ...first, id: 'third', sequence: 4 };
+
+  it('selects every subscription in sequence order without changing the input', () => {
+    const subscriptions = [third, first, second];
+    expect(nextInReviewAgainPass(subscriptions, -1)).toBe(first);
+    expect(nextInReviewAgainPass(subscriptions, 0)).toBe(second);
+    expect(nextInReviewAgainPass(subscriptions, 2)).toBe(third);
+    expect(nextInReviewAgainPass(subscriptions, 4)).toBeUndefined();
+    expect(nextInReviewAgainPass([], -1)).toBeUndefined();
+    expect(subscriptions).toEqual([third, first, second]);
+  });
+
+  it('skips deleted subscriptions even when the cursor subscription is gone', () => {
+    expect(nextInReviewAgainPass([first, third], 0)).toBe(third);
+    expect(nextInReviewAgainPass([third], 2)).toBe(third);
+  });
+
+  it('picks up a newly added undecided subscription from the live list', () => {
+    expect(nextInReviewAgainPass([first, second], 2)).toBeUndefined();
+    const added = { ...third, decision: null };
+    expect(nextInReviewAgainPass([first, second, added], 2)).toBe(added);
   });
 });

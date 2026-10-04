@@ -75,6 +75,13 @@ export class Review {
     });
   }
 
+  protected reviewAgain(): void {
+    this.state.reviewAgain();
+    afterNextRender(() => this.reviewHeading()?.nativeElement.focus(), {
+      injector: this.injector,
+    });
+  }
+
   protected setReason(reason: Reason): void {
     const subscription = this.currentReview();
     if (subscription) this.state.setReason(subscription.id, reason);

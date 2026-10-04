@@ -50,6 +50,10 @@ _Avoid_: Audit, cleanup
 The user's verdict on a subscription: Keep, Unsure or Cancel. A subscription without one is undecided.
 _Avoid_: Status, mark, Maybe (for Unsure)
 
+**Review again pass**:
+A second walk through every subscription in the order added, started from _Review complete_, showing each one's current review decision. It lives only in memory and reads the live list.
+_Avoid_: Re-review, second review
+
 **Cancel** (decision):
 The user's intent to stop paying for a subscription. The subscription stays in the list and in recurring cost until the user deletes it.
 _Avoid_: Cancelled, removed

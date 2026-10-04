@@ -2,6 +2,7 @@ import { computed, inject, signal, Service } from '@angular/core';
 import {
   estimateUsage,
   reviewQueue,
+  nextInReviewAgainPass,
   type AppState,
   type Subscription,
   type Reason,
@@ -24,6 +25,7 @@ export class SubscriptionsState {
     preferredCurrency: null,
     nextSequence: 0,
   });
+  private readonly reviewAgainAfterSequence = signal<number | null>(null);
   private readonly loadedState = signal(false);
   private readonly dataUnreadableState = signal(false);
   private readonly onlyForThisVisitState = signal(false);
@@ -36,7 +38,14 @@ export class SubscriptionsState {
 
   readonly subscriptions = computed(() => this.state().subscriptions);
   readonly hasSubscriptions = computed(() => this.subscriptions().length > 0);
-  readonly currentReviewSubscription = computed(() => reviewQueue(this.subscriptions())[0]);
+  readonly currentReviewSubscription = computed(() => {
+    const subscriptions = this.subscriptions();
+    const afterSequence = this.reviewAgainAfterSequence();
+    return (
+      (afterSequence === null ? undefined : nextInReviewAgainPass(subscriptions, afterSequence)) ??
+      reviewQueue(subscriptions)[0]
+    );
+  });
   readonly subscriptionCount = computed(() => this.subscriptions().length);
   readonly decidedCount = computed(
     () => this.subscriptions().filter((subscription) => subscription.decision !== null).length,
@@ -75,8 +84,24 @@ export class SubscriptionsState {
     this.updateSubscription(id, { usage });
   }
 
+  reviewAgain(): void {
+    this.reviewAgainAfterSequence.set(-1);
+  }
+
   decide(id: string, decision: ReviewDecision): void {
+    const subscription = this.subscriptions().find((subscription) => subscription.id === id);
+    if (!subscription) return;
+
+    const advancePass =
+      this.reviewAgainAfterSequence() !== null && this.currentReviewSubscription()?.id === id;
     this.updateSubscription(id, { decision, usageConfirmed: true });
+    if (advancePass) {
+      this.reviewAgainAfterSequence.set(
+        nextInReviewAgainPass(this.subscriptions(), subscription.sequence)
+          ? subscription.sequence
+          : null,
+      );
+    }
   }
 
   private updateSubscription(

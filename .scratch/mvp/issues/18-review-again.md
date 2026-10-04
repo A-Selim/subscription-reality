@@ -1,6 +1,6 @@
 # 18: Review again
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 17
 Test seam: Page seam
@@ -14,8 +14,13 @@ The pass reads the live list: a subscription added during the pass appears at th
 
 ## Acceptance criteria
 
-- [ ] After finishing the review, _Review again_ shows the first subscription added, with its earlier decision pressed.
-- [ ] Changing that decision to Cancel records it and moves to the second subscription.
-- [ ] After the last subscription, _Review complete_ shows again.
-- [ ] Adding a subscription during the pass makes it appear at the end of the same pass, undecided.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] After finishing the review, _Review again_ shows the first subscription added, with its earlier decision pressed.
+- [x] Changing that decision to Cancel records it and moves to the second subscription.
+- [x] After the last subscription, _Review complete_ shows again.
+- [x] Adding a subscription during the pass makes it appear at the end of the same pass, undecided.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+- The pass position is the `sequence` of the last subscription handled, kept in memory only. A decision only moves the pass when it is on the subscription the pass is showing, so insight name selection (ticket 22) can bring up another one without jumping the pass.
+- Delete (ticket 26) should clear the pass position when no subscription remains after it; today it just falls back to the normal rule, which shows the right thing.
