@@ -1,6 +1,6 @@
 # 19: Savings card
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 18
 Test seam: Page seam; domain seam for potential savings and decision counts
@@ -14,10 +14,10 @@ The insight box is ticket 21.
 
 ## Acceptance criteria
 
-- [ ] With EUR and USD subscriptions and no decisions, the card shows €0 and $0 lines, in reality-card order.
-- [ ] Marking a monthly €10 subscription Cancel makes the EUR line €120 at once; the USD line stays $0.
-- [ ] Marking one Unsure raises the Unsure count and leaves savings unchanged.
-- [ ] Counts for Keep / Unsure / Cancel add up across currencies.
-- [ ] Cancelled subscriptions still count in the reality card totals.
-- [ ] Domain tests: savings per currency with zero entries; decision counts.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With EUR and USD subscriptions and no decisions, the card shows €0 and $0 lines, in reality-card order.
+- [x] Marking a monthly €10 subscription Cancel makes the EUR line €120 at once; the USD line stays $0.
+- [x] Marking one Unsure raises the Unsure count and leaves savings unchanged.
+- [x] Counts for Keep / Unsure / Cancel add up across currencies.
+- [x] Cancelled subscriptions still count in the reality card totals.
+- [x] Domain tests: savings per currency with zero entries; decision counts.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

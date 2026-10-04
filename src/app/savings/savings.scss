@@ -40,3 +40,53 @@ h3 {
     padding: 22px;
   }
 }
+
+section.active {
+  background: #171717;
+  border-color: #171717;
+  color: white;
+}
+
+.active h3,
+.active .amount span {
+  color: #aaa;
+}
+
+.savings-list,
+.summary-list {
+  padding: 0;
+  list-style: none;
+}
+
+.savings-list {
+  margin: 0;
+}
+
+.amount {
+  overflow-wrap: anywhere;
+}
+
+.summary-list {
+  margin: 24px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+  color: #ccc;
+}
+
+.summary-line strong {
+  color: white;
+}
+
+.active .insight {
+  margin-top: 18px;
+  background: #272727;
+  color: #ddd;
+}

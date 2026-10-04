@@ -1,4 +1,6 @@
 import {
+  potentialSavingsPerCurrency,
+  decisionCounts,
   reviewQueue,
   nextInReviewAgainPass,
   annualCost,
@@ -315,5 +317,72 @@ describe('Review again pass', () => {
     expect(nextInReviewAgainPass([first, second], 2)).toBeUndefined();
     const added = { ...third, decision: null };
     expect(nextInReviewAgainPass([first, second, added], 2)).toBe(added);
+  });
+});
+
+describe('Potential savings and Review decision counts', () => {
+  function subscription(overrides: Partial<Subscription> = {}): Subscription {
+    return {
+      id: 'subscription',
+      sequence: 0,
+      name: 'Subscription',
+      price: 10,
+      billingFrequency: 'monthly',
+      currency: 'EUR',
+      reason: 'Essential',
+      usage: 'Daily',
+      usageConfirmed: false,
+      decision: null,
+      ...overrides,
+    };
+  }
+
+  it('includes zero entries in first-used currency order without changing the input', () => {
+    const subscriptions = [
+      subscription({ sequence: 8 }),
+      subscription({ sequence: 2, currency: 'USD' }),
+    ];
+    expect(potentialSavingsPerCurrency(subscriptions)).toEqual([
+      { currency: 'USD', amount: 0 },
+      { currency: 'EUR', amount: 0 },
+    ]);
+    expect(subscriptions.map((entry) => entry.sequence)).toEqual([8, 2]);
+    expect(potentialSavingsPerCurrency([])).toEqual([]);
+  });
+
+  it('sums only Cancel annual costs separately per currency', () => {
+    expect(
+      potentialSavingsPerCurrency([
+        subscription({ decision: 'cancel' }),
+        subscription({ sequence: 1, decision: 'unsure', price: 50 }),
+        subscription({ sequence: 2, decision: 'keep', price: 50 }),
+        subscription({ sequence: 3, decision: 'cancel', billingFrequency: 'yearly', price: 60 }),
+        subscription({
+          sequence: 4,
+          currency: 'USD',
+          decision: 'cancel',
+          billingFrequency: 'yearly',
+          price: 24,
+        }),
+        subscription({ sequence: 5, currency: 'GBP' }),
+      ]),
+    ).toEqual([
+      { currency: 'EUR', amount: 180 },
+      { currency: 'USD', amount: 24 },
+      { currency: 'GBP', amount: 0 },
+    ]);
+  });
+
+  it('counts Review decisions across currencies and excludes undecided subscriptions', () => {
+    expect(
+      decisionCounts([
+        subscription({ decision: 'keep' }),
+        subscription({ currency: 'USD', decision: 'keep' }),
+        subscription({ decision: 'unsure' }),
+        subscription({ currency: 'GBP', decision: 'cancel' }),
+        subscription(),
+      ]),
+    ).toEqual({ keep: 2, unsure: 1, cancel: 1 });
+    expect(decisionCounts([])).toEqual({ keep: 0, unsure: 0, cancel: 0 });
   });
 });

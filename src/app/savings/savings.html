@@ -1,5 +1,24 @@
-<section aria-labelledby="savings-heading">
+<section aria-labelledby="savings-heading" [class.active]="hasSubscriptions()">
   <h3 id="savings-heading">Potential annual savings</h3>
-  <p class="amount">0 <span>/ year</span></p>
+  @if (hasSubscriptions()) {
+    <ul class="savings-list" aria-label="Potential savings per currency">
+      @for (saving of potentialSavings(); track saving.currency) {
+        <li class="amount">
+          {{ saving.amount }} <span aria-hidden="true">/ year</span
+          ><span class="visually-hidden">&ngsp;per year</span>
+        </li>
+      }
+    </ul>
+    <ul class="summary-list" aria-label="Review decision counts">
+      @for (decision of decisions; track decision) {
+        <li class="summary-line">
+          <span>{{ decisionLabels[decision] }}</span
+          >&ngsp;<strong>{{ decisionCounts()[decision] }}</strong>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="amount">0 <span>/ year</span></p>
+  }
   <p class="insight">Add your subscriptions first. Your review insights will appear here.</p>
 </section>

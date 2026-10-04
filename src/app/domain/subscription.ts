@@ -15,6 +15,13 @@ export const USAGES = ['Daily', 'Weekly', 'Monthly', 'Rarely', 'Almost Never'] a
 export type Usage = (typeof USAGES)[number];
 export const REVIEW_DECISIONS = ['keep', 'unsure', 'cancel'] as const;
 export type ReviewDecision = (typeof REVIEW_DECISIONS)[number];
+export const REVIEW_DECISION_LABELS: Record<ReviewDecision, string> = {
+  keep: 'Keep',
+  unsure: 'Unsure',
+  cancel: 'Cancel',
+};
+
+export type CurrencyAmount = { currency: Currency; amount: number };
 
 export interface Subscription {
   id: string;
@@ -144,7 +151,7 @@ export function rarelyUsedCount(subscriptions: readonly Pick<Subscription, 'usag
   return subscriptions.filter(isRarelyUsed).length;
 }
 
-export function recurringCostPerCurrency(subscriptions: readonly Subscription[]) {
+function groupSubscriptionsPerCurrency(subscriptions: readonly Subscription[]) {
   const groups = new Map<Currency, Subscription[]>();
   for (const subscription of [...subscriptions].sort((a, b) => a.sequence - b.sequence)) {
     const group = groups.get(subscription.currency);
@@ -155,7 +162,11 @@ export function recurringCostPerCurrency(subscriptions: readonly Subscription[])
     }
   }
 
-  return Array.from(groups, ([currency, group]) => ({
+  return groups;
+}
+
+export function recurringCostPerCurrency(subscriptions: readonly Subscription[]) {
+  return Array.from(groupSubscriptionsPerCurrency(subscriptions), ([currency, group]) => ({
     currency,
     ...recurringCost(group),
     subscriptionCount: group.length,
@@ -176,4 +187,32 @@ export function nextInReviewAgainPass(
   return subscriptions
     .filter((subscription) => subscription.sequence > afterSequence)
     .sort((a, b) => a.sequence - b.sequence)[0];
+}
+
+export function potentialSavingsPerCurrency(
+  subscriptions: readonly Subscription[],
+): CurrencyAmount[] {
+  return Array.from(groupSubscriptionsPerCurrency(subscriptions), ([currency, group]) => ({
+    currency,
+    amount: group.reduce(
+      (amount, subscription) =>
+        amount + (subscription.decision === 'cancel' ? annualCost(subscription) : 0),
+      0,
+    ),
+  }));
+}
+
+export function decisionCounts(
+  subscriptions: readonly Subscription[],
+): Record<ReviewDecision, number> {
+  return subscriptions.reduce(
+    (counts, subscription) => {
+      if (subscription.decision !== null) counts[subscription.decision] += 1;
+      return counts;
+    },
+    Object.fromEntries(REVIEW_DECISIONS.map((decision) => [decision, 0])) as Record<
+      ReviewDecision,
+      number
+    >,
+  );
 }

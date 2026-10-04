@@ -1471,3 +1471,105 @@ describe('Review again', () => {
     ).toBeDefined();
   });
 });
+
+describe('Potential savings', () => {
+  function listText(region: HTMLElement, label: string): string[] {
+    return Array.from(getList(region, label).querySelectorAll('li'), (line) => {
+      const visibleLine = line.cloneNode(true) as HTMLElement;
+      visibleLine.querySelectorAll('.visually-hidden').forEach((text) => text.remove());
+      return visibleLine.textContent!.replace(/\s+/g, ' ').trim();
+    });
+  }
+
+  async function prepareSavings(currencies: Currency[] = ['EUR', 'USD']) {
+    const { fixture, region } = await prepareAddForm();
+    for (const [index, currency] of currencies.entries()) {
+      addSubscription(fixture, region, `Subscription ${index + 1}`, currency);
+      await settlePage();
+    }
+    const page = fixture.nativeElement as HTMLElement;
+    return {
+      fixture,
+      page,
+      savings: getRegion(page, 'Potential annual savings'),
+      review: getRegion(getRegion(page, 'Would you still subscribe today?'), 'Subscription 1'),
+    };
+  }
+
+  it('shows zero Potential savings lines in reality-card order with no Review decisions', async () => {
+    const { page, savings } = await prepareSavings(['USD', 'EUR']);
+    expect(listText(savings, 'Potential savings per currency')).toEqual(['$0 / year', '€0 / year']);
+    const reality = getRegion(page, 'See the reality.');
+    expect(
+      Array.from(reality.querySelectorAll('[aria-label]'), (card) =>
+        card.getAttribute('aria-label'),
+      ),
+    ).toEqual(['Subscription reality in USD', 'Subscription reality in EUR']);
+    expect(listText(savings, 'Review decision counts')).toEqual(['Keep 0', 'Unsure 0', 'Cancel 0']);
+  });
+
+  it('updates Potential savings immediately on Cancel and keeps Recurring cost unchanged', async () => {
+    const { fixture, region } = await prepareAddForm();
+    setField(region, 'subscription-name', 'Euro subscription');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    addSubscription(fixture, region, 'Dollar subscription', 'USD');
+    await settlePage();
+    const page = fixture.nativeElement as HTMLElement;
+    const reality = getRegion(page, 'See the reality.');
+    const before = reality.textContent;
+    const review = getRegion(
+      getRegion(page, 'Would you still subscribe today?'),
+      'Euro subscription',
+    );
+    await decide(fixture, review, 'Cancel');
+    const savings = getRegion(page, 'Potential annual savings');
+    expect(listText(savings, 'Potential savings per currency')).toEqual([
+      '€120 / year',
+      '$0 / year',
+    ]);
+    expect(listText(savings, 'Review decision counts')).toEqual(['Keep 0', 'Unsure 0', 'Cancel 1']);
+    expect(reality.textContent).toBe(before);
+  });
+
+  it('counts Unsure without adding Potential savings', async () => {
+    const { fixture, review, savings } = await prepareSavings();
+    await decide(fixture, review, 'Unsure');
+    expect(listText(savings, 'Review decision counts')).toEqual(['Keep 0', 'Unsure 1', 'Cancel 0']);
+    expect(listText(savings, 'Potential savings per currency')).toEqual(['€0 / year', '$0 / year']);
+  });
+
+  it('adds Keep, Unsure and Cancel counts across currencies and updates changed Review decisions', async () => {
+    const { fixture, review, savings } = await prepareSavings([
+      'EUR',
+      'USD',
+      'EUR',
+      'USD',
+      'GBP',
+      'GBP',
+    ]);
+    for (const decision of ['Keep', 'Keep', 'Unsure', 'Unsure', 'Cancel', 'Cancel']) {
+      await decide(fixture, review, decision);
+    }
+    expect(listText(savings, 'Review decision counts')).toEqual(['Keep 2', 'Unsure 2', 'Cancel 2']);
+    expect(listText(savings, 'Potential savings per currency')).toEqual([
+      '€0 / year',
+      '$0 / year',
+      '£240 / year',
+    ]);
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    await decide(fixture, review, 'Cancel');
+    expect(listText(savings, 'Review decision counts')).toEqual(['Keep 1', 'Unsure 2', 'Cancel 3']);
+    expect(listText(savings, 'Potential savings per currency')).toEqual([
+      '€120 / year',
+      '$0 / year',
+      '£240 / year',
+    ]);
+  });
+});

@@ -16,6 +16,7 @@ import {
   monogram,
   REASONS,
   REVIEW_DECISIONS,
+  REVIEW_DECISION_LABELS,
   USAGES,
   type Reason,
   type ReviewDecision,
@@ -41,11 +42,7 @@ export class Review {
     () => `${this.decidedCount()} of ${this.subscriptionCount()} reviewed`,
   );
   protected readonly decisions = REVIEW_DECISIONS;
-  protected readonly decisionLabels: Record<ReviewDecision, string> = {
-    keep: 'Keep',
-    unsure: 'Unsure',
-    cancel: 'Cancel',
-  };
+  protected readonly decisionLabels = REVIEW_DECISION_LABELS;
   protected readonly reasons = REASONS;
   protected readonly usages = USAGES;
   protected readonly hasSubscriptions = this.state.hasSubscriptions;
