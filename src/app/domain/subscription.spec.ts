@@ -1,4 +1,5 @@
 import {
+  potentialSavings,
   potentialSavingsPerCurrency,
   decisionCounts,
   reviewQueue,
@@ -213,8 +214,42 @@ describe('Recurring cost per currency', () => {
         subscription({ sequence: 2, price: 60, billingFrequency: 'yearly', decision: 'cancel' }),
       ]),
     ).toEqual([
-      { currency: 'EUR', annual: 180, monthly: 15, subscriptionCount: 2, rarelyUsedCount: 1 },
-      { currency: 'USD', annual: 24, monthly: 2, subscriptionCount: 1, rarelyUsedCount: 1 },
+      {
+        currency: 'EUR',
+        annual: 180,
+        monthly: 15,
+        subscriptionCount: 2,
+        rarelyUsedCount: 1,
+        annualAfterCancel: 120,
+      },
+      {
+        currency: 'USD',
+        annual: 24,
+        monthly: 2,
+        subscriptionCount: 1,
+        rarelyUsedCount: 1,
+        annualAfterCancel: 24,
+      },
+    ]);
+  });
+
+  it('calculates the annual cost after Cancel decisions per currency', () => {
+    expect(
+      recurringCostPerCurrency([
+        subscription({ sequence: 0, price: 10, billingFrequency: 'monthly', decision: 'cancel' }),
+        subscription({ sequence: 1, price: 60, billingFrequency: 'yearly' }),
+        subscription({
+          sequence: 2,
+          currency: 'USD',
+          price: 24,
+          billingFrequency: 'yearly',
+          decision: 'cancel',
+        }),
+        subscription({ sequence: 3, currency: 'USD', price: 12, billingFrequency: 'yearly' }),
+      ]).map(({ currency, annualAfterCancel }) => ({ currency, annualAfterCancel })),
+    ).toEqual([
+      { currency: 'EUR', annualAfterCancel: 60 },
+      { currency: 'USD', annualAfterCancel: 12 },
     ]);
   });
 
@@ -371,6 +406,18 @@ describe('Potential savings and Review decision counts', () => {
       { currency: 'USD', amount: 24 },
       { currency: 'GBP', amount: 0 },
     ]);
+  });
+
+  it('sums only Cancel annual costs for a subscription group', () => {
+    expect(
+      potentialSavings([
+        subscription({ decision: 'cancel' }),
+        subscription({ decision: 'unsure', price: 50 }),
+        subscription({ decision: 'keep', price: 50 }),
+        subscription({ decision: 'cancel', billingFrequency: 'yearly', price: 60 }),
+      ]),
+    ).toBe(180);
+    expect(potentialSavings([])).toBe(0);
   });
 
   it('counts Review decisions across currencies and excludes undecided subscriptions', () => {

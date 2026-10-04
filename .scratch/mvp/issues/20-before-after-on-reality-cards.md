@@ -1,6 +1,6 @@
 # 20: Before/after on reality cards
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 19
 Test seam: Page seam; domain seam for the "after" total
@@ -12,8 +12,8 @@ Each reality card shows the before/after comparison from the prototype: "Before 
 
 ## Acceptance criteria
 
-- [ ] With €180 per year and nothing marked Cancel, both figures show €180.
-- [ ] Marking a €120-per-year subscription Cancel changes "If you cancel…" to €60, while "Before review" and the big annual total stay €180.
-- [ ] Each currency card shows its own before/after.
-- [ ] Domain test for the "after" total per currency.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With €180 per year and nothing marked Cancel, both figures show €180.
+- [x] Marking a €120-per-year subscription Cancel changes "If you cancel…" to €60, while "Before review" and the big annual total stay €180.
+- [x] Each currency card shows its own before/after.
+- [x] Domain test for the "after" total per currency.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

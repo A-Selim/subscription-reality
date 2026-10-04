@@ -29,18 +29,16 @@
           </div>
         </dl>
       </div>
-      @if (!isLive()) {
-        <dl class="comparison">
-          <div>
-            <dt>Before review</dt>
-            <dd>0 / year</dd>
-          </div>
-          <div>
-            <dt>If you cancel the ones you no longer value</dt>
-            <dd>0 / year</dd>
-          </div>
-        </dl>
-      }
+      <dl class="comparison">
+        <div>
+          <dt>Before review</dt>
+          <dd>{{ card.annual }} / year</dd>
+        </div>
+        <div class="after">
+          <dt>If you cancel the ones you no longer value</dt>
+          <dd>{{ card.annualAfterCancel }} / year</dd>
+        </div>
+      </dl>
     </article>
   }
 </section>

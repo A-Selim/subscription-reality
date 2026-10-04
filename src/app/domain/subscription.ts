@@ -165,13 +165,28 @@ function groupSubscriptionsPerCurrency(subscriptions: readonly Subscription[]) {
   return groups;
 }
 
+export function potentialSavings(
+  subscriptions: readonly Pick<Subscription, 'price' | 'billingFrequency' | 'decision'>[],
+): number {
+  return subscriptions.reduce(
+    (amount, subscription) =>
+      amount + (subscription.decision === 'cancel' ? annualCost(subscription) : 0),
+    0,
+  );
+}
+
 export function recurringCostPerCurrency(subscriptions: readonly Subscription[]) {
-  return Array.from(groupSubscriptionsPerCurrency(subscriptions), ([currency, group]) => ({
-    currency,
-    ...recurringCost(group),
-    subscriptionCount: group.length,
-    rarelyUsedCount: rarelyUsedCount(group),
-  }));
+  return Array.from(groupSubscriptionsPerCurrency(subscriptions), ([currency, group]) => {
+    const cost = recurringCost(group);
+
+    return {
+      currency,
+      ...cost,
+      subscriptionCount: group.length,
+      rarelyUsedCount: rarelyUsedCount(group),
+      annualAfterCancel: cost.annual - potentialSavings(group),
+    };
+  });
 }
 
 export function reviewQueue(subscriptions: readonly Subscription[]): Subscription[] {
@@ -194,11 +209,7 @@ export function potentialSavingsPerCurrency(
 ): CurrencyAmount[] {
   return Array.from(groupSubscriptionsPerCurrency(subscriptions), ([currency, group]) => ({
     currency,
-    amount: group.reduce(
-      (amount, subscription) =>
-        amount + (subscription.decision === 'cancel' ? annualCost(subscription) : 0),
-      0,
-    ),
+    amount: potentialSavings(group),
   }));
 }
 

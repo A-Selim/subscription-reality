@@ -147,9 +147,15 @@ dd {
     margin-bottom: 8px;
   }
 
-  .mini-stats > div {
+  .mini-stats > div,
+  .comparison > div {
     background: #fff;
     border-color: var(--line);
+  }
+
+  .comparison > div.after {
+    background: var(--green-soft);
+    border-color: #cfe8d9;
   }
 
   dd {

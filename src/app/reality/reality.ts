@@ -31,6 +31,7 @@ export class Reality {
           currency: null,
           label: null,
           annual: '0',
+          annualAfterCancel: '0',
           monthly: '0',
           subscriptionCount: 0,
           rarelyUsedCount: 0,
@@ -41,6 +42,7 @@ export class Reality {
       ...cost,
       label: `Subscription reality in ${cost.currency}`,
       annual: formatAnnualMoney(cost.annual, cost.currency),
+      annualAfterCancel: formatAnnualMoney(cost.annualAfterCancel, cost.currency),
       monthly: formatMoney(cost.monthly, cost.currency),
     }));
   });

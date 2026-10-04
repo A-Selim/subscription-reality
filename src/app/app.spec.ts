@@ -45,6 +45,12 @@ function getList(root: HTMLElement, label: string): HTMLUListElement {
   return list;
 }
 
+function definitionValue(container: HTMLElement, label: string): string | undefined {
+  return Array.from(container.querySelectorAll('dt'))
+    .find((term) => term.textContent?.trim() === label)
+    ?.nextElementSibling?.textContent?.trim();
+}
+
 function getFocusableElements(root: HTMLElement): Element[] {
   return Array.from(
     root.querySelectorAll(
@@ -490,7 +496,10 @@ describe('App page seam', () => {
 
     expect(reality.textContent).toContain('Add a subscription first');
     expect(reality.textContent).toContain('0 every month');
-    expect(reality.textContent).toContain('0 / year');
+    expect(definitionValue(reality, 'Before review')).toBe('0 / year');
+    expect(definitionValue(reality, 'If you cancel the ones you no longer value')).toBe(
+      '0 / year',
+    );
     expect(review.textContent).toContain(
       'Your review will start here once there is something to reflect on.',
     );
@@ -1023,12 +1032,6 @@ describe('subscription storage', () => {
 });
 
 describe('Subscription reality', () => {
-  function stat(region: HTMLElement, label: string): string | undefined {
-    return Array.from(region.querySelectorAll('dt'))
-      .find((term) => term.textContent?.trim() === label)
-      ?.nextElementSibling?.textContent?.trim();
-  }
-
   it('shows one named card when subscriptions share a currency', async () => {
     const { fixture, region } = await prepareAddForm();
     addSubscription(fixture, region, 'Spotify');
@@ -1074,9 +1077,12 @@ describe('Subscription reality', () => {
       expect(card.getAttribute('aria-label')).toBe(`Subscription reality in ${cost.currency}`);
       expect(card.querySelector('.annual')?.textContent?.trim()).toBe(cost.annual);
       expect(card.querySelector('.monthly')?.textContent?.trim()).toBe(cost.monthly);
-      expect(stat(card, 'Subscriptions')).toBe(cost.subscriptions);
-      expect(stat(card, 'Rarely used')).toBe(cost.rarelyUsed);
-      expect(card.textContent).not.toContain('Before review');
+      expect(definitionValue(card, 'Subscriptions')).toBe(cost.subscriptions);
+      expect(definitionValue(card, 'Rarely used')).toBe(cost.rarelyUsed);
+      expect(definitionValue(card, 'Before review')).toBe(`${cost.annual} / year`);
+      expect(definitionValue(card, 'If you cancel the ones you no longer value')).toBe(
+        `${cost.annual} / year`,
+      );
     });
   });
 
@@ -1094,10 +1100,12 @@ describe('Subscription reality', () => {
     expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€10.00 every month');
     expect(reality.querySelector('.label')?.textContent?.trim()).toBe('Your subscription reality');
     expect(reality.classList.contains('live')).toBe(true);
-    expect(stat(reality, 'Subscriptions')).toBe('1');
+    expect(definitionValue(reality, 'Subscriptions')).toBe('1');
     expect(reality.textContent).not.toContain('Add a subscription first');
-    expect(reality.textContent).not.toContain('Before review');
-    expect(reality.textContent).not.toContain('If you cancel the ones you no longer value');
+    expect(definitionValue(reality, 'Before review')).toBe('€120 / year');
+    expect(definitionValue(reality, 'If you cancel the ones you no longer value')).toBe(
+      '€120 / year',
+    );
 
     setField(region, 'subscription-name', 'Cloud storage');
     setField(region, 'subscription-price', '60');
@@ -1107,7 +1115,73 @@ describe('Subscription reality', () => {
     await settlePage();
     expect(reality.querySelector('.annual')?.textContent?.trim()).toBe('€180');
     expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€15.00 every month');
-    expect(stat(reality, 'Subscriptions')).toBe('2');
+    expect(definitionValue(reality, 'Subscriptions')).toBe('2');
+  });
+
+  it('shows the annual total before review and after Cancel decisions', async () => {
+    const { fixture, region } = await prepareAddForm();
+    setField(region, 'subscription-name', 'Streaming');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, 'subscription-name', 'Cloud storage');
+    setField(region, 'subscription-price', '60');
+    setField(region, 'subscription-billing', 'yearly');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+
+    const page = fixture.nativeElement as HTMLElement;
+    const card = page.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!;
+    expect(card.querySelector('.annual')?.textContent?.trim()).toBe('€180');
+    expect(definitionValue(card, 'Before review')).toBe('€180 / year');
+    expect(definitionValue(card, 'If you cancel the ones you no longer value')).toBe('€180 / year');
+
+    const review = getRegion(getRegion(page, 'Would you still subscribe today?'), 'Streaming');
+    await decide(fixture, review, 'Cancel');
+
+    expect(card.querySelector('.annual')?.textContent?.trim()).toBe('€180');
+    expect(definitionValue(card, 'Before review')).toBe('€180 / year');
+    expect(definitionValue(card, 'If you cancel the ones you no longer value')).toBe('€60 / year');
+  });
+
+  it('keeps before and after totals separate for each currency', async () => {
+    const { fixture, region } = await prepareAddForm();
+    setField(region, 'subscription-name', 'Euro subscription');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, 'subscription-name', 'Dollar subscription');
+    setField(region, 'subscription-price', '24');
+    setField(region, 'subscription-billing', 'yearly');
+    setField(region, 'subscription-currency', 'USD');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+
+    const page = fixture.nativeElement as HTMLElement;
+    const review = getRegion(
+      getRegion(page, 'Would you still subscribe today?'),
+      'Euro subscription',
+    );
+    await decide(fixture, review, 'Cancel');
+
+    const euroCard = page.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!;
+    const dollarCard = page.querySelector<HTMLElement>('[aria-label="Subscription reality in USD"]')!;
+    expect(definitionValue(euroCard, 'Before review')).toBe('€120 / year');
+    expect(definitionValue(euroCard, 'If you cancel the ones you no longer value')).toBe(
+      '€0 / year',
+    );
+    expect(definitionValue(dollarCard, 'Before review')).toBe('$24 / year');
+    expect(definitionValue(dollarCard, 'If you cancel the ones you no longer value')).toBe(
+      '$24 / year',
+    );
   });
 
   it('counts estimated Rarely used subscriptions from Occasional Use', async () => {
@@ -1115,11 +1189,11 @@ describe('Subscription reality', () => {
     addSubscription(fixture, region, 'Spotify');
     await settlePage();
     const reality = getRegion(fixture.nativeElement as HTMLElement, 'See the reality.');
-    expect(stat(reality, 'Rarely used')).toBe('0');
+    expect(definitionValue(reality, 'Rarely used')).toBe('0');
     setField(region, 'subscription-reason', 'Occasional Use');
     addSubscription(fixture, region, 'Adobe');
     await settlePage();
-    expect(stat(reality, 'Rarely used')).toBe('1');
+    expect(definitionValue(reality, 'Rarely used')).toBe('1');
   });
 
   it('focuses the live reality heading after the first add and the name field after later adds', async () => {
@@ -1193,11 +1267,8 @@ describe('Review reason and usage', () => {
     fixture.detectChanges();
     await settlePage();
     const reality = getRegion(page, 'See the reality.');
-    const euro = reality.querySelector('[aria-label="Subscription reality in EUR"]');
-    const count = Array.from(euro?.querySelectorAll('dt') ?? []).find(
-      (term) => term.textContent?.trim() === 'Rarely used',
-    );
-    expect(count?.nextElementSibling?.textContent?.trim()).toBe('1');
+    const euro = reality.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!;
+    expect(definitionValue(euro, 'Rarely used')).toBe('1');
     expect(getList(region, 'Subscriptions').children[0].textContent).toContain('Usage: Rarely');
     expect(getButton(review, 'Rarely')).toBe(rarely);
     expect(document.activeElement).toBe(rarely);
@@ -1521,7 +1592,12 @@ describe('Potential savings', () => {
     await settlePage();
     const page = fixture.nativeElement as HTMLElement;
     const reality = getRegion(page, 'See the reality.');
-    const before = reality.textContent;
+    const card = reality.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!;
+    const annualBeforeCancel = card.querySelector('.annual')?.textContent?.trim();
+    const monthlyBeforeCancel = card.querySelector('.monthly')?.textContent?.trim();
+    const subscriptionsBeforeCancel = definitionValue(card, 'Subscriptions');
+    const rarelyUsedBeforeCancel = definitionValue(card, 'Rarely used');
+    const beforeReview = definitionValue(card, 'Before review');
     const review = getRegion(
       getRegion(page, 'Would you still subscribe today?'),
       'Euro subscription',
@@ -1533,7 +1609,11 @@ describe('Potential savings', () => {
       '$0 / year',
     ]);
     expect(listText(savings, 'Review decision counts')).toEqual(['Keep 0', 'Unsure 0', 'Cancel 1']);
-    expect(reality.textContent).toBe(before);
+    expect(card.querySelector('.annual')?.textContent?.trim()).toBe(annualBeforeCancel);
+    expect(card.querySelector('.monthly')?.textContent?.trim()).toBe(monthlyBeforeCancel);
+    expect(definitionValue(card, 'Subscriptions')).toBe(subscriptionsBeforeCancel);
+    expect(definitionValue(card, 'Rarely used')).toBe(rarelyUsedBeforeCancel);
+    expect(definitionValue(card, 'Before review')).toBe(beforeReview);
   });
 
   it('counts Unsure without adding Potential savings', async () => {
