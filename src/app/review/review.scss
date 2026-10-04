@@ -116,7 +116,9 @@ section.active {
   color: white;
 }
 
-.choice:focus-visible {
+.choice:focus-visible,
+.decision:focus-visible,
+h3:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -124,5 +126,63 @@ section.active {
 @media (max-width: 560px) {
   .review-main {
     flex-direction: column;
+  }
+}
+
+.progress {
+  overflow: hidden;
+}
+
+.progress > div {
+  height: 100%;
+  background: var(--ink);
+}
+
+.decision-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.decision {
+  border: none;
+  border-radius: 18px;
+  padding: 16px 12px;
+  font-weight: 800;
+}
+
+.keep {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.unsure {
+  background: var(--amber-soft);
+  // Darker than --amber to meet AA contrast on --amber-soft.
+  color: #805900;
+}
+
+.cancel {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.complete-review {
+  padding: 34px 4px;
+  text-align: center;
+}
+
+.complete-mark {
+  font-size: 54px;
+}
+
+.complete-review .review-title {
+  margin-top: 12px;
+}
+
+@media (max-width: 560px) {
+  .decision-row {
+    grid-template-columns: 1fr;
   }
 }

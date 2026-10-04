@@ -5,6 +5,7 @@ import {
   type AppState,
   type Subscription,
   type Reason,
+  type ReviewDecision,
   type Usage,
 } from '../domain/subscription';
 import { AppStorage, UnreadableStateError } from './app-storage';
@@ -36,6 +37,10 @@ export class SubscriptionsState {
   readonly subscriptions = computed(() => this.state().subscriptions);
   readonly hasSubscriptions = computed(() => this.subscriptions().length > 0);
   readonly currentReviewSubscription = computed(() => reviewQueue(this.subscriptions())[0]);
+  readonly subscriptionCount = computed(() => this.subscriptions().length);
+  readonly decidedCount = computed(
+    () => this.subscriptions().filter((subscription) => subscription.decision !== null).length,
+  );
   readonly preferredCurrency = computed(() => this.state().preferredCurrency);
 
   constructor() {
@@ -70,9 +75,13 @@ export class SubscriptionsState {
     this.updateSubscription(id, { usage });
   }
 
+  decide(id: string, decision: ReviewDecision): void {
+    this.updateSubscription(id, { decision, usageConfirmed: true });
+  }
+
   private updateSubscription(
     id: string,
-    changes: Partial<Pick<Subscription, 'reason' | 'usage'>>,
+    changes: Partial<Pick<Subscription, 'reason' | 'usage' | 'decision' | 'usageConfirmed'>>,
   ): void {
     this.state.update((current) => ({
       ...current,

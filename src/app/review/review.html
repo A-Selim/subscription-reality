@@ -1,10 +1,22 @@
 <section [class.active]="hasSubscriptions()" aria-labelledby="review-card-heading">
-  <div class="progress" aria-hidden="true"></div>
+  <div
+    class="progress"
+    [attr.role]="hasSubscriptions() ? 'progressbar' : null"
+    [attr.aria-hidden]="hasSubscriptions() ? null : 'true'"
+    [attr.aria-valuemin]="hasSubscriptions() ? 0 : null"
+    [attr.aria-valuemax]="hasSubscriptions() ? subscriptionCount() : null"
+    [attr.aria-valuenow]="hasSubscriptions() ? decidedCount() : null"
+    [attr.aria-label]="hasSubscriptions() ? progressLabel() : null"
+  >
+    <div [style.width.%]="reviewProgress()"></div>
+  </div>
   @if (currentReview(); as subscription) {
     <div class="review-main">
       <div class="review-logo" aria-hidden="true">{{ subscription.monogram }}</div>
       <div>
-        <h3 class="review-title" id="review-card-heading">{{ subscription.name }}</h3>
+        <h3 #reviewHeading class="review-title" id="review-card-heading" tabindex="-1">
+          {{ subscription.name }}
+        </h3>
         <div class="review-cost">
           {{ subscription.annualCostText }} per year · {{ subscription.monthlyCostText }} per month
         </div>
@@ -38,7 +50,28 @@
         </button>
       }
     </div>
-  } @else if (!hasSubscriptions()) {
+    <div class="decision-row" role="group" aria-label="Review decision">
+      @for (decision of decisions; track decision) {
+        <button
+          type="button"
+          class="decision"
+          [class]="decision"
+          [attr.aria-pressed]="subscription.decision === decision"
+          (click)="decide(decision)"
+        >
+          {{ decisionLabels[decision] }}
+        </button>
+      }
+    </div>
+  } @else if (hasSubscriptions()) {
+    <div class="complete-review">
+      <div class="complete-mark" aria-hidden="true">✓</div>
+      <h3 #reviewHeading class="review-title" id="review-card-heading" tabindex="-1">
+        Review complete
+      </h3>
+      <p>You’ve looked at every recurring payment. That alone is the point.</p>
+    </div>
+  } @else {
     <div class="empty-review">
       <h3 id="review-card-heading">Add a subscription first</h3>
       <p>Your review will start here once there is something to reflect on.</p>

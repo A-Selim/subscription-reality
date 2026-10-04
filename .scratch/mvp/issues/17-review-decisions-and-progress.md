@@ -1,6 +1,6 @@
 # 17: Review decisions and progress
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 16
 Test seam: Page seam (plus a reload through the in-memory fake)
@@ -16,10 +16,10 @@ Code and data use `unsure`, never `maybe`.
 
 ## Acceptance criteria
 
-- [ ] With three subscriptions, pressing Keep on the first shows the second and moves focus to its review heading.
-- [ ] The progress bar reads "1 of 3 reviewed" after one decision.
-- [ ] After deciding all three, _Review complete_ shows and has focus.
-- [ ] Adding a new subscription after _Review complete_ brings it up in the review as undecided, and progress reads "3 of 4 reviewed".
-- [ ] Choosing Cancel shows no extra message.
-- [ ] Reloading halfway through resumes at the first undecided subscription with the decisions kept.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] With three subscriptions, pressing Keep on the first shows the second and moves focus to its review heading.
+- [x] The progress bar reads "1 of 3 reviewed" after one decision.
+- [x] After deciding all three, _Review complete_ shows and has focus.
+- [x] Adding a new subscription after _Review complete_ brings it up in the review as undecided, and progress reads "3 of 4 reviewed".
+- [x] Choosing Cancel shows no extra message.
+- [x] Reloading halfway through resumes at the first undecided subscription with the decisions kept.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
