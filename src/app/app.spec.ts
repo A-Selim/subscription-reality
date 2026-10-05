@@ -1428,11 +1428,36 @@ describe('Review again', () => {
 
   function expectDecision(review: HTMLElement, decision: string | null) {
     for (const label of ['Keep', 'Unsure', 'Cancel']) {
-      expect(getButton(review, label).getAttribute('aria-pressed')).toBe(
-        String(label === decision),
-      );
+      const button = getButton(review, label);
+      expect(button.getAttribute('aria-pressed')).toBe(String(label === decision));
+      expect(button.classList.contains('active')).toBe(label === decision);
+      expect(button.classList.contains('decision')).toBe(true);
+      expect(button.classList.contains(label.toLowerCase())).toBe(true);
     }
   }
+
+  it.each([
+    ['Keep', 'Spotify'],
+    ['Unsure', 'Cloud'],
+    ['Cancel', 'Gym'],
+  ])(
+    'shows only the current %s Review decision as selected during Review again',
+    async (decision, name) => {
+      const { fixture, page, review } = await prepareCompletedReview();
+      await startPass(fixture, review);
+      for (const earlierDecision of ['Keep', 'Unsure', 'Cancel']) {
+        if (earlierDecision === decision) break;
+        await decide(fixture, review, earlierDecision);
+      }
+      expect(getRegion(getRegion(page, 'Would you still subscribe today?'), name)).toBe(review);
+      expectDecision(review, decision);
+    },
+  );
+
+  it('shows no selected Review decision for an undecided subscription in the normal queue', async () => {
+    const { review } = await prepareReview();
+    expectDecision(review, null);
+  });
 
   it('starts with the first subscription added and its earlier Review decision pressed', async () => {
     const { fixture, page, review } = await prepareCompletedReview();
