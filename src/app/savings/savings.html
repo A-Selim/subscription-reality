@@ -20,5 +20,20 @@
   } @else {
     <p class="amount">0 <span>/ year</span></p>
   }
-  <p class="insight">Add your subscriptions first. Your review insights will appear here.</p>
+  <div class="insight">
+    @if (!hasSubscriptions()) {
+      <p>Add your subscriptions first. Your review insights will appear here.</p>
+    } @else if (candidates().length === 0) {
+      <p>
+        As you review, we'll surface the subscriptions that look least aligned with how you actually
+        use them.
+      </p>
+    } @else {
+      <p>
+        You spend <strong>{{ candidateAmounts() }}</strong> per year on subscriptions you describe
+        as optional and rarely use.
+      </p>
+      <p class="candidate-names">{{ reviewCandidateNames() }}</p>
+    }
+  </div>
 </section>

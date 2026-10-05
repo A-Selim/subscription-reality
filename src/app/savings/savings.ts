@@ -1,5 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import {
+  joinAmounts,
+  reviewCandidates,
+  reviewCandidateAnnualCostPerCurrency,
   decisionCounts,
   formatAnnualMoney,
   potentialSavingsPerCurrency,
@@ -21,6 +24,19 @@ export class Savings {
       currency,
       amount: formatAnnualMoney(amount, currency),
     })),
+  );
+  protected readonly candidates = computed(() => reviewCandidates(this.state.subscriptions()));
+  protected readonly reviewCandidateNames = computed(() =>
+    this.candidates()
+      .map((subscription) => subscription.name)
+      .join(' · '),
+  );
+  protected readonly candidateAmounts = computed(() =>
+    joinAmounts(
+      reviewCandidateAnnualCostPerCurrency(this.candidates(), this.state.subscriptions()).map(
+        ({ currency, amount }) => formatAnnualMoney(amount, currency),
+      ),
+    ),
   );
   protected readonly decisions = REVIEW_DECISIONS;
   protected readonly decisionLabels = REVIEW_DECISION_LABELS;

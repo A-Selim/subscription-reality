@@ -1678,3 +1678,80 @@ describe('Potential savings', () => {
     ]);
   });
 });
+
+describe('Insight', () => {
+  const placeholder =
+    "As you review, we'll surface the subscriptions that look least aligned with how you actually use them.";
+  const sentence = (amounts: string) =>
+    `You spend ${amounts} per year on subscriptions you describe as optional and rarely use.`;
+
+  async function prepareInsight() {
+    const { fixture, region } = await prepareAddForm();
+    const page = fixture.nativeElement as HTMLElement;
+    const savings = getRegion(page, 'Potential annual savings');
+    const add = async (
+      name: string,
+      price: string,
+      currency: Currency,
+      billing = 'monthly',
+      reason = 'Occasional Use',
+    ) => {
+      setField(region, 'subscription-name', name);
+      setField(region, 'subscription-price', price);
+      setField(region, 'subscription-billing', billing);
+      setField(region, 'subscription-currency', currency);
+      setField(region, 'subscription-reason', reason);
+      clickAdd(region);
+      fixture.detectChanges();
+      await settlePage();
+    };
+    return { fixture, page, savings, add };
+  }
+
+  it('keeps the no-subscriptions insight readable in the dimmed savings card', async () => {
+    const { root } = await renderApp();
+    const savings = getRegion(root, 'Potential annual savings');
+    expect(savings.textContent).toContain(
+      'Add your subscriptions first. Your review insights will appear here.',
+    );
+    expect(savings.classList.contains('active')).toBe(false);
+    expect(savings.closest('[inert], [aria-hidden="true"]')).toBeNull();
+  });
+
+  it('shows the placeholder for an Essential/Daily subscription', async () => {
+    const { savings, add } = await prepareInsight();
+    await add('Cloud', '10', 'EUR', 'monthly', 'Essential');
+    expect(savings.textContent).toContain(placeholder);
+    expect(savings.textContent).not.toContain('You spend');
+  });
+
+  it('shows estimated Rarely candidates with joined amounts and plain-text names', async () => {
+    const { savings, add } = await prepareInsight();
+    await add('Adobe', '10', 'EUR');
+    expect(savings.textContent).toContain(sentence('€120'));
+    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe('Adobe');
+    await add('Headspace', '5', 'USD');
+    expect(savings.textContent).toContain(sentence('€120 and $60'));
+    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe('Adobe · Headspace');
+    await add('Audible', '40', 'GBP', 'yearly');
+    expect(savings.textContent).toContain(sentence('€120, $60 and £40'));
+    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe(
+      'Adobe · Headspace · Audible',
+    );
+    expect(getFocusableElements(savings)).toHaveLength(0);
+    expect(savings.textContent).not.toContain(placeholder);
+  });
+
+  it('removes a Review candidate immediately when usage changes to Weekly', async () => {
+    const { fixture, page, savings, add } = await prepareInsight();
+    await add('Adobe', '10', 'EUR');
+    expect(savings.textContent).toContain(sentence('€120'));
+    const review = getRegion(getRegion(page, 'Would you still subscribe today?'), 'Adobe');
+    getButton(review, 'Weekly').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(savings.textContent).toContain(placeholder);
+    expect(savings.textContent).not.toContain('You spend');
+    expect(savings.textContent).not.toContain('Adobe');
+  });
+});

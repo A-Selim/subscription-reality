@@ -1,4 +1,10 @@
 import {
+  isReviewCandidate,
+  reviewCandidates,
+  reviewCandidateAnnualCostPerCurrency,
+  joinAmounts,
+  REASONS,
+  USAGES,
   potentialSavings,
   potentialSavingsPerCurrency,
   decisionCounts,
@@ -431,5 +437,80 @@ describe('Potential savings and Review decision counts', () => {
       ]),
     ).toEqual({ keep: 2, unsure: 1, cancel: 1 });
     expect(decisionCounts([])).toEqual({ keep: 0, unsure: 0, cancel: 0 });
+  });
+});
+
+describe('Review candidates', () => {
+  const candidate: Subscription = {
+    id: 'candidate',
+    sequence: 0,
+    name: 'Adobe',
+    price: 10,
+    billingFrequency: 'monthly',
+    currency: 'EUR',
+    reason: 'Occasional Use',
+    usage: 'Rarely',
+    usageConfirmed: false,
+    decision: null,
+  };
+
+  it.each(REASONS.flatMap((reason) => USAGES.map((usage) => ({ reason, usage }))))(
+    'checks $reason with $usage',
+    ({ reason, usage }) => {
+      const expected =
+        ['Nice to Have', 'Convenience', 'Occasional Use'].includes(reason) &&
+        ['Rarely', 'Almost Never'].includes(usage);
+      expect(isReviewCandidate({ reason, usage })).toBe(expected);
+    },
+  );
+
+  it('lists candidates in insertion order regardless of Review decision or usage confirmation', () => {
+    const later = { ...candidate, sequence: 2, decision: 'keep' as const, usageConfirmed: true };
+    const subscriptions = [later, { ...candidate, usage: 'Daily' as const }, candidate];
+    expect(reviewCandidates(subscriptions)).toEqual([candidate, later]);
+    expect(subscriptions[0]).toBe(later);
+    expect(reviewCandidates([])).toEqual([]);
+  });
+
+  it('sums candidate annual costs per currency and omits non-candidates', () => {
+    const subscriptions: Subscription[] = [
+      { ...candidate, sequence: 3, currency: 'USD', price: 5 },
+      candidate,
+      { ...candidate, sequence: 1, billingFrequency: 'yearly', price: 40 },
+      { ...candidate, sequence: 2, currency: 'GBP', reason: 'Essential' },
+    ];
+    expect(
+      reviewCandidateAnnualCostPerCurrency(reviewCandidates(subscriptions), subscriptions),
+    ).toEqual([
+      { currency: 'EUR', amount: 160 },
+      { currency: 'USD', amount: 60 },
+    ]);
+    expect(reviewCandidateAnnualCostPerCurrency([], [])).toEqual([]);
+  });
+
+  it('orders candidate amounts by first currency use among all current subscriptions', () => {
+    const subscriptions: Subscription[] = [
+      { ...candidate, sequence: 0, currency: 'USD', reason: 'Essential', usage: 'Daily' },
+      { ...candidate, sequence: 1 },
+      { ...candidate, sequence: 2, currency: 'USD', price: 5 },
+    ];
+    expect(
+      reviewCandidateAnnualCostPerCurrency(reviewCandidates(subscriptions), subscriptions),
+    ).toEqual([
+      { currency: 'USD', amount: 60 },
+      { currency: 'EUR', amount: 120 },
+    ]);
+  });
+});
+
+describe('amount joining', () => {
+  it.each([
+    { amounts: [], expected: '' },
+    { amounts: ['€120'], expected: '€120' },
+    { amounts: ['€120', '$60'], expected: '€120 and $60' },
+    { amounts: ['€120', '$60', '£40'], expected: '€120, $60 and £40' },
+    { amounts: ['€120', '$60', '£40', 'E£20'], expected: '€120, $60, £40 and E£20' },
+  ])('joins $amounts', ({ amounts, expected }) => {
+    expect(joinAmounts(amounts)).toBe(expected);
   });
 });

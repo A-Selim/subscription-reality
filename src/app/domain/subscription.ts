@@ -11,6 +11,11 @@ export const REASONS = [
   'Work / Learning',
 ] as const;
 export type Reason = (typeof REASONS)[number];
+export const REVIEW_CANDIDATE_REASONS: readonly Reason[] = [
+  'Nice to Have',
+  'Convenience',
+  'Occasional Use',
+];
 export const USAGES = ['Daily', 'Weekly', 'Monthly', 'Rarely', 'Almost Never'] as const;
 export type Usage = (typeof USAGES)[number];
 export const REVIEW_DECISIONS = ['keep', 'unsure', 'cancel'] as const;
@@ -226,4 +231,28 @@ export function decisionCounts(
       number
     >,
   );
+}
+
+export function isReviewCandidate(subscription: Pick<Subscription, 'reason' | 'usage'>): boolean {
+  return REVIEW_CANDIDATE_REASONS.includes(subscription.reason) && isRarelyUsed(subscription);
+}
+
+export function reviewCandidates(subscriptions: readonly Subscription[]): Subscription[] {
+  return subscriptions.filter(isReviewCandidate).sort((a, b) => a.sequence - b.sequence);
+}
+
+export function reviewCandidateAnnualCostPerCurrency(
+  candidates: readonly Subscription[],
+  subscriptions: readonly Subscription[],
+): CurrencyAmount[] {
+  const candidateGroups = groupSubscriptionsPerCurrency(candidates);
+  return Array.from(groupSubscriptionsPerCurrency(subscriptions).keys()).flatMap((currency) => {
+    const group = candidateGroups.get(currency);
+    return group ? [{ currency, amount: recurringCost(group).annual }] : [];
+  });
+}
+
+export function joinAmounts(amounts: readonly string[]): string {
+  if (amounts.length < 2) return amounts.join('');
+  return `${amounts.slice(0, -1).join(', ')} and ${amounts[amounts.length - 1]}`;
 }

@@ -90,3 +90,14 @@ section.active {
   background: #272727;
   color: #ddd;
 }
+
+.insight p {
+  margin: 0;
+}
+
+.insight .candidate-names {
+  margin-top: 8px;
+  color: #aaa;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
