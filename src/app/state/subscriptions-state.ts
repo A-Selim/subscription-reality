@@ -26,12 +26,14 @@ export class SubscriptionsState {
     nextSequence: 0,
   });
   private readonly reviewAgainAfterSequence = signal<number | null>(null);
+  private readonly selectedReviewIdState = signal<string | null>(null, { equal: () => false });
   private readonly loadedState = signal(false);
   private readonly dataUnreadableState = signal(false);
   private readonly onlyForThisVisitState = signal(false);
   private pendingSave: AppState | null = null;
   private saving = false;
 
+  readonly selectedReviewId = this.selectedReviewIdState.asReadonly();
   readonly loaded = this.loadedState.asReadonly();
   readonly dataUnreadable = this.dataUnreadableState.asReadonly();
   readonly onlyForThisVisit = this.onlyForThisVisitState.asReadonly();
@@ -40,6 +42,10 @@ export class SubscriptionsState {
   readonly hasSubscriptions = computed(() => this.subscriptions().length > 0);
   readonly currentReviewSubscription = computed(() => {
     const subscriptions = this.subscriptions();
+    const selectedId = this.selectedReviewIdState();
+    const selected = subscriptions.find(({ id }) => id === selectedId);
+    if (selected) return selected;
+
     const afterSequence = this.reviewAgainAfterSequence();
     return (
       (afterSequence === null ? undefined : nextInReviewAgainPass(subscriptions, afterSequence)) ??
@@ -84,6 +90,12 @@ export class SubscriptionsState {
     this.updateSubscription(id, { usage });
   }
 
+  bringUpForReview(id: string): void {
+    if (this.subscriptions().some((subscription) => subscription.id === id)) {
+      this.selectedReviewIdState.set(id);
+    }
+  }
+
   reviewAgain(): void {
     this.reviewAgainAfterSequence.set(-1);
   }
@@ -92,9 +104,13 @@ export class SubscriptionsState {
     const subscription = this.subscriptions().find((subscription) => subscription.id === id);
     if (!subscription) return;
 
+    const selected = this.selectedReviewIdState() === id;
+    const afterSequence = this.reviewAgainAfterSequence();
     const advancePass =
-      this.reviewAgainAfterSequence() !== null && this.currentReviewSubscription()?.id === id;
+      afterSequence !== null &&
+      nextInReviewAgainPass(this.subscriptions(), afterSequence)?.id === id;
     this.updateSubscription(id, { decision, usageConfirmed: true });
+    if (selected) this.selectedReviewIdState.set(null);
     if (advancePass) {
       this.reviewAgainAfterSequence.set(
         nextInReviewAgainPass(this.subscriptions(), subscription.sequence)

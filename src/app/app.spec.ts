@@ -1725,21 +1725,125 @@ describe('Insight', () => {
     expect(savings.textContent).not.toContain('You spend');
   });
 
-  it('shows estimated Rarely candidates with joined amounts and plain-text names', async () => {
+  it('shows estimated Rarely candidates with joined amounts and separated names', async () => {
     const { savings, add } = await prepareInsight();
     await add('Adobe', '10', 'EUR');
     expect(savings.textContent).toContain(sentence('€120'));
-    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe('Adobe');
+    expect(
+      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
+    ).toBe('Adobe');
     await add('Headspace', '5', 'USD');
     expect(savings.textContent).toContain(sentence('€120 and $60'));
-    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe('Adobe · Headspace');
+    expect(
+      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
+    ).toBe('Adobe · Headspace');
     await add('Audible', '40', 'GBP', 'yearly');
     expect(savings.textContent).toContain(sentence('€120, $60 and £40'));
-    expect(savings.querySelector('.candidate-names')?.textContent?.trim()).toBe(
-      'Adobe · Headspace · Audible',
-    );
-    expect(getFocusableElements(savings)).toHaveLength(0);
+    expect(
+      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
+    ).toBe('Adobe · Headspace · Audible');
+    expect(getFocusableElements(savings)).toHaveLength(3);
     expect(savings.textContent).not.toContain(placeholder);
+  });
+
+  async function prepareNameSelection() {
+    const context = await prepareInsight();
+    await context.add('Cloud', '10', 'EUR', 'monthly', 'Essential');
+    await context.add('Adobe', '10', 'EUR');
+    await context.add('Audible', '5', 'EUR');
+    const reviewSection = getRegion(context.page, 'Would you still subscribe today?');
+    const review = getRegion(reviewSection, 'Cloud');
+    const select = async (name: string) => {
+      getButton(context.savings, name).focus();
+      getButton(context.savings, name).click();
+      context.fixture.detectChanges();
+      await settlePage();
+    };
+    return { ...context, reviewSection, review, select };
+  }
+
+  it('shows the selected Review candidate and focuses its review heading', async () => {
+    const { reviewSection, review, select } = await prepareNameSelection();
+    await select('Audible');
+    expect(getRegion(reviewSection, 'Audible')).toBe(review);
+    expect(document.activeElement).toBe(review.querySelector('h3'));
+    getButton(review, 'Rarely').focus();
+    await select('Audible');
+    expect(document.activeElement).toBe(review.querySelector('h3'));
+  });
+
+  it('brings up an already-decided Review candidate with its Review decision pressed', async () => {
+    const { fixture, reviewSection, review, select } = await prepareNameSelection();
+    await decide(fixture, review, 'Keep');
+    await decide(fixture, review, 'Unsure');
+    await select('Adobe');
+    expect(getRegion(reviewSection, 'Adobe')).toBe(review);
+    for (const label of ['Keep', 'Unsure', 'Cancel']) {
+      expect(getButton(review, label).getAttribute('aria-pressed')).toBe(
+        String(label === 'Unsure'),
+      );
+    }
+  });
+
+  it('returns to the first undecided subscription or Review complete after a selected decision', async () => {
+    const { fixture, reviewSection, review, select } = await prepareNameSelection();
+    await select('Adobe');
+    await decide(fixture, review, 'Cancel');
+    expect(getRegion(reviewSection, 'Cloud')).toBe(review);
+    await decide(fixture, review, 'Keep');
+    await decide(fixture, review, 'Unsure');
+    await select('Adobe');
+    await decide(fixture, review, 'Keep');
+    expect(getRegion(reviewSection, 'Review complete')).toBe(review);
+    expect(document.activeElement).toBe(review.querySelector('h3'));
+  });
+
+  it('preserves the Review again pass position after selected candidate decisions', async () => {
+    const { fixture, reviewSection, review, select } = await prepareNameSelection();
+    for (const label of ['Keep', 'Unsure', 'Cancel']) await decide(fixture, review, label);
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    await decide(fixture, review, 'Keep');
+    await select('Audible');
+    await decide(fixture, review, 'Keep');
+    expect(getRegion(reviewSection, 'Adobe')).toBe(review);
+    await select('Adobe');
+    await decide(fixture, review, 'Unsure');
+    expect(getRegion(reviewSection, 'Audible')).toBe(review);
+    await decide(fixture, review, 'Cancel');
+    expect(getRegion(reviewSection, 'Review complete')).toBe(review);
+  });
+
+  it('continues the Review again pass after deciding on a candidate already passed', async () => {
+    const { fixture, reviewSection, review, select } = await prepareNameSelection();
+    for (const label of ['Keep', 'Unsure', 'Cancel']) await decide(fixture, review, label);
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    await decide(fixture, review, 'Keep');
+    await decide(fixture, review, 'Unsure');
+    expect(getRegion(reviewSection, 'Audible')).toBe(review);
+    await select('Adobe');
+    await decide(fixture, review, 'Cancel');
+    expect(getRegion(reviewSection, 'Audible')).toBe(review);
+    await decide(fixture, review, 'Keep');
+    expect(getRegion(reviewSection, 'Review complete')).toBe(review);
+  });
+
+  it('uses focusable native buttons named for the subscriptions and hides separators from AT', async () => {
+    const { savings } = await prepareNameSelection();
+    for (const name of ['Adobe', 'Audible']) {
+      const button = getButton(savings, name);
+      expect(button.type).toBe('button');
+      expect(button.disabled).toBe(false);
+      expect(button.tabIndex).toBe(0);
+      expect(button.getAttribute('aria-label')).toBeNull();
+      button.focus();
+      expect(document.activeElement).toBe(button);
+    }
+    const separator = savings.querySelector('.candidate-names [aria-hidden="true"]');
+    expect(separator?.textContent).toBe(' · ');
   });
 
   it('removes a Review candidate immediately when usage changes to Weekly', async () => {

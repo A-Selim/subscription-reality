@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   ElementRef,
+  effect,
   inject,
   Injector,
   viewChild,
@@ -62,18 +63,28 @@ export class Review {
     };
   });
 
+  constructor() {
+    effect(() => {
+      if (this.state.selectedReviewId() !== null) {
+        this.focusReviewHeading();
+      }
+    });
+  }
+
   protected decide(decision: ReviewDecision): void {
     const subscription = this.currentReview();
     if (!subscription) return;
 
     this.state.decide(subscription.id, decision);
-    afterNextRender(() => this.reviewHeading()?.nativeElement.focus(), {
-      injector: this.injector,
-    });
+    this.focusReviewHeading();
   }
 
   protected reviewAgain(): void {
     this.state.reviewAgain();
+    this.focusReviewHeading();
+  }
+
+  private focusReviewHeading(): void {
     afterNextRender(() => this.reviewHeading()?.nativeElement.focus(), {
       injector: this.injector,
     });

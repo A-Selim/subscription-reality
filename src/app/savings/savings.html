@@ -33,7 +33,16 @@
         You spend <strong>{{ candidateAmounts() }}</strong> per year on subscriptions you describe
         as optional and rarely use.
       </p>
-      <p class="candidate-names">{{ reviewCandidateNames() }}</p>
+      <p class="candidate-names">
+        @for (candidate of candidates(); track candidate.id; let first = $first) {
+          @if (!first) {
+            <span aria-hidden="true"> · </span>
+          }
+          <button type="button" (click)="bringUpForReview(candidate.id)">
+            {{ candidate.name }}
+          </button>
+        }
+      </p>
     }
   </div>
 </section>

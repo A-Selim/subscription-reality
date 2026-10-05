@@ -26,11 +26,6 @@ export class Savings {
     })),
   );
   protected readonly candidates = computed(() => reviewCandidates(this.state.subscriptions()));
-  protected readonly reviewCandidateNames = computed(() =>
-    this.candidates()
-      .map((subscription) => subscription.name)
-      .join(' · '),
-  );
   protected readonly candidateAmounts = computed(() =>
     joinAmounts(
       reviewCandidateAnnualCostPerCurrency(this.candidates(), this.state.subscriptions()).map(
@@ -41,4 +36,8 @@ export class Savings {
   protected readonly decisions = REVIEW_DECISIONS;
   protected readonly decisionLabels = REVIEW_DECISION_LABELS;
   protected readonly decisionCounts = computed(() => decisionCounts(this.state.subscriptions()));
+
+  protected bringUpForReview(id: string): void {
+    this.state.bringUpForReview(id);
+  }
 }
