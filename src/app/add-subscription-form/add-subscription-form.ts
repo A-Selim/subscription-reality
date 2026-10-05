@@ -14,11 +14,11 @@ import { SubscriptionsState } from '../state/subscriptions-state';
 import { Toast } from '../toast/toast';
 import {
   createSubscriptionFormSchema,
+  fieldErrorText,
+  firstInvalidField,
+  type ValidatedField,
   type SubscriptionFormFields,
 } from './subscription-form-schema';
-
-type ValidatedField = 'name' | 'price' | 'billingFrequency' | 'currency';
-const FIELD_ORDER: readonly ValidatedField[] = ['name', 'price', 'billingFrequency', 'currency'];
 
 function createEmptyFields(preferredCurrency: Currency | null): SubscriptionFormFields {
   return {
@@ -62,10 +62,10 @@ export class AddSubscriptionForm {
   add(event: Event): void {
     event.preventDefault();
     this.attempted.set(true);
-    const firstInvalid = FIELD_ORDER.find((field) => this.addForm[field]().invalid());
+    const firstInvalid = firstInvalidField(this.addForm);
     if (firstInvalid) {
-      this.toast().show(this.errorText(firstInvalid) ?? 'Check this field.', 'error');
-      this.addForm[firstInvalid]().focusBoundControl();
+      this.toast().show(firstInvalid.message, 'error');
+      this.addForm[firstInvalid.field]().focusBoundControl();
       return;
     }
 
@@ -89,10 +89,7 @@ export class AddSubscriptionForm {
   }
 
   errorText(field: ValidatedField): string | null {
-    const state = this.addForm[field]();
-    return this.attempted() && state.invalid()
-      ? (state.errors()[0]?.message ?? 'Check this field.')
-      : null;
+    return this.attempted() ? fieldErrorText(this.addForm, field) : null;
   }
 
   focusName(options?: FocusOptions): void {

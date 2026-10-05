@@ -125,6 +125,131 @@ describe('App page seam', () => {
     return field;
   }
 
+  async function openEdit(name = 'Spotify') {
+    const context = await prepareEdit();
+    addSubscription(context.fixture, context.region, 'Netflix');
+    await settlePage();
+    getButton(getList(context.region, 'Subscriptions'), name).click();
+    context.fixture.detectChanges();
+    await settlePage();
+    return context;
+  }
+
+  function expectEditError(region: HTMLElement, label: string, message: string) {
+    const field = editField(region, label);
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    const description = field.getAttribute('aria-describedby');
+    expect(description).toBeTruthy();
+    expect(region.querySelector(`#${description}`)?.textContent).toBe(message);
+    return field;
+  }
+
+  it('keeps the last valid price in Recurring cost and persistently describes an empty edit price', async () => {
+    const { fixture, region, storage } = await openEdit();
+    const reality = getRegion(fixture.nativeElement, 'See the reality.');
+    const before = reality.textContent;
+    setField(region, editField(region, 'Price').id, '');
+    await settlePage();
+    expectEditError(region, 'Price', 'Enter a price.');
+    expect(reality.textContent).toBe(before);
+    expect((await storage.load())?.subscriptions[0].price).toBe(10);
+    editField(region, 'Price').blur();
+    fixture.detectChanges();
+    expectEditError(region, 'Price', 'Enter a price.');
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    expect(editField(region, 'Price').hasAttribute('aria-describedby')).toBe(false);
+    expect(reality.querySelector('.annual')?.textContent?.trim()).toBe('€264');
+    expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€21.99 every month');
+    expect((await storage.load())?.subscriptions[0].price).toBe(12);
+  });
+
+  it.each(['Done', 'Enter'])(
+    'keeps an invalid editor open on %s, announces the error above Done and focuses price',
+    async (action) => {
+      const { fixture, region } = await openEdit();
+      const price = editField(region, 'Price');
+      setField(region, price.id, '');
+      await settlePage();
+      const form = price.closest('form')!;
+      const done = getButton(form, 'Done');
+      if (action === 'Done') done.click();
+      else {
+        price.focus();
+        price.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        // jsdom does not implement implicit form submission from Enter.
+        form.requestSubmit();
+      }
+      fixture.detectChanges();
+      await settlePage();
+      expect(region.querySelector('article form')).toBe(form);
+      const toast = form.querySelector('[role="status"]')!;
+      expect(toast.textContent).toContain('Enter a price.');
+      expect(toast.classList.contains('toast-error')).toBe(true);
+      expect(done.previousElementSibling).toBe(toast);
+      expect(document.activeElement).toBe(price);
+      vi.useFakeTimers();
+      try {
+        getButton(form, 'Done').click();
+        vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
+        fixture.detectChanges();
+        expect(toast.textContent).toBe('');
+        expectEditError(region, 'Price', 'Enter a price.');
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it('focuses the first invalid edit field in form order', async () => {
+    const { fixture, region } = await openEdit();
+    const name = editField(region, 'Subscription name');
+    const price = editField(region, 'Price');
+    setField(region, price.id, '');
+    setField(region, name.id, '');
+    await settlePage();
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(name);
+    expect(name.closest('form')?.querySelector('[role="status"]')?.textContent).toContain(
+      'Enter a subscription name.',
+    );
+    setField(region, name.id, 'Spotify');
+    await settlePage();
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(price);
+  });
+
+  it('refuses a trimmed case-insensitive rename to another subscription', async () => {
+    const { region, storage } = await openEdit();
+    setField(region, editField(region, 'Subscription name').id, ' netflix ');
+    await settlePage();
+    expectEditError(
+      region,
+      'Subscription name',
+      "You already have Netflix. Add something to tell them apart, like 'Netflix Family'.",
+    );
+    expect((await storage.load())?.subscriptions.map(({ name }) => name)).toEqual([
+      'Spotify',
+      'Netflix',
+    ]);
+  });
+
+  it('allows and applies a case-only rename of the edited subscription', async () => {
+    const { fixture, region, storage } = await openEdit('Netflix');
+    const name = editField(region, 'Subscription name');
+    expect(name.getAttribute('aria-invalid')).not.toBe('true');
+    setField(region, name.id, 'NETFLIX');
+    await settlePage();
+    expect(name.getAttribute('aria-invalid')).not.toBe('true');
+    expect((await storage.load())?.subscriptions[1].name).toBe('NETFLIX');
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getButton(getList(region, 'Subscriptions'), 'NETFLIX')).toBeDefined();
+  });
+
   it('opens one prefilled edit form when its native button is activated', async () => {
     const { fixture, region } = await prepareEdit();
     for (const key of [null, 'Enter', ' ']) {

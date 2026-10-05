@@ -150,7 +150,9 @@ describe('subscription name uniqueness', () => {
   });
 
   it('excludes the subscription being edited', () => {
-    expect(findSubscriptionNameMatch([netflix], ' netflix ', netflix.id)).toBeUndefined();
+    const spotify = { ...netflix, id: 'spotify', name: 'Spotify' };
+    expect(findSubscriptionNameMatch([netflix, spotify], ' NETFLIX ', netflix.id)).toBeUndefined();
+    expect(findSubscriptionNameMatch([netflix, spotify], ' spotify ', netflix.id)).toBe(spotify);
   });
 });
 

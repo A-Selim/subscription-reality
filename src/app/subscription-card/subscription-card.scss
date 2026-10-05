@@ -139,3 +139,12 @@
   color: white;
   font-weight: 800;
 }
+
+.edit-fields input[aria-invalid='true'],
+.edit-fields select[aria-invalid='true'],
+.edit-fields input[aria-invalid='true']:focus,
+.edit-fields select[aria-invalid='true']:focus {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red);
+  outline: 2px solid transparent;
+}

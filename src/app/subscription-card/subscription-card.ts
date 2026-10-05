@@ -15,6 +15,9 @@ import {
 import { FormField, form } from '@angular/forms/signals';
 import {
   createSubscriptionFormSchema,
+  fieldErrorText,
+  firstInvalidField,
+  type ValidatedField,
   type SubscriptionFormFields,
 } from '../add-subscription-form/subscription-form-schema';
 import {
@@ -27,6 +30,7 @@ import {
   REASONS,
   type Subscription,
 } from '../domain/subscription';
+import { Toast } from '../toast/toast';
 import { type NewSubscription, SubscriptionsState } from '../state/subscriptions-state';
 
 function changedEditFields(
@@ -45,7 +49,7 @@ function changedEditFields(
 
 @Component({
   selector: 'app-subscription-card',
-  imports: [FormField],
+  imports: [FormField, Toast],
   templateUrl: './subscription-card.html',
   styleUrl: './subscription-card.scss',
 })
@@ -54,6 +58,7 @@ export class SubscriptionCard {
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private readonly cardButton = viewChild<ElementRef<HTMLButtonElement>>('cardButton');
+  private readonly toast = viewChild(Toast);
 
   readonly subscription = input.required<Subscription>();
   readonly editing = input(false);
@@ -76,10 +81,10 @@ export class SubscriptionCard {
     currency: '',
     reason: 'Essential',
   });
-  private readonly otherSubscriptions = computed(() =>
-    this.state.subscriptions().filter(({ id }) => id !== this.subscription().id),
+  readonly editForm = form(
+    this.editModel,
+    createSubscriptionFormSchema(this.state.subscriptions, () => this.subscription().id),
   );
-  readonly editForm = form(this.editModel, createSubscriptionFormSchema(this.otherSubscriptions));
 
   private appliedEditFields: NewSubscription | null = null;
 
@@ -108,8 +113,18 @@ export class SubscriptionCard {
     });
   }
 
+  errorText(field: ValidatedField): string | null {
+    return fieldErrorText(this.editForm, field);
+  }
+
   done(event: Event): void {
     event.preventDefault();
+    const firstInvalid = firstInvalidField(this.editForm);
+    if (firstInvalid) {
+      this.toast()?.show(firstInvalid.message, 'error');
+      this.editForm[firstInvalid.field]().focusBoundControl();
+      return;
+    }
     this.closed.emit();
     afterNextRender(() => this.cardButton()?.nativeElement.focus(), { injector: this.injector });
   }

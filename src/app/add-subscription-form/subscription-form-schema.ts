@@ -1,4 +1,4 @@
-import { required, schema, validate } from '@angular/forms/signals';
+import { required, schema, validate, type FieldTree } from '@angular/forms/signals';
 import {
   findSubscriptionNameMatch,
   isValidName,
@@ -18,7 +18,31 @@ export interface SubscriptionFormFields {
   reason: Reason;
 }
 
-export function createSubscriptionFormSchema(subscriptions: () => readonly Subscription[]) {
+export type ValidatedField = 'name' | 'price' | 'billingFrequency' | 'currency';
+const FIELD_ORDER: readonly ValidatedField[] = ['name', 'price', 'billingFrequency', 'currency'];
+
+export function firstInvalidField(
+  form: FieldTree<SubscriptionFormFields>,
+): { field: ValidatedField; message: string } | undefined {
+  for (const field of FIELD_ORDER) {
+    const message = fieldErrorText(form, field);
+    if (message !== null) return { field, message };
+  }
+  return undefined;
+}
+
+export function fieldErrorText(
+  form: FieldTree<SubscriptionFormFields>,
+  field: ValidatedField,
+): string | null {
+  const state = form[field]();
+  return state.invalid() ? (state.errors()[0]?.message ?? 'Check this field.') : null;
+}
+
+export function createSubscriptionFormSchema(
+  subscriptions: () => readonly Subscription[],
+  editedSubscriptionId?: () => string,
+) {
   return schema<SubscriptionFormFields>((path) => {
     validate(path.name, ({ value }) => {
       const name = value();
@@ -31,7 +55,11 @@ export function createSubscriptionFormSchema(subscriptions: () => readonly Subsc
         };
       }
 
-      const matchingSubscription = findSubscriptionNameMatch(subscriptions(), name);
+      const matchingSubscription = findSubscriptionNameMatch(
+        subscriptions(),
+        name,
+        editedSubscriptionId?.(),
+      );
       return matchingSubscription
         ? {
             kind: 'name',

@@ -1,6 +1,6 @@
 # 24: Edit validation
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 23
 Test seam: Page seam; domain seam for uniqueness excluding the edited subscription
@@ -14,9 +14,9 @@ If the form is invalid when Done is pressed, it stays open, the toast shows the 
 
 ## Acceptance criteria
 
-- [ ] Clearing the price keeps the old price in the totals and marks the price field invalid.
-- [ ] Pressing Done with an empty price keeps the form open, shows the toast above Done, and focuses the price field.
-- [ ] Renaming "Spotify" to "netflix" while "Netflix" exists is refused with the duplicate-name message.
-- [ ] Renaming "Netflix" to "NETFLIX" (its own name) is allowed.
-- [ ] Domain test: the uniqueness check excludes the subscription being edited.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Clearing the price keeps the old price in the totals and marks the price field invalid.
+- [x] Pressing Done with an empty price keeps the form open, shows the toast above Done, and focuses the price field.
+- [x] Renaming "Spotify" to "netflix" while "Netflix" exists is refused with the duplicate-name message.
+- [x] Renaming "Netflix" to "NETFLIX" (its own name) is allowed.
+- [x] Domain test: the uniqueness check excludes the subscription being edited.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
