@@ -1,6 +1,6 @@
 # 23: Open and close the edit form
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 22
 Test seam: Page seam
@@ -16,9 +16,9 @@ In this ticket, assume valid input. Invalid input and Done blocking are ticket 2
 
 ## Acceptance criteria
 
-- [ ] Clicking a card, or pressing Enter/Space on it, opens the edit form on that card with its current values.
-- [ ] Changing the price from €10 to €12 monthly updates the reality card's annual total to include €144 without pressing Done.
-- [ ] Changing the billing frequency updates the card's annual cost at once.
-- [ ] Done closes the form, the card shows the new values, and focus is on that card.
-- [ ] A reload after an edit shows the edited values.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Clicking a card, or pressing Enter/Space on it, opens the edit form on that card with its current values.
+- [x] Changing the price from €10 to €12 monthly updates the reality card's annual total to include €144 without pressing Done.
+- [x] Changing the billing frequency updates the card's annual cost at once.
+- [x] Done closes the form, the card shows the new values, and focus is on that card.
+- [x] A reload after an edit shows the edited values.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

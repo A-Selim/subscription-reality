@@ -1,0 +1,141 @@
+.subscription-card {
+  position: relative;
+  min-height: 182px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.monogram {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.card-price {
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.card-price small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subscription-card h3 {
+  margin: 18px 0 0;
+  font-size: 18px;
+}
+
+.yearly {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.card-details span {
+  padding: 7px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reason {
+  background: var(--accent-soft);
+  color: #5645d8;
+}
+
+.usage {
+  background: #edf6ff;
+  color: #356b9c;
+}
+
+.card-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.card-button::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  content: '';
+}
+
+.card-button:focus-visible {
+  outline: none;
+}
+
+.card-button:focus-visible::after,
+.done:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.edit-fields {
+  display: grid;
+  gap: 8px;
+}
+
+.edit-fields label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.edit-fields input,
+.edit-fields select {
+  width: 100%;
+  min-width: 0;
+  min-height: 45px;
+  padding: 10px;
+  border: 1px solid #8a8a84;
+  border-radius: 16px;
+  background: white;
+  color: var(--ink);
+  font-size: max(1rem, 16px);
+}
+
+.edit-fields input:focus,
+.edit-fields select:focus {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  outline: 2px solid transparent;
+}
+
+.done {
+  min-height: 45px;
+  margin-top: 14px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--accent);
+  color: white;
+  font-weight: 800;
+}

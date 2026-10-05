@@ -82,6 +82,10 @@ export class SubscriptionsState {
     this.persist();
   }
 
+  edit(id: string, fields: Partial<NewSubscription>): void {
+    this.updateSubscription(id, fields);
+  }
+
   setReason(id: string, reason: Reason): void {
     this.updateSubscription(id, { reason });
   }
@@ -122,7 +126,7 @@ export class SubscriptionsState {
 
   private updateSubscription(
     id: string,
-    changes: Partial<Pick<Subscription, 'reason' | 'usage' | 'decision' | 'usageConfirmed'>>,
+    changes: Partial<NewSubscription & Pick<Subscription, 'usage' | 'decision' | 'usageConfirmed'>>,
   ): void {
     this.state.update((current) => ({
       ...current,

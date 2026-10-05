@@ -103,6 +103,131 @@ function setField(root: HTMLElement, id: string, value: string): void {
 }
 
 describe('App page seam', () => {
+  async function prepareEdit() {
+    const { fixture, region, storage } = await prepareAddForm();
+    setField(region, 'subscription-name', 'Spotify');
+    setField(region, 'subscription-price', '10');
+    setField(region, 'subscription-billing', 'monthly');
+    setField(region, 'subscription-currency', 'EUR');
+    clickAdd(region);
+    fixture.detectChanges();
+    await settlePage();
+    return { fixture, region, storage };
+  }
+
+  function editField(region: HTMLElement, label: string): HTMLInputElement | HTMLSelectElement {
+    const form = region.querySelector('article form');
+    const fieldLabel = Array.from(form?.querySelectorAll('label') ?? []).find(
+      (candidate) => candidate.textContent?.trim() === label,
+    );
+    const field = form?.querySelector<HTMLInputElement | HTMLSelectElement>(`#${fieldLabel?.htmlFor}`);
+    if (!field) throw new Error(`Could not find edit field "${label}".`);
+    return field;
+  }
+
+  it('opens one prefilled edit form when its native button is activated', async () => {
+    const { fixture, region } = await prepareEdit();
+    for (const key of [null, 'Enter', ' ']) {
+      const button = getButton(getList(region, 'Subscriptions'), 'Spotify');
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.type).toBe('button');
+      button.focus();
+      // jsdom does not implement the browser default keyboard activation of buttons.
+      if (key) button.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      button.click();
+      fixture.detectChanges();
+      await settlePage();
+      expect(editField(region, 'Subscription name').value).toBe('Spotify');
+      expect(editField(region, 'Price').value).toBe('10');
+      expect(editField(region, 'Billing frequency').value).toBe('monthly');
+      expect(editField(region, 'Currency').value).toBe('EUR');
+      expect(editField(region, 'Reason').value).toBe('Essential');
+      expect(document.activeElement).toBe(editField(region, 'Subscription name'));
+      getButton(region, 'Done').click();
+      fixture.detectChanges();
+      await settlePage();
+    }
+    addSubscription(fixture, region, 'Netflix');
+    await settlePage();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    getButton(getList(region, 'Subscriptions'), 'Netflix').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(region.querySelectorAll('article form')).toHaveLength(1);
+    expect(editField(region, 'Subscription name').value).toBe('Netflix');
+  });
+
+  it('updates the reality annual total to €144 while editing a €10 monthly price to €12', async () => {
+    const { fixture, region } = await prepareEdit();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    expect(getRegion(fixture.nativeElement, 'See the reality.').textContent).toContain('€144');
+    expect(region.querySelector('article form')).not.toBeNull();
+  });
+
+  it('preserves a reason changed in Review when the open edit form changes price', async () => {
+    const { fixture, region, storage } = await prepareEdit();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    const review = getRegion(
+      getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
+      'Spotify',
+    );
+    getButton(review, 'Convenience').click();
+    await settlePage();
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    const saved = await storage.load();
+    expect(saved?.subscriptions[0].reason).toBe('Convenience');
+    expect(saved?.subscriptions[0].price).toBe(12);
+  });
+
+  it('updates the subscription annual cost immediately when billing frequency changes', async () => {
+    const { fixture, region } = await prepareEdit();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Billing frequency').id, 'yearly');
+    await settlePage();
+    expect(region.querySelector('article')?.textContent).toContain('Annual cost €10');
+  });
+
+  it('closes with Done, shows edited values and returns focus to the card button', async () => {
+    const { fixture, region } = await prepareEdit();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Subscription name').id, 'Spotify Family');
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(region.querySelector('article form')).toBeNull();
+    expect(region.querySelector('article')?.textContent).toContain('€12.00');
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify Family'));
+  });
+
+  it('reloads live edited values even before Done', async () => {
+    const { fixture, region, storage } = await prepareEdit();
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    fixture.destroy();
+    const { root } = await renderApp(storage);
+    const card = getList(getRegion(root, 'Your recurring life.'), 'Subscriptions');
+    expect(card.textContent).toContain('€12.00');
+    expect(card.textContent).toContain('Annual cost €144');
+  });
+
   it('renders the page heading as its only h1', async () => {
     const page = (await renderApp()).root;
     const headings = page.querySelectorAll('h1');
@@ -761,7 +886,7 @@ describe('add form validation', () => {
       clickAdd(region);
       fixture.detectChanges();
       await settlePage();
-      expect(getList(region, 'Subscriptions').querySelector('h3')?.textContent).toBe(name);
+      expect(getList(region, 'Subscriptions').querySelector('h3 button')?.textContent?.trim()).toBe(name);
       // The saved state also keeps the trimmed name.
       const storage = TestBed.inject(AppStorage);
       expect((await storage.load())?.subscriptions[0].name).toBe(name);

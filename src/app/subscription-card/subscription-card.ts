@@ -1,0 +1,116 @@
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
+import {
+  createSubscriptionFormSchema,
+  type SubscriptionFormFields,
+} from '../add-subscription-form/subscription-form-schema';
+import {
+  annualCost,
+  billingUnitLabel,
+  CURRENCIES,
+  formatAnnualMoney,
+  formatMoney,
+  monogram,
+  REASONS,
+  type Subscription,
+} from '../domain/subscription';
+import { type NewSubscription, SubscriptionsState } from '../state/subscriptions-state';
+
+function changedEditFields(
+  previous: NewSubscription,
+  current: NewSubscription,
+): Partial<NewSubscription> {
+  const changes: Partial<NewSubscription> = {};
+  if (current.name !== previous.name) changes.name = current.name;
+  if (current.price !== previous.price) changes.price = current.price;
+  if (current.billingFrequency !== previous.billingFrequency)
+    changes.billingFrequency = current.billingFrequency;
+  if (current.currency !== previous.currency) changes.currency = current.currency;
+  if (current.reason !== previous.reason) changes.reason = current.reason;
+  return changes;
+}
+
+@Component({
+  selector: 'app-subscription-card',
+  imports: [FormField],
+  templateUrl: './subscription-card.html',
+  styleUrl: './subscription-card.scss',
+})
+export class SubscriptionCard {
+  private readonly state = inject(SubscriptionsState);
+  private readonly injector = inject(Injector);
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+  private readonly cardButton = viewChild<ElementRef<HTMLButtonElement>>('cardButton');
+
+  readonly subscription = input.required<Subscription>();
+  readonly editing = input(false);
+  readonly opened = output<void>();
+  readonly closed = output<void>();
+  readonly currencies = CURRENCIES;
+  readonly reasons = REASONS;
+  readonly monogram = monogram;
+  readonly billingUnitLabel = billingUnitLabel;
+  readonly priceText = computed(() =>
+    formatMoney(this.subscription().price, this.subscription().currency),
+  );
+  readonly annualCostText = computed(() =>
+    formatAnnualMoney(annualCost(this.subscription()), this.subscription().currency),
+  );
+  private readonly editModel = signal<SubscriptionFormFields>({
+    name: '',
+    price: null,
+    billingFrequency: '',
+    currency: '',
+    reason: 'Essential',
+  });
+  private readonly otherSubscriptions = computed(() =>
+    this.state.subscriptions().filter(({ id }) => id !== this.subscription().id),
+  );
+  readonly editForm = form(this.editModel, createSubscriptionFormSchema(this.otherSubscriptions));
+
+  private appliedEditFields: NewSubscription | null = null;
+
+  constructor() {
+    effect(() => {
+      if (!this.editing()) return;
+      untracked(() => {
+        const { name, price, billingFrequency, currency, reason } = this.subscription();
+        this.appliedEditFields = { name, price, billingFrequency, currency, reason };
+        this.editForm().reset(this.appliedEditFields);
+        afterNextRender(() => this.nameInput()?.nativeElement.focus(), { injector: this.injector });
+      });
+    });
+    effect(() => {
+      if (!this.editing() || this.editForm().invalid()) return;
+      const { name, price, billingFrequency, currency, reason } = this.editModel();
+      if (price === null || !billingFrequency || !currency) return;
+      untracked(() => {
+        const fields = { name: name.trim(), price, billingFrequency, currency, reason };
+        const changes = changedEditFields(this.appliedEditFields ?? fields, fields);
+        this.appliedEditFields = fields;
+        if (Object.keys(changes).length > 0) {
+          this.state.edit(this.subscription().id, changes);
+        }
+      });
+    });
+  }
+
+  done(event: Event): void {
+    event.preventDefault();
+    this.closed.emit();
+    afterNextRender(() => this.cardButton()?.nativeElement.focus(), { injector: this.injector });
+  }
+}
