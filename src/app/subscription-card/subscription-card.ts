@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
+import { SubscriptionField, SubscriptionControl } from '../shared/subscription-field';
 import {
   createSubscriptionFormSchema,
   fieldErrorText,
@@ -51,7 +52,7 @@ function changedEditFields(
 
 @Component({
   selector: 'app-subscription-card',
-  imports: [FormField, Toast],
+  imports: [FormField, Toast, SubscriptionField, SubscriptionControl],
   templateUrl: './subscription-card.html',
   styleUrl: './subscription-card.scss',
 })

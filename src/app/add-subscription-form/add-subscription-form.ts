@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
+import { SubscriptionField, SubscriptionControl } from '../shared/subscription-field';
 import {
   BILLING_FREQUENCIES,
   BILLING_FREQUENCY_LABELS,
@@ -38,7 +39,7 @@ function createEmptyFields(preferredCurrency: Currency | null): SubscriptionForm
 
 @Component({
   selector: 'app-add-subscription-form',
-  imports: [FormField, Toast],
+  imports: [FormField, Toast, SubscriptionField, SubscriptionControl],
   templateUrl: './add-subscription-form.html',
   styleUrl: './add-subscription-form.scss',
 })

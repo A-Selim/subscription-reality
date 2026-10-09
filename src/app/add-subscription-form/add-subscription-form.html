@@ -2,74 +2,78 @@
   <h3 id="add-heading" class="visually-hidden">Add a subscription</h3>
   <div class="form-grid">
     <div class="field-group">
-      <label class="visually-hidden" for="subscription-name">Subscription name</label>
-      <input
-        #nameInput
-        id="subscription-name"
-        type="text"
-        autocomplete="off"
-        placeholder="Name e.g. Spotify"
-        [formField]="addForm.name"
-        [attr.aria-invalid]="errorText('name') ? 'true' : null"
-        [attr.aria-describedby]="errorText('name') ? 'subscription-name-error' : null"
-      />
-      @if (errorText('name'); as error) {
-        <span id="subscription-name-error" class="visually-hidden">{{ error }}</span>
-      }
-    </div>
-    <div class="field-group">
-      <label class="visually-hidden" for="subscription-price">Price</label>
-      <input
-        id="subscription-price"
-        type="number"
-        inputmode="decimal"
-        step="0.01"
-        placeholder="Price"
-        [formField]="addForm.price"
-        [attr.aria-invalid]="errorText('price') ? 'true' : null"
-        [attr.aria-describedby]="errorText('price') ? 'subscription-price-error' : null"
-      />
-      @if (errorText('price'); as error) {
-        <span id="subscription-price-error" class="visually-hidden">{{ error }}</span>
-      }
-    </div>
-    <div class="field-group">
-      <label class="visually-hidden" for="subscription-billing">Billing frequency</label>
-      <select
-        id="subscription-billing"
-        [class.is-empty]="!addModel().billingFrequency"
-        [formField]="addForm.billingFrequency"
-        [attr.aria-invalid]="errorText('billingFrequency') ? 'true' : null"
-        [attr.aria-describedby]="
-          errorText('billingFrequency') ? 'subscription-billing-error' : null
-        "
+      <app-subscription-field
+        label="Subscription name"
+        [errorText]="errorText('name')"
+        [hiddenLabel]="true"
+        controlId="subscription-name"
       >
-        <option value="">Billing</option>
-        @for (billingFrequency of billingFrequencies; track billingFrequency) {
-          <option [value]="billingFrequency">{{ billingFrequencyLabels[billingFrequency] }}</option>
-        }
-      </select>
-      @if (errorText('billingFrequency'); as error) {
-        <span id="subscription-billing-error" class="visually-hidden">{{ error }}</span>
-      }
+        <input
+          subscriptionControl
+          #nameInput
+          type="text"
+          autocomplete="off"
+          placeholder="Name e.g. Spotify"
+          [formField]="addForm.name"
+        />
+      </app-subscription-field>
     </div>
     <div class="field-group">
-      <label class="visually-hidden" for="subscription-currency">Currency</label>
-      <select
-        id="subscription-currency"
-        [class.is-empty]="!addModel().currency"
-        [formField]="addForm.currency"
-        [attr.aria-invalid]="errorText('currency') ? 'true' : null"
-        [attr.aria-describedby]="errorText('currency') ? 'subscription-currency-error' : null"
+      <app-subscription-field
+        label="Price"
+        [errorText]="errorText('price')"
+        [hiddenLabel]="true"
+        controlId="subscription-price"
       >
-        <option value="">Currency</option>
-        @for (currency of currencies; track currency) {
-          <option [value]="currency">{{ currency }}</option>
-        }
-      </select>
-      @if (errorText('currency'); as error) {
-        <span id="subscription-currency-error" class="visually-hidden">{{ error }}</span>
-      }
+        <input
+          subscriptionControl
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          placeholder="Price"
+          [formField]="addForm.price"
+        />
+      </app-subscription-field>
+    </div>
+    <div class="field-group">
+      <app-subscription-field
+        label="Billing frequency"
+        [errorText]="errorText('billingFrequency')"
+        [hiddenLabel]="true"
+        controlId="subscription-billing"
+      >
+        <select
+          subscriptionControl
+          [class.is-empty]="!addModel().billingFrequency"
+          [formField]="addForm.billingFrequency"
+        >
+          <option value="">Billing</option>
+          @for (billingFrequency of billingFrequencies; track billingFrequency) {
+            <option [value]="billingFrequency">
+              {{ billingFrequencyLabels[billingFrequency] }}
+            </option>
+          }
+        </select>
+      </app-subscription-field>
+    </div>
+    <div class="field-group">
+      <app-subscription-field
+        label="Currency"
+        [errorText]="errorText('currency')"
+        [hiddenLabel]="true"
+        controlId="subscription-currency"
+      >
+        <select
+          subscriptionControl
+          [class.is-empty]="!addModel().currency"
+          [formField]="addForm.currency"
+        >
+          <option value="">Currency</option>
+          @for (currency of currencies; track currency) {
+            <option [value]="currency">{{ currency }}</option>
+          }
+        </select>
+      </app-subscription-field>
     </div>
     <div class="field-group">
       <label class="visually-hidden" for="subscription-reason">Reason</label>

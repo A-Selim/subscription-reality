@@ -2,79 +2,44 @@
   @if (editing()) {
     <form (submit)="done($event)" novalidate [attr.aria-label]="'Edit ' + subscription().name">
       <div class="edit-fields">
-        <label [for]="'edit-name-' + subscription().id">Subscription name</label>
-        <input
-          #nameInput
-          [id]="'edit-name-' + subscription().id"
-          type="text"
-          autocomplete="off"
-          [formField]="editForm.name"
-          [attr.aria-invalid]="errorText('name') ? 'true' : null"
-          [attr.aria-describedby]="
-            errorText('name') ? 'edit-name-error-' + subscription().id : null
-          "
-        />
-        @if (errorText('name'); as error) {
-          <span [id]="'edit-name-error-' + subscription().id" class="visually-hidden">{{
-            error
-          }}</span>
-        }
-        <label [for]="'edit-price-' + subscription().id">Price</label>
-        <input
-          [id]="'edit-price-' + subscription().id"
-          type="number"
-          inputmode="decimal"
-          step="0.01"
-          [formField]="editForm.price"
-          [attr.aria-invalid]="errorText('price') ? 'true' : null"
-          [attr.aria-describedby]="
-            errorText('price') ? 'edit-price-error-' + subscription().id : null
-          "
-        />
-        @if (errorText('price'); as error) {
-          <span [id]="'edit-price-error-' + subscription().id" class="visually-hidden">{{
-            error
-          }}</span>
-        }
-        <label [for]="'edit-billing-' + subscription().id">Billing frequency</label>
-        <select
-          [id]="'edit-billing-' + subscription().id"
-          [formField]="editForm.billingFrequency"
-          [attr.aria-invalid]="errorText('billingFrequency') ? 'true' : null"
-          [attr.aria-describedby]="
-            errorText('billingFrequency') ? 'edit-billing-error-' + subscription().id : null
-          "
+        <app-subscription-field label="Subscription name" [errorText]="errorText('name')">
+          <input
+            subscriptionControl
+            #nameInput
+            type="text"
+            autocomplete="off"
+            [formField]="editForm.name"
+          />
+        </app-subscription-field>
+        <app-subscription-field label="Price" [errorText]="errorText('price')">
+          <input
+            subscriptionControl
+            type="number"
+            inputmode="decimal"
+            step="0.01"
+            [formField]="editForm.price"
+          />
+        </app-subscription-field>
+        <app-subscription-field
+          label="Billing frequency"
+          [errorText]="errorText('billingFrequency')"
         >
-          @for (billingFrequency of billingFrequencies; track billingFrequency) {
-            <option [value]="billingFrequency">
-              {{ billingFrequencyLabels[billingFrequency] }}
-            </option>
-          }
-        </select>
-        @if (errorText('billingFrequency'); as error) {
-          <span [id]="'edit-billing-error-' + subscription().id" class="visually-hidden">{{
-            error
-          }}</span>
-        }
-        <label [for]="'edit-currency-' + subscription().id">Currency</label>
-        <select
-          [id]="'edit-currency-' + subscription().id"
-          [formField]="editForm.currency"
-          [attr.aria-invalid]="errorText('currency') ? 'true' : null"
-          [attr.aria-describedby]="
-            errorText('currency') ? 'edit-currency-error-' + subscription().id : null
-          "
-        >
-          @for (currency of currencies; track currency) {
-            <option [value]="currency">{{ currency }}</option>
-          }
-        </select>
-        @if (errorText('currency'); as error) {
-          <span [id]="'edit-currency-error-' + subscription().id" class="visually-hidden">{{
-            error
-          }}</span>
-        }
-        <label [for]="'edit-reason-' + subscription().id">Reason</label>
+          <select subscriptionControl [formField]="editForm.billingFrequency">
+            @for (billingFrequency of billingFrequencies; track billingFrequency) {
+              <option [value]="billingFrequency">
+                {{ billingFrequencyLabels[billingFrequency] }}
+              </option>
+            }
+          </select>
+        </app-subscription-field>
+        <app-subscription-field label="Currency" [errorText]="errorText('currency')">
+          <select subscriptionControl [formField]="editForm.currency">
+            @for (currency of currencies; track currency) {
+              <option [value]="currency">{{ currency }}</option>
+            }
+          </select>
+        </app-subscription-field>
+        <label class="field-label" [for]="'edit-reason-' + subscription().id">Reason</label>
         <select [id]="'edit-reason-' + subscription().id" [formField]="editForm.reason">
           @for (reason of reasons; track reason) {
             <option [value]="reason">{{ reason }}</option>

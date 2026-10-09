@@ -2115,3 +2115,70 @@ describe('Insight', () => {
     expect(savings.textContent).not.toContain('Adobe');
   });
 });
+
+describe('Subscription form accessibility on the page', () => {
+  it('keeps add and edit labels, ids and price error descriptions separate when switching subscriptions', async () => {
+    const { fixture, region } = await prepareAddForm();
+    addSubscription(fixture, region, 'Spotify');
+    await settlePage();
+    addSubscription(fixture, region, 'Netflix');
+    await settlePage();
+
+    function expectUniqueDocumentIds(): void {
+      const ids = Array.from(document.querySelectorAll('[id]'), (element) => element.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+
+    function expectLabelsLinkedWithin(form: HTMLFormElement): void {
+      const labels = Array.from(form.querySelectorAll<HTMLLabelElement>('label[for]'));
+      expect(labels).toHaveLength(5);
+      for (const label of labels) {
+        expect(label.control).not.toBeNull();
+        expect(form.contains(label.control)).toBe(true);
+        expect(label.control?.id).toBe(label.htmlFor);
+      }
+    }
+
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+
+    const addForm = region.querySelector<HTMLFormElement>('form.add-form')!;
+    const editForm = region.querySelector<HTMLFormElement>('article form')!;
+    expectUniqueDocumentIds();
+    expectLabelsLinkedWithin(addForm);
+    expectLabelsLinkedWithin(editForm);
+
+    const editPrice = editForm.querySelector<HTMLInputElement>('input[type="number"]')!;
+    const addPrice = addForm.querySelector<HTMLInputElement>('input[type="number"]')!;
+    setField(editForm, editPrice.id, '');
+    fixture.detectChanges();
+    await settlePage();
+
+    expect(editPrice.getAttribute('aria-invalid')).toBe('true');
+    const descriptionId = editPrice.getAttribute('aria-describedby');
+    expect(descriptionId).toBeTruthy();
+    const description = document.getElementById(descriptionId!);
+    expect(description?.textContent).toBe('Enter a price.');
+    expect(editForm.contains(description)).toBe(true);
+    expect(addPrice.hasAttribute('aria-describedby')).toBe(false);
+    expectUniqueDocumentIds();
+
+    setField(editForm, editPrice.id, '9.99');
+    fixture.detectChanges();
+    await settlePage();
+    getButton(editForm, 'Done').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(region.querySelector('article form')).toBeNull();
+
+    getButton(getList(region, 'Subscriptions'), 'Netflix').click();
+    fixture.detectChanges();
+    await settlePage();
+    const nextEditForm = region.querySelector<HTMLFormElement>('article form')!;
+    expect(nextEditForm.getAttribute('aria-label')).toBe('Edit Netflix');
+    expectUniqueDocumentIds();
+    expectLabelsLinkedWithin(addForm);
+    expectLabelsLinkedWithin(nextEditForm);
+  });
+});

@@ -1,6 +1,6 @@
 # 27: Shared field-and-error component
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 26
 Test seam: Page seam (existing add and edit tests stay green, unchanged)
@@ -19,8 +19,12 @@ Today the add form and the edit form on the subscription card repeat, for every 
 
 ## Acceptance criteria
 
-- [ ] Both forms render every validated field through the shared component; no form repeats the `aria-invalid` / `aria-describedby` / error-text markup.
-- [ ] Every control still has a real `<label>` linked to it, and its error text is still linked through `aria-describedby` only while the field is invalid.
-- [ ] Two open edit forms never share an id.
-- [ ] The existing add and edit tests pass without edits.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Both forms render every validated field through the shared component; no form repeats the `aria-invalid` / `aria-describedby` / error-text markup.
+- [x] Every control still has a real `<label>` linked to it, and its error text is still linked through `aria-describedby` only while the field is invalid.
+- [x] Two open edit forms never share an id.
+- [x] The existing add and edit tests pass without edits.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+- The page only allows one open edit form at a time, so "two open edit forms never share an id" holds by construction: every `SubscriptionField` gets its id from a module-level counter. The page test covers the add form and an edit form open together, and switching which card is edited.
