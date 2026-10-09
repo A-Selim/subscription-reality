@@ -39,7 +39,7 @@ Update `docs/agreed-changes.md` › 11 and, in `.scratch/mvp/spec.md`, the stori
 - [x] Deleting a subscription during a _Review again_ pass drops it from the pass. Deleting the subscription shown in the review card shows what the review would show without it, without moving focus there.
 - [x] Deleting the review candidate picked from the insight (ticket 22) clears that pick.
 - [x] Emptying a currency and then adding a subscription in it again puts its reality card at the end.
-- [x] An open in-place edit form on another card keeps its input while the dialog is open and after it closes.
+- [x] An open in-place edit form on another card keeps its input while the dialog is open and after it closes. (Held when shipped; superseded by ticket 33, where edit moved into the card dialog and only one modal can be open.)
 - [x] A reload after deleting doesn't bring the subscription back.
 - [x] `docs/agreed-changes.md` › 11 and the spec describe the ✕ and the card dialog.
 - [x] `npm run build` and `npm test -- --watch=false` pass; the modal focus behaviour is checked in a real browser.
