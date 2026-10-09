@@ -1,6 +1,6 @@
 # 38: Red invalid-field mark at the end of the field
 
-Status: ready-for-agent
+Status: ready-for-human
 Lane: small
 Blocked by: none
 Test seam: Page seam (mark present on invalid field, absent on valid); manual visual check at 1280px and 375px
@@ -21,6 +21,12 @@ Applies to both forms (add form and edit dialog).
 - [ ] An invalid Name or Price shows a red round "!" near the field's right edge, in both forms.
 - [ ] On an invalid select, the mark sits before the chevron with no overlap.
 - [ ] Typed text never runs under the mark.
-- [ ] The mark stays `aria-hidden` and has at least 3:1 contrast against the white field (white on `--red` is about 5.7:1).
+- [x] The mark stays `aria-hidden` and has at least 3:1 contrast against the white field (white on `--red` is about 5.7:1).
 - [ ] No layout shift or overflow at 375px.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Updated the shared invalid-field mark to use `--red`, a 600-weight white glyph, text-input edge positioning, and input-specific clearance. Page-seam coverage verifies marks appear only for invalid add and edit fields, including selects. The 1280px and 375px visual checks remain for a manual browser session; the sandbox cannot start the local dev server.
+
+- Orchestrator: glyph weight set to 400 (agreed-changes says regular weight). Status is ready-for-human until the browser check at 1280px and 375px.

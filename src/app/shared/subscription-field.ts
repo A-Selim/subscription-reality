@@ -1,4 +1,12 @@
-import { Component, computed, Directive, inject, input } from '@angular/core';
+import {
+  Component,
+  computed,
+  contentChild,
+  Directive,
+  ElementRef,
+  inject,
+  input,
+} from '@angular/core';
 
 let nextFieldId = 0;
 
@@ -11,7 +19,7 @@ let nextFieldId = 0;
       [class.field-label]="!hiddenLabel()"
       >{{ label() }}</label
     >
-    <span class="subscription-control-wrap">
+    <span class="subscription-control-wrap" [class.is-text-control]="control()?.isTextInput">
       <ng-content />
       @if (hasError()) {
         <span class="invalid-field-mark" aria-hidden="true">!</span>
@@ -43,12 +51,16 @@ let nextFieldId = 0;
       place-items: center;
       transform: translateY(-50%);
       border-radius: 50%;
-      background: var(--ink);
+      background: var(--red);
       color: white;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 400;
       line-height: 1;
       pointer-events: none;
+    }
+
+    .is-text-control .invalid-field-mark {
+      inset-inline-end: 12px;
     }
   `,
 })
@@ -60,6 +72,7 @@ export class SubscriptionField {
   readonly hiddenLabel = input(false);
   readonly errorText = input<string | null>(null);
   readonly hasError = computed(() => this.errorText() !== null);
+  readonly control = contentChild(SubscriptionControl);
 }
 
 @Directive({
@@ -68,10 +81,14 @@ export class SubscriptionField {
     '[id]': 'field.controlId()',
     '[attr.aria-invalid]': "field.hasError() ? 'true' : null",
     '[attr.aria-describedby]': 'field.hasError() ? field.errorId : null',
-    // Projected controls are outside encapsulated styles, so this inline 64px padding clears the mark and select chevron.
-    '[style.padding-inline-end]': "field.hasError() ? '64px' : null",
+    // Projected controls are outside encapsulated styles, so this inline padding clears the mark (and the chevron on selects).
+    '[style.padding-inline-end]': 'field.hasError() ? invalidEndPadding : null',
   },
 })
 export class SubscriptionControl {
   readonly field = inject(SubscriptionField);
+  private readonly element = inject(ElementRef<HTMLInputElement | HTMLSelectElement>);
+  readonly isTextInput = this.element.nativeElement.tagName === 'INPUT';
+
+  private readonly invalidEndPadding = this.isTextInput ? '42px' : '64px';
 }

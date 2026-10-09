@@ -565,7 +565,7 @@ describe('App page seam', () => {
     expect(card.textContent).toContain('Annual cost €144');
   });
 
-  it('shows an aria-hidden invalid mark only beside invalid add and edit fields', async () => {
+  it('shows aria-hidden invalid marks only beside invalid add and edit fields', async () => {
     const { fixture, region } = await openEdit();
     const addName = region.querySelector<HTMLInputElement>('#subscription-name')!;
     const addPrice = region.querySelector<HTMLInputElement>('#subscription-price')!;
@@ -580,6 +580,11 @@ describe('App page seam', () => {
     const addNameWrapper = addName.parentElement;
     expect(addNameWrapper).not.toBeNull();
     expect(addNameWrapper!.querySelector('.invalid-field-mark')).not.toBeNull();
+
+    const addBilling = region.querySelector<HTMLSelectElement>('#subscription-billing')!;
+    const addBillingWrapper = addBilling.parentElement;
+    expect(addBillingWrapper).not.toBeNull();
+    expect(addBillingWrapper!.querySelector('.invalid-field-mark')).not.toBeNull();
 
     setField(region, addName.id, 'YouTube');
     fixture.detectChanges();
@@ -597,6 +602,17 @@ describe('App page seam', () => {
     const editNameWrapper = editName.parentElement;
     expect(editNameWrapper).not.toBeNull();
     expect(editNameWrapper!.querySelector('.invalid-field-mark')).toBeNull();
+
+    setField(region, editName.id, '');
+    await settlePage();
+    expect(editNameWrapper!.querySelector('.invalid-field-mark')).not.toBeNull();
+
+    const editBilling = editField(region, 'Billing frequency') as HTMLSelectElement;
+    setField(region, editBilling.id, '');
+    await settlePage();
+    const editBillingWrapper = editBilling.parentElement;
+    expect(editBillingWrapper).not.toBeNull();
+    expect(editBillingWrapper!.querySelector('.invalid-field-mark')).not.toBeNull();
   });
 
   it('renders the page heading as its only h1', async () => {
