@@ -357,6 +357,40 @@ describe('App page seam', () => {
     expect(card.textContent).toContain('Annual cost €144');
   });
 
+  it('shows an aria-hidden invalid mark only beside invalid add and edit fields', async () => {
+    const { fixture, region } = await openEdit();
+    const addName = region.querySelector<HTMLInputElement>('#subscription-name')!;
+    const addPrice = region.querySelector<HTMLInputElement>('#subscription-price')!;
+
+    clickAdd(region);
+    fixture.detectChanges();
+    const addPriceWrapper = addPrice.parentElement;
+    expect(addPriceWrapper).not.toBeNull();
+    const addMark = addPriceWrapper!.querySelector<HTMLElement>('.invalid-field-mark');
+    expect(addMark).not.toBeNull();
+    expect(addMark!.getAttribute('aria-hidden')).toBe('true');
+    const addNameWrapper = addName.parentElement;
+    expect(addNameWrapper).not.toBeNull();
+    expect(addNameWrapper!.querySelector('.invalid-field-mark')).not.toBeNull();
+
+    setField(region, addName.id, 'YouTube');
+    fixture.detectChanges();
+    expect(addNameWrapper!.querySelector('.invalid-field-mark')).toBeNull();
+
+    const editName = editField(region, 'Subscription name');
+    const editPrice = editField(region, 'Price');
+    setField(region, editPrice.id, '');
+    await settlePage();
+    const editPriceWrapper = editPrice.parentElement;
+    expect(editPriceWrapper).not.toBeNull();
+    const editMark = editPriceWrapper!.querySelector<HTMLElement>('.invalid-field-mark');
+    expect(editMark).not.toBeNull();
+    expect(editMark!.getAttribute('aria-hidden')).toBe('true');
+    const editNameWrapper = editName.parentElement;
+    expect(editNameWrapper).not.toBeNull();
+    expect(editNameWrapper!.querySelector('.invalid-field-mark')).toBeNull();
+  });
+
   it('renders the page heading as its only h1', async () => {
     const page = (await renderApp()).root;
     const headings = page.querySelectorAll('h1');

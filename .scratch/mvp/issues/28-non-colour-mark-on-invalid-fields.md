@@ -1,6 +1,6 @@
 # 28: A mark that is not colour on invalid fields
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 27
 Test seam: Page seam (the mark is present on an invalid field, absent on a valid one)
@@ -16,9 +16,13 @@ The behaviour stays the same: the edit form still shows its error text only in t
 
 ## Acceptance criteria
 
-- [ ] An invalid field shows the mark in both forms; a valid field doesn't.
-- [ ] The mark is still recognisable in greyscale (not a colour change only).
-- [ ] The mark is hidden from screen readers and adds no new announcement.
-- [ ] The mark has at least 3:1 contrast against its background.
-- [ ] The field layout doesn't shift or overflow at 375px width.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] An invalid field shows the mark in both forms; a valid field doesn't.
+- [x] The mark is still recognisable in greyscale (not a colour change only).
+- [x] The mark is hidden from screen readers and adds no new announcement.
+- [x] The mark has at least 3:1 contrast against its background.
+- [x] The field layout doesn't shift or overflow at 375px width.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+- The mark is a dark round "!" badge (`--ink` with a white glyph, about 17:1) inside the control's end edge. The fields are white in both forms, not the dark card. Checked in a browser at 1280px and 375px for the add form, and at 375px for the edit form, which shows the mark while typing before Done. No horizontal scroll, and select chevrons stay visible.
