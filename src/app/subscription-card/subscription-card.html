@@ -1,81 +1,28 @@
 <article class="subscription-card" [attr.aria-label]="subscription().name">
-  @if (editing()) {
-    <form (submit)="done($event)" novalidate [attr.aria-label]="'Edit ' + subscription().name">
-      <div class="edit-fields">
-        <app-subscription-field label="Subscription name" [errorText]="errorText('name')">
-          <input
-            subscriptionControl
-            #nameInput
-            type="text"
-            autocomplete="off"
-            [formField]="editForm.name"
-          />
-        </app-subscription-field>
-        <app-subscription-field label="Price" [errorText]="errorText('price')">
-          <input
-            subscriptionControl
-            type="number"
-            inputmode="decimal"
-            step="0.01"
-            [formField]="editForm.price"
-          />
-        </app-subscription-field>
-        <app-subscription-field
-          label="Billing frequency"
-          [errorText]="errorText('billingFrequency')"
-        >
-          <select subscriptionControl [formField]="editForm.billingFrequency">
-            @for (billingFrequency of billingFrequencies; track billingFrequency) {
-              <option [value]="billingFrequency">
-                {{ billingFrequencyLabels[billingFrequency] }}
-              </option>
-            }
-          </select>
-        </app-subscription-field>
-        <app-subscription-field label="Currency" [errorText]="errorText('currency')">
-          <select subscriptionControl [formField]="editForm.currency">
-            @for (currency of currencies; track currency) {
-              <option [value]="currency">{{ currency }}</option>
-            }
-          </select>
-        </app-subscription-field>
-        <label class="field-label" [for]="'edit-reason-' + subscription().id">Reason</label>
-        <select [id]="'edit-reason-' + subscription().id" [formField]="editForm.reason">
-          @for (reason of reasons; track reason) {
-            <option [value]="reason">{{ reason }}</option>
-          }
-        </select>
-      </div>
-      <p class="yearly">Annual cost {{ annualCostText() }}</p>
-      <app-toast />
-      <button type="submit" class="done">Done</button>
-    </form>
-  } @else {
-    <div class="card-top">
-      <span class="monogram" aria-hidden="true">{{ monogram(subscription().name) }}</span>
-      <span class="card-price"
-        >{{ priceText() }}
-        <small>/ {{ billingUnitLabel(subscription().billingFrequency) }}</small>
-      </span>
-    </div>
-    <h3>
-      <button #cardButton type="button" class="card-button" (click)="opened.emit()">
-        {{ subscription().name }}
-      </button>
-    </h3>
-    <button
-      #deleteButton
-      type="button"
-      class="delete-button"
-      [attr.aria-label]="'Delete ' + subscription().name"
-      (click)="deleteRequested.emit()"
-    >
-      <span aria-hidden="true">✕</span>
+  <div class="card-top">
+    <span class="monogram" aria-hidden="true">{{ monogram(subscription().name) }}</span>
+    <span class="card-price"
+      >{{ priceText() }}
+      <small>/ {{ billingUnitLabel(subscription().billingFrequency) }}</small>
+    </span>
+  </div>
+  <h3>
+    <button #cardButton type="button" class="card-button" (click)="opened.emit()">
+      {{ subscription().name }}
     </button>
-    <p class="yearly">Annual cost {{ annualCostText() }}</p>
-    <div class="card-details">
-      <span class="reason">Reason: {{ subscription().reason }}</span>
-      <span class="usage">Usage: {{ subscription().usage }}</span>
-    </div>
-  }
+  </h3>
+  <button
+    #deleteButton
+    type="button"
+    class="delete-button"
+    [attr.aria-label]="'Delete ' + subscription().name"
+    (click)="deleteRequested.emit()"
+  >
+    <span aria-hidden="true">✕</span>
+  </button>
+  <p class="yearly">Annual cost {{ annualCostText() }}</p>
+  <div class="card-details">
+    <span class="reason">Reason: {{ subscription().reason }}</span>
+    <span class="usage">Usage: {{ subscription().usage }}</span>
+  </div>
 </article>

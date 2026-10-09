@@ -1,0 +1,50 @@
+<form (submit)="done($event)" novalidate aria-labelledby="edit-title">
+  <div class="edit-fields">
+    <app-subscription-field label="Subscription name" [errorText]="errorText('name')">
+      <input
+        subscriptionControl
+        #nameInput
+        type="text"
+        autocomplete="off"
+        [formField]="editForm.name"
+      />
+    </app-subscription-field>
+    <app-subscription-field label="Price" [errorText]="errorText('price')">
+      <input
+        subscriptionControl
+        type="number"
+        inputmode="decimal"
+        step="0.01"
+        [formField]="editForm.price"
+      />
+    </app-subscription-field>
+    <app-subscription-field label="Billing frequency" [errorText]="errorText('billingFrequency')">
+      <select subscriptionControl [formField]="editForm.billingFrequency">
+        @for (billingFrequency of billingFrequencies; track billingFrequency) {
+          <option [value]="billingFrequency">
+            {{ billingFrequencyLabels[billingFrequency] }}
+          </option>
+        }
+      </select>
+    </app-subscription-field>
+    <app-subscription-field label="Currency" [errorText]="errorText('currency')">
+      <select subscriptionControl [formField]="editForm.currency">
+        @for (currency of currencies; track currency) {
+          <option [value]="currency">{{ currency }}</option>
+        }
+      </select>
+    </app-subscription-field>
+    <label class="field-label" [for]="'edit-reason-' + subscription().id">Reason</label>
+    <select [id]="'edit-reason-' + subscription().id" [formField]="editForm.reason">
+      @for (reason of reasons; track reason) {
+        <option [value]="reason">{{ reason }}</option>
+      }
+    </select>
+  </div>
+  <p id="edit-hint">
+    Changes save as you type. If you close with an error, all changes are undone.
+  </p>
+  <p class="yearly">Annual cost {{ annualCostText() }}</p>
+  <app-toast />
+  <button type="submit" class="done">Done</button>
+</form>

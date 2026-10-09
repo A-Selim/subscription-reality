@@ -1,6 +1,6 @@
 # 33: Edit opens in the card dialog
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 32
 Test seam: Page seam (migrate the existing edit tests to the dialog); manual check of native modal focus in a real browser
@@ -28,16 +28,26 @@ Update `docs/agreed-changes.md` › 11 and, in `.scratch/mvp/spec.md`, story 74 
 
 ## Acceptance criteria
 
-- [ ] Clicking a card, or pressing Enter or Space on its card button, opens the edit dialog named "Edit {name}" with the five fields, and focus is on the name field.
-- [ ] No card in the list opens in place any more; every card shows its ✕.
-- [ ] Changing the price to a valid value updates the totals and is saved; clearing it keeps the old price in effect.
-- [ ] Done with an invalid field keeps the dialog open, shows the toast and focuses the first invalid field; Done with a valid form closes it.
-- [ ] Close and Escape with a valid form keep the changes.
-- [ ] Change the price to a valid value, then clear the name, then press Close (and separately Escape): the dialog closes, the price is back to its value before the dialog opened, the totals match, and a reload shows the original values.
-- [ ] Reopening after any close shows the saved values and no error.
-- [ ] Every way of closing returns focus to that card's card button; Tab stays inside the dialog while it is open.
-- [ ] Ticket 30's rules still hold: decision, `usageConfirmed` and preferred currency don't change on edit.
-- [ ] The dialog scrolls and all actions are reachable at 320px width and at 200% text size.
-- [ ] The existing edit page tests (tickets 23, 24 and 30) are moved to the dialog without weakening their assertions.
-- [ ] `docs/agreed-changes.md` › 11 and spec story 74 describe the edit dialog.
-- [ ] `npm run build` and `npm test -- --watch=false` pass; the modal focus behaviour is checked in a real browser.
+- [x] Clicking a card, or pressing Enter or Space on its card button, opens the edit dialog named "Edit {name}" with the five fields, and focus is on the name field.
+- [x] No card in the list opens in place any more; every card shows its ✕.
+- [x] Changing the price to a valid value updates the totals and is saved; clearing it keeps the old price in effect.
+- [x] Done with an invalid field keeps the dialog open, shows the toast and focuses the first invalid field; Done with a valid form closes it.
+- [x] Close and Escape with a valid form keep the changes.
+- [x] Change the price to a valid value, then clear the name, then press Close (and separately Escape): the dialog closes, the price is back to its value before the dialog opened, the totals match, and a reload shows the original values.
+- [x] Reopening after any close shows the saved values and no error.
+- [x] Every way of closing returns focus to that card's card button; Tab stays inside the dialog while it is open.
+- [x] Ticket 30's rules still hold: decision, `usageConfirmed` and preferred currency don't change on edit.
+- [x] The dialog scrolls and all actions are reachable at 320px width and at 200% text size.
+- [x] The existing edit page tests (tickets 23, 24 and 30) are moved to the dialog without weakening their assertions.
+- [x] `docs/agreed-changes.md` › 11 and spec story 74 describe the edit dialog.
+- [x] `npm run build` and `npm test -- --watch=false` pass; the modal focus behaviour is checked in a real browser.
+
+## Comments
+
+- Checked in real Chrome (Playwright):
+  - the dialog is named "Edit {name}", focus starts on the name field, and Tab stays inside the dialog
+  - after a valid price change, clearing the name and pressing Escape undoes everything (also after a reload), and focus returns to the card button
+  - Done with a valid form keeps the change
+  - at 320px with 200% root text the dialog body scrolls and Done and Close are reachable
+  - no console errors
+- The ticket 31 and 32 tests that relied on an in-place edit form on another card were rewritten. That situation can no longer happen, because only one modal can be open.

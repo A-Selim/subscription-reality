@@ -5,20 +5,25 @@
   (cancel)="dismiss($event)"
   (close)="dismissed.emit()"
 >
-  @if (subscription(); as subscription) {
-    <div class="card-top">
-      <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
-      <span class="card-price"
-        >{{ price() }} <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
-      >
-    </div>
-    <p class="name">{{ subscription.name }}</p>
-  }
-  <ng-content select="[cardDialogBody]" />
-  @if (subscription()) {
-    <div class="answers">
-      <ng-content select="[cardDialogActions]" />
-      <button #closeButton type="button" class="close" autofocus (click)="dismiss()">Close</button>
-    </div>
-  }
+  <div class="dialog-body">
+    @if (subscription(); as subscription) {
+      <div class="card-top">
+        <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
+        <span class="card-price"
+          >{{ price() }}
+          <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
+        >
+      </div>
+      <p class="name">{{ subscription.name }}</p>
+    }
+    <ng-content select="[cardDialogBody]" />
+    @if (subscription()) {
+      <div class="answers">
+        <ng-content select="[cardDialogActions]" />
+        <button #closeButton type="button" class="close" autofocus (click)="dismiss()">
+          Close
+        </button>
+      </div>
+    }
+  </div>
 </dialog>

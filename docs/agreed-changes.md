@@ -96,12 +96,13 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 
 ## 11. CRUD
 
-- **Edit:** selecting a card opens it in place, showing the fields entered at creation (name, price, billing, currency and reason). Totals update as the user edits.
-- Editing keeps the review decision.
+- **Edit:** selecting a card opens the native modal card dialog named "Edit {name}", showing the fields entered at creation (name, price, billing, currency and reason). Totals update as the user edits.
+- The edit dialog header shows saved values; focus starts on the name field. Done closes only when valid; otherwise it shows the error toast and focuses the first invalid field. Close and Escape always close: valid changes stay; with any invalid field, all details and usage return to the values from opening and are saved. Reopening starts with saved values and no errors. Every close returns focus to the card button. The hint reads: "Changes save as you type. If you close with an error, all changes are undone."
+- Editing keeps the review decision, usage confirmation and preferred currency.
 - **Delete:** every card in read view has an always-visible ✕ button named _"Delete {name}"_, separate from the edit button. It opens a native modal **card dialog** owned by the recurring-life section, with the card’s monogram, price and name. It asks _"Did you already cancel {name}? Deleting it here doesn't stop the payment."_
-  - **Yes, delete it:** closes the dialog, deletes the subscription and saves. Focus moves to the next card, otherwise the previous (its name field if editing). If none remain, reveal the add form and focus its name field.
+  - **Yes, delete it:** closes the dialog, deletes the subscription and saves. Focus moves to the next card, otherwise the previous. If none remain, reveal the add form and focus its name field.
   - **Not yet, keep it:** keeps it and sets its decision to _Cancel_, so it counts toward potential savings.
-  - **Close** and Escape close without changes or saving and return focus to the originating ✕. Focus starts on Close; the modal traps focus and makes the page inert. Backdrop clicks do nothing. Opening the dialog preserves any other in-place edit form.
+  - **Close** and Escape close without changes or saving and return focus to the originating ✕. Focus starts on Close; the modal traps focus and makes the page inert. Backdrop clicks do nothing.
   - _Why:_ deleting from the app doesn't cancel the real subscription.
 
 ## Storage (new)

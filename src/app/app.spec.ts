@@ -116,7 +116,7 @@ describe('App page seam', () => {
   }
 
   function editField(region: HTMLElement, label: string): HTMLInputElement | HTMLSelectElement {
-    const form = region.querySelector('article form');
+    const form = region.querySelector('dialog form');
     const fieldLabel = Array.from(form?.querySelectorAll('label') ?? []).find(
       (candidate) => candidate.textContent?.trim() === label,
     );
@@ -184,7 +184,7 @@ describe('App page seam', () => {
       }
       fixture.detectChanges();
       await settlePage();
-      expect(region.querySelector('article form')).toBe(form);
+      expect(region.querySelector('dialog form')).toBe(form);
       const toast = form.querySelector('[role="status"]')!;
       expect(toast.textContent).toContain('Enter a price.');
       expect(toast.classList.contains('toast-error')).toBe(true);
@@ -257,10 +257,123 @@ describe('App page seam', () => {
     await settlePage();
     expect(name.getAttribute('aria-invalid')).not.toBe('true');
     expect((await storage.load())?.subscriptions[1].name).toBe('NETFLIX');
+    const editForm = region.querySelector('dialog form')!;
+    expect(editForm.hasAttribute('aria-label')).toBe(false);
+    expect(editForm.getAttribute('aria-labelledby')).toBe('edit-title');
+    expect(region.querySelector('#edit-title')?.textContent).toBe('Edit NETFLIX');
     getButton(region, 'Done').click();
     fixture.detectChanges();
     await settlePage();
     expect(getButton(getList(region, 'Subscriptions'), 'NETFLIX')).toBeDefined();
+  });
+
+  for (const close of ['Close', 'Escape', 'native close']) {
+    it(`undoes the whole invalid edit on ${close}, saves, returns focus and reopens clean`, async () => {
+      const { fixture, region, storage } = await openEdit();
+      const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
+      expect(dialog.open).toBe(true);
+      expect(dialog.textContent).toContain(
+        'Changes save as you type. If you close with an error, all changes are undone.',
+      );
+      expect(
+        Array.from(dialog.querySelectorAll('button'), (button) => button.textContent?.trim()),
+      ).toEqual(['Done', 'Close']);
+      expect(document.getElementById(dialog.getAttribute('aria-labelledby')!)?.textContent).toBe(
+        'Edit Spotify',
+      );
+      expect(region.querySelectorAll('article form')).toHaveLength(0);
+      expect(region.querySelectorAll('[aria-label^="Delete "]')).toHaveLength(2);
+      setField(region, editField(region, 'Price').id, '12');
+      setField(region, editField(region, 'Reason').id, 'Occasional Use');
+      await settlePage();
+      expect((await storage.load())?.subscriptions[0].price).toBe(12);
+      expect(dialog.querySelector('.card-price')?.textContent).toContain('12');
+      setField(region, editField(region, 'Subscription name').id, '');
+      await settlePage();
+      getButton(region, 'Done').click();
+      await settlePage();
+      expect(dialog.open).toBe(true);
+      if (close === 'Close') getButton(dialog, 'Close').click();
+      else if (close === 'Escape') dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+      else dialog.close();
+      await settlePage();
+      expect(dialog.open).toBe(false);
+      expect(
+        getRegion(fixture.nativeElement as HTMLElement, 'See the reality.').textContent,
+      ).toContain('€240');
+      expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify'));
+      expect((await storage.load())?.subscriptions[0]).toMatchObject({
+        name: 'Spotify',
+        price: 10,
+        reason: 'Essential',
+        usage: 'Daily',
+        usageConfirmed: false,
+        decision: null,
+      });
+      getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+      await settlePage();
+      expect(editField(region, 'Price').value).toBe('10');
+      expect(editField(region, 'Subscription name').value).toBe('Spotify');
+      expect(region.querySelector('dialog [role="status"]')?.textContent?.trim()).toBeFalsy();
+      const reloaded = await renderApp(storage);
+      const reloadedRegion = getRegion(reloaded.root, 'Your recurring life.');
+      getButton(getList(reloadedRegion, 'Subscriptions'), 'Spotify').click();
+      await settlePage();
+      expect(editField(reloadedRegion, 'Price').value).toBe('10');
+      expect(editField(reloadedRegion, 'Subscription name').value).toBe('Spotify');
+      expect(editField(reloadedRegion, 'Subscription name').getAttribute('aria-invalid')).not.toBe(
+        'true',
+      );
+      expect(
+        reloadedRegion.querySelector('dialog [role="status"]')?.textContent?.trim(),
+      ).toBeFalsy();
+    });
+    it(`keeps valid live edits on ${close} and returns focus`, async () => {
+      const { region, storage } = await openEdit();
+      setField(region, editField(region, 'Price').id, '12');
+      await settlePage();
+      const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
+      if (close === 'Close') getButton(dialog, 'Close').click();
+      else if (close === 'Escape') dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+      else dialog.close();
+      await settlePage();
+      expect(dialog.open).toBe(false);
+      expect((await storage.load())?.subscriptions[0].price).toBe(12);
+      expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify'));
+      getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+      await settlePage();
+      expect(editField(region, 'Price').value).toBe('12');
+      expect(region.querySelector('dialog [role="status"]')?.textContent?.trim()).toBeFalsy();
+    });
+  }
+
+  it('restores all opening details and the original unconfirmed Usage without changing review or currency preferences', async () => {
+    const { fixture, region, storage } = await prepareEdit();
+    const review = getRegion(
+      getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
+      'Spotify',
+    );
+    getButton(review, 'Weekly').click();
+    await settlePage();
+    const snapshot = (await storage.load())!;
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    await settlePage();
+    for (const [label, value] of [
+      ['Subscription name', 'Spotify Plus'],
+      ['Price', '12'],
+      ['Billing frequency', 'yearly'],
+      ['Currency', 'USD'],
+      ['Reason', 'Occasional Use'],
+    ]) {
+      setField(region, editField(region, label).id, value);
+      await settlePage();
+    }
+    expect((await storage.load())?.subscriptions[0].usage).toBe('Rarely');
+    setField(region, editField(region, 'Price').id, '');
+    await settlePage();
+    getButton(region, 'Close').click();
+    await settlePage();
+    expect(await storage.load()).toEqual(snapshot);
   });
 
   it('opens one prefilled edit form when its native button is activated', async () => {
@@ -290,10 +403,12 @@ describe('App page seam', () => {
     getButton(getList(region, 'Subscriptions'), 'Spotify').click();
     fixture.detectChanges();
     await settlePage();
+    getButton(region, 'Done').click();
+    await settlePage();
     getButton(getList(region, 'Subscriptions'), 'Netflix').click();
     fixture.detectChanges();
     await settlePage();
-    expect(region.querySelectorAll('article form')).toHaveLength(1);
+    expect(region.querySelectorAll('dialog form')).toHaveLength(1);
     expect(editField(region, 'Subscription name').value).toBe('Netflix');
   });
 
@@ -305,7 +420,7 @@ describe('App page seam', () => {
     setField(region, editField(region, 'Price').id, '12');
     await settlePage();
     expect(getRegion(fixture.nativeElement, 'See the reality.').textContent).toContain('€144');
-    expect(region.querySelector('article form')).not.toBeNull();
+    expect(region.querySelector('dialog form')).not.toBeNull();
   });
 
   it('preserves a reason changed in Review when the open edit form changes price', async () => {
@@ -429,7 +544,7 @@ describe('App page seam', () => {
     getButton(region, 'Done').click();
     fixture.detectChanges();
     await settlePage();
-    expect(region.querySelector('article form')).toBeNull();
+    expect(region.querySelector('dialog form')).toBeNull();
     expect(region.querySelector('article')?.textContent).toContain('€12.00');
     expect(document.activeElement).toBe(
       getButton(getList(region, 'Subscriptions'), 'Spotify Family'),
@@ -2298,7 +2413,7 @@ describe('Subscription form accessibility on the page', () => {
     await settlePage();
 
     const addForm = region.querySelector<HTMLFormElement>('form.add-form')!;
-    const editForm = region.querySelector<HTMLFormElement>('article form')!;
+    const editForm = region.querySelector<HTMLFormElement>('dialog form')!;
     expectUniqueDocumentIds();
     expectLabelsLinkedWithin(addForm);
     expectLabelsLinkedWithin(editForm);
@@ -2324,13 +2439,14 @@ describe('Subscription form accessibility on the page', () => {
     getButton(editForm, 'Done').click();
     fixture.detectChanges();
     await settlePage();
-    expect(region.querySelector('article form')).toBeNull();
+    expect(region.querySelector('dialog form')).toBeNull();
 
     getButton(getList(region, 'Subscriptions'), 'Netflix').click();
     fixture.detectChanges();
     await settlePage();
-    const nextEditForm = region.querySelector<HTMLFormElement>('article form')!;
-    expect(nextEditForm.getAttribute('aria-label')).toBe('Edit Netflix');
+    const nextEditForm = region.querySelector<HTMLFormElement>('dialog form')!;
+    expect(nextEditForm.getAttribute('aria-labelledby')).toBe('edit-title');
+    expect(region.querySelector('#edit-title')?.textContent).toBe('Edit Netflix');
     expectUniqueDocumentIds();
     expectLabelsLinkedWithin(addForm);
     expectLabelsLinkedWithin(nextEditForm);
@@ -2339,7 +2455,7 @@ describe('Subscription form accessibility on the page', () => {
 
 describe('Delete in the card dialog', () => {
   function editField(region: HTMLElement, label: string): HTMLInputElement | HTMLSelectElement {
-    const form = region.querySelector('article form');
+    const form = region.querySelector('dialog form');
     const fieldLabel = Array.from(form?.querySelectorAll('label') ?? []).find(
       (candidate) => candidate.textContent?.trim() === label,
     );
@@ -2383,7 +2499,7 @@ describe('Delete in the card dialog', () => {
     const { trigger, dialog } = await open('Spotify');
     expect(trigger.previousElementSibling?.tagName).toBe('H3');
     expect(trigger.querySelector('[aria-hidden="true"]')?.textContent).toBe('✕');
-    expect(region.querySelector('article form')).toBeNull();
+    expect(region.querySelector('dialog form')).toBeNull();
     expect(dialog.open).toBe(true);
     expect(
       document.getElementById(dialog.getAttribute('aria-labelledby')!)?.textContent?.trim(),
@@ -2463,7 +2579,7 @@ describe('Delete in the card dialog', () => {
     expect(region.querySelectorAll('[aria-label^="Delete "]')).toHaveLength(3);
   });
 
-  it('preserves usage state, retains another edit input, and persists Cancel after reload', async () => {
+  it('preserves usage state and saved edits, and persists Cancel after reload', async () => {
     const { fixture, region, storage, open, answer } = await prepareDelete();
     const page = fixture.nativeElement as HTMLElement;
     const reviewSection = getRegion(page, 'Would you still subscribe today?');
@@ -2479,12 +2595,14 @@ describe('Delete in the card dialog', () => {
     setField(region, netflixName.id, 'Netflix Plus');
     await settlePage();
 
+    getButton(region, 'Done').click();
+    await settlePage();
     let { dialog } = await open('Spotify');
     await answer(dialog, 'Not yet, keep it');
     expect(document.activeElement).toBe(
       region.querySelector<HTMLButtonElement>('[aria-label="Delete Spotify"]'),
     );
-    expect(netflixName.value).toBe('Netflix Plus');
+    expect(getButton(getList(region, 'Subscriptions'), 'Netflix Plus')).toBeDefined();
     expect((await storage.load())?.subscriptions[0]).toMatchObject({
       decision: 'cancel',
       usage: 'Daily',
@@ -2502,6 +2620,8 @@ describe('Delete in the card dialog', () => {
       usageConfirmed: true,
     });
 
+    getButton(region, 'Done').click();
+    await settlePage();
     dialog = (await open('Cloud')).dialog;
     await answer(dialog, 'Not yet, keep it');
     getButton(getList(region, 'Subscriptions'), 'Cloud').click();
@@ -2608,24 +2728,26 @@ describe('Delete in the card dialog', () => {
     ).toBe(false);
   });
 
-  it('preserves another edit form input and validation and focuses its name after deletion', async () => {
+  it('undoes an invalid edit before deletion and focuses the neighbour card', async () => {
     const { fixture, region, open, answer } = await prepareDelete();
     getButton(getList(region, 'Subscriptions'), 'Netflix').click();
     fixture.detectChanges();
     await settlePage();
-    const name = region.querySelector<HTMLInputElement>('article form input')!;
+    const name = editField(region, 'Subscription name');
     setField(region, name.id, '');
-    fixture.detectChanges();
+    await settlePage();
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    getButton(region, 'Close').click();
     await settlePage();
     const { dialog } = await open('Spotify');
-    expect(name.value).toBe('');
     await answer(dialog, 'Close');
-    expect(name.value).toBe('');
     await open('Spotify');
     await answer(dialog, 'Yes, delete it');
-    expect(document.activeElement).toBe(name);
-    expect(name.value).toBe('');
-    expect(name.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Netflix'));
+    getButton(getList(region, 'Subscriptions'), 'Netflix').click();
+    await settlePage();
+    expect(editField(region, 'Subscription name').value).toBe('Netflix');
+    expect(editField(region, 'Subscription name').getAttribute('aria-invalid')).not.toBe('true');
   });
 
   it('drops deleted subscriptions from Review again and clears an insight Review candidate pick', async () => {

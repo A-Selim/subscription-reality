@@ -17,7 +17,7 @@ A single, calm web page that runs entirely in the browser and keeps its data on 
 3. Sees the reality: for each currency, a card with the **Annual cost** (prominent), the **Monthly cost**, the number of subscriptions, the number of **Rarely used** subscriptions, and a before/after comparison. Currencies are never combined.
 4. Reviews one subscription at a time. They confirm or correct the reason and usage, then record a **Review decision**: Keep, Unsure or Cancel.
 5. Sees **Potential savings** per currency, Keep/Unsure/Cancel counts, and one insight naming their **Review candidates**.
-6. Can edit a subscription in place, or delete it after being reminded that deleting here doesn't stop the payment.
+6. Can edit a subscription in the card dialog, or delete it after being reminded that deleting here doesn't stop the payment.
 
 Everything survives a refresh, a browser restart and reopening the app.
 
@@ -122,13 +122,13 @@ Everything survives a refresh, a browser restart and reopening the app.
 
 ### Editing
 
-74. As a user, I want to select a subscription card to open it for editing in place, so that I can fix a mistake without leaving the page.
+74. As a user, I want to select a subscription card to open the card dialog for editing, so that I can fix a mistake without leaving the page.
 75. As a user, I want the edit form to show the same fields as the add form (name, price, billing frequency, currency and reason), so that editing feels familiar.
 76. As a user, I want totals to update as I edit, so that I see the impact of a price or billing change immediately.
 77. As a user, I want the same validation rules when editing, including being blocked from renaming to a name I already have, so that my data stays consistent.
 78. As a user, I want editing to keep the subscription's review decision, so that fixing a typo doesn't undo my review.
 79. As a user, I want editing a subscription's currency never to change my preferred currency, so that correcting an old entry doesn't change the default for new ones.
-80. As a keyboard user, I want focus to return to the card after I close the edit form, so that I don't lose my place.
+80. As a keyboard user, I want focus to return to the card after I close the edit dialog, so that I don't lose my place.
 
 ### Deleting
 
@@ -155,7 +155,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 ### Structure
 
 - One page with no router (ADR 0001). The root component composes the section components in order: the top bar as the page `header`, then inside `main` the hero, _Your recurring life_, _See the reality_, then the review area with the review card and the savings card side by side (stacked on small screens). The hero holds the page's only `h1`, so it sits inside `main`.
-- Components are standalone, small and focused: top bar, hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view, in-place edit view), card dialog (shared modal shell with delete body, owned by recurring-life), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
+- Components are standalone, small and focused: top bar, hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view), edit subscription form (Signal Forms edit body), card dialog (shared modal shell with edit or delete body, owned by recurring-life), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
 - Visual styling follows the prototype. The prototype's markup and scripts are never imported.
 
 ### Domain module (pure, no Angular)
@@ -212,7 +212,7 @@ interface AppState {
 
 ### State service
 
-- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, edit, delete (removes the subscription, clears a deleted insight pick, and ends the Review again pass when no later subscription remains), set reason, set usage, decide (sets `decision` and `usageConfirmed`), keep-as-cancel (from the card dialog; sets `decision` only).
+- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, edit, restore (opening details and usage only), delete (removes the subscription, clears a deleted insight pick, and ends the Review again pass when no later subscription remains), set reason, set usage, decide (sets `decision` and `usageConfirmed`), keep-as-cancel (from the card dialog; sets `decision` only).
 - The service sets the preferred currency only in `add`, never in `update`, and never on dropdown changes.
 - Every state change is written through the storage port. Writes save the whole `AppState`; the data is tiny, so there are no per-record writes. Saves run one at a time: each waits for the previous one, and pending saves may be coalesced into the latest state, so an older save can never land after a newer one.
 - The service loads from the storage port before the page renders its sections. Until loading finishes, sections don't render, so the empty state never flashes for returning users. If loading or saving fails, the app keeps working in memory for the current visit, logs a warning, and shows a calm, persistent notice (a polite live region) saying that changes will only last for this visit. The notice stays until a later save succeeds.
@@ -237,14 +237,14 @@ interface AppState {
 
 ### Edit and delete
 
-- Selecting a card (a button, keyboard-operable) turns that card into an in-place edit form with the five creation fields.
+- Selecting a card (a button, keyboard-operable) opens the native card dialog named "Edit {name}" with the five creation fields. Its header shows saved values and focus starts on the name field. Every list card stays in read view with its ✕.
 - Changes apply live: whenever the whole edit form is valid, the subscription is updated and saved, so totals update as the user edits. While any field is invalid, the last valid values stay in effect and the field shows its error.
-- A **Done** button closes the edit form. If the form is invalid when Done is pressed, it stays open, the toast shows the error and focus moves to the invalid field. On close, focus returns to the card.
+- A **Done** button closes the edit form. If the form is invalid when Done is pressed, it stays open, the toast shows the error and focus moves to the invalid field. Close and Escape always close. With a valid form, changes stay; with any invalid field, all details and usage return to their opening values and are saved. Every close returns focus to the card button; reopening shows saved values without errors. The hint reads: "Changes save as you type. If you close with an error, all changes are undone."
 - Editing never changes `decision`, `usageConfirmed` or the preferred currency. Changing the reason re-estimates usage while `usageConfirmed` is false. After that, usage is untouched.
-- An always-visible **✕** button in each card’s read view opens the native modal **card dialog**, rendered once by the recurring-life section. It follows the card button in tab order, has a 44px target and visible focus, and reserves space above the price. The shell shares the card header styling and accepts a body slot for later editing.
+- An always-visible **✕** button in each card’s read view opens the native modal **card dialog**, rendered once by the recurring-life section. It follows the card button in tab order, has a 44px target and visible focus, and reserves space above the price. The shell shares the card header styling and projects either the edit or delete body.
 - The dialog’s accessible name is _"Did you already cancel {name}?"_ and its description is _"Deleting it here doesn't stop the payment."_ It offers **Yes, delete it**, **Not yet, keep it**, and **Close**. Focus starts on Close; native `showModal()` traps focus and makes the page behind it inert. Close and Escape dismiss without changes or saving and return focus to the originating ✕; backdrop clicks do nothing. Reopening has no earlier answer.
-- Yes closes the dialog before deleting and saving. Focus goes to the next card, otherwise the previous; if that card is editing, its name field gets focus. With none remaining, reveal the add form and focus its name field. Reality cards and Potential savings lines disappear when their currency is emptied; reusing that currency places its reality card at the end. Review again reads the remaining list, and deleting a selected insight Review candidate clears the pick.
-- Another card’s in-place edit input and validation state survive opening and closing the dialog. **Not yet, keep it** keeps the subscription and sets the Review decision to Cancel without confirming usage (ticket 32); it closes the dialog and returns focus to the ✕.
+- Yes closes the dialog before deleting and saving. Focus goes to the next card, otherwise the previous. With none remaining, reveal the add form and focus its name field. Reality cards and Potential savings lines disappear when their currency is emptied; reusing that currency places its reality card at the end. Review again reads the remaining list, and deleting a selected insight Review candidate clears the pick.
+- **Not yet, keep it** keeps the subscription and sets the Review decision to Cancel without confirming usage (ticket 32); it closes the dialog and returns focus to the ✕.
 
 ### Reality section
 
@@ -305,7 +305,7 @@ The agreed documents leave these points open. The spec settles them as below, af
 
 1. **Reason change in the review** never re-estimates usage. Only the edit form does, and only while `usageConfirmed` is false.
 2. **Usage confirmation is stored** as `usageConfirmed` and set only by a decision in the review. _Not yet, keep it_ sets Cancel without confirming usage.
-3. **Edits apply live** whenever the whole edit form is valid. There is no "discard changes". **Done** closes the form and is blocked while the form is invalid.
+3. **Edits apply live** whenever the whole edit form is valid. **Done** closes the dialog and is blocked while the form is invalid. Close and Escape keep valid edits, or undo the whole session (including usage) when any field is invalid.
 4. **Currency card order** is first-used among _current_ subscriptions. Deleting every subscription in a currency drops its card, and reusing that currency later puts its card at the end.
 5. **Before the first subscription**, the reality section, the review section and the savings card are dimmed, not `inert`. Their text stays readable to screen readers and meets AA contrast.
 6. **Insight name selection** can bring up an already-decided subscription. After the next decision, the review goes back to where it was: an active _Review again_ pass continues from its position, otherwise the first undecided one.
