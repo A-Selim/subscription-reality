@@ -20,6 +20,7 @@ import {
   isValidPrice,
   NAME_MAX_LENGTH,
   estimateUsage,
+  usageAfterReasonEdit,
   formatAnnualMoney,
   formatMoney,
   monthlyCost,
@@ -101,6 +102,25 @@ describe('estimateUsage', () => {
     for (const [reason] of cases) {
       expect(estimateUsage(reason)).not.toBe('Almost Never');
     }
+  });
+});
+
+describe('Usage after editing Reason', () => {
+  const subscription = { reason: 'Essential', usage: 'Daily', usageConfirmed: false } as const;
+
+  it('re-estimates Usage when the Reason changes and Usage is unconfirmed', () => {
+    expect(usageAfterReasonEdit(subscription, 'Occasional Use')).toBe('Rarely');
+    expect(subscription.usage).toBe('Daily');
+  });
+
+  it('keeps confirmed Usage when the Reason changes', () => {
+    expect(usageAfterReasonEdit({ ...subscription, usageConfirmed: true }, 'Occasional Use')).toBe(
+      'Daily',
+    );
+  });
+
+  it('keeps unconfirmed Usage when the Reason is unchanged', () => {
+    expect(usageAfterReasonEdit({ ...subscription, usage: 'Weekly' }, 'Essential')).toBe('Weekly');
   });
 });
 

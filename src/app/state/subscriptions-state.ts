@@ -1,6 +1,7 @@
 import { computed, inject, signal, Service } from '@angular/core';
 import {
   estimateUsage,
+  usageAfterReasonEdit,
   reviewQueue,
   nextInReviewAgainPass,
   type AppState,
@@ -83,7 +84,13 @@ export class SubscriptionsState {
   }
 
   edit(id: string, fields: Partial<SubscriptionDetails>): void {
-    this.updateSubscription(id, fields);
+    const subscription = this.subscriptions().find((subscription) => subscription.id === id);
+    if (!subscription) return;
+
+    this.updateSubscription(id, {
+      ...fields,
+      usage: usageAfterReasonEdit(subscription, fields.reason ?? subscription.reason),
+    });
   }
 
   setReason(id: string, reason: Reason): void {

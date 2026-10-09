@@ -109,6 +109,15 @@ export function estimateUsage(reason: Reason): Usage {
   }
 }
 
+export function usageAfterReasonEdit(
+  subscription: Pick<Subscription, 'reason' | 'usage' | 'usageConfirmed'>,
+  reason: Reason,
+): Usage {
+  return !subscription.usageConfirmed && reason !== subscription.reason
+    ? estimateUsage(reason)
+    : subscription.usage;
+}
+
 export const NAME_MAX_LENGTH = 40;
 
 export function isValidName(name: string): boolean {

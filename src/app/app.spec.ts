@@ -326,6 +326,88 @@ describe('App page seam', () => {
     expect(saved?.subscriptions[0].price).toBe(12);
   });
 
+  it('re-estimates unconfirmed Daily Usage as Rarely when editing Reason to Occasional Use', async () => {
+    const { fixture, region, storage } = await openEdit();
+    setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getList(region, 'Subscriptions').children[0].textContent).toContain('Usage: Rarely');
+    const review = getRegion(
+      getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
+      'Spotify',
+    );
+    expect(getButton(review, 'Rarely').getAttribute('aria-pressed')).toBe('true');
+    expect((await storage.load())?.subscriptions[0]).toMatchObject({
+      usage: 'Rarely',
+      usageConfirmed: false,
+      decision: null,
+    });
+  });
+
+  it('keeps confirmed Daily Usage when editing Reason to Occasional Use', async () => {
+    const { fixture, region, storage } = await prepareEdit();
+    const review = getRegion(
+      getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
+      'Spotify',
+    );
+    await decide(fixture, review, 'Keep');
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    getButton(region, 'Done').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getList(region, 'Subscriptions').children[0].textContent).toContain('Usage: Daily');
+    expect((await storage.load())?.subscriptions[0]).toMatchObject({
+      reason: 'Occasional Use',
+      usage: 'Daily',
+      usageConfirmed: true,
+    });
+  });
+
+  it('keeps the Keep Review decision and Potential savings counts while editing', async () => {
+    const { fixture, region, storage } = await prepareEdit();
+    const review = getRegion(
+      getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
+      'Spotify',
+    );
+    await decide(fixture, review, 'Keep');
+    const counts = getList(
+      getRegion(fixture.nativeElement, 'Potential annual savings'),
+      'Review decision counts',
+    );
+    const before = counts.textContent;
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Price').id, '12');
+    setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    expect(counts.textContent).toBe(before);
+    expect((await storage.load())?.subscriptions[0].decision).toBe('keep');
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getButton(review, 'Keep').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('keeps Preferred currency EUR after editing an old subscription to USD and reloading', async () => {
+    const { fixture, region, storage } = await openEdit();
+    setField(region, editField(region, 'Currency').id, 'USD');
+    await settlePage();
+    expect((await storage.load())?.subscriptions[0].currency).toBe('USD');
+    fixture.destroy();
+    const { root } = await renderApp(storage);
+    const addCurrency = getRegion(root, 'Your recurring life.').querySelector<HTMLSelectElement>(
+      '#subscription-currency',
+    );
+    expect(addCurrency?.value).toBe('EUR');
+  });
+
   it('updates the subscription annual cost immediately when billing frequency changes', async () => {
     const { fixture, region } = await prepareEdit();
     getButton(getList(region, 'Subscriptions'), 'Spotify').click();
