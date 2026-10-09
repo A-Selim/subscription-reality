@@ -90,3 +90,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Keep app state in IndexedDB, behind the `AppStorage` port. Do NOT add localStorage or another store; it is no safer (see `docs/research/browser-storage.md`).
 - Never block saving after a failed load. Never overwrite unreadable stored data without a backup copy.
 - Follow `docs/agreed-changes.md` › Storage for the storage notices and `navigator.storage.persist()`.
+
+## Security
+
+- Never bind user text as HTML (`[innerHTML]`, `outerHTML`, `insertAdjacentHTML`, `document.write`) and never use `DomSanitizer.bypassSecurityTrust*`. Use normal interpolation and bindings.
+- Validate everything loaded from storage against the same rules the forms enforce (`src/app/state/app-state-guard.ts`).
+- Keep `security.autoCsp` in the production build. Do not add a CSP `<meta>` tag to `src/index.html`. Deploy headers live in `docs/deployment.md`.
