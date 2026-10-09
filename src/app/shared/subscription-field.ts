@@ -91,5 +91,5 @@ export class SubscriptionControl {
   readonly isTextInput = this.element.nativeElement.tagName === 'INPUT';
 
   // Select padding leaves 10px after the 18px mark at its 40px inset.
-  private readonly invalidEndPadding = this.isTextInput ? '42px' : '68px';
+  protected readonly invalidEndPadding = this.isTextInput ? '42px' : '68px';
 }

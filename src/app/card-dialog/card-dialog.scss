@@ -40,16 +40,6 @@ dialog::backdrop {
   white-space: nowrap;
 }
 
-button:not(.close) {
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid var(--muted);
-  border-radius: 14px;
-  background: var(--paper);
-  color: var(--ink);
-  font-weight: 700;
-}
-
 .close {
   display: grid;
   width: 44px;
