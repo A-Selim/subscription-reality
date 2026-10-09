@@ -129,6 +129,7 @@ h2 {
 
   .subscription-list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     overflow-x: visible;
     padding-bottom: 0;
   }
