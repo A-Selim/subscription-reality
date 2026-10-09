@@ -18,7 +18,7 @@ Update the toast wording in `docs/agreed-changes.md` › 2 and in `.scratch/mvp/
 
 ## Acceptance criteria
 
-- [x] In both forms the toast is centred above the submit button and never wider than 360px; at 320px width it doesn't overflow.
+- [ ] In both forms the toast is centred above the submit button and never wider than 360px; at 320px width it doesn't overflow. (Width and 320px are met; "centred above the button" is open for the owner, see Comments.)
 - [x] "Subscription added" hides after 2.5 seconds.
 - [x] An add-form error toast is still showing after 10 seconds, and hides as soon as the user changes the reported field.
 - [x] An edit-form Done error toast behaves the same way.
