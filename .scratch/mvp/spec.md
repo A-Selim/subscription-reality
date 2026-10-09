@@ -229,7 +229,7 @@ interface AppState {
 - Built with Signal Forms and schema-based validation. The same form model and schema are reused for editing.
 - Initial values: name empty, price empty, billing frequency blank, currency = preferred currency (blank if none), reason _Essential_.
 - On a successful add: create the subscription with estimated usage and `decision: null`; set the preferred currency to its currency; show a "Subscription added" toast; reset name, price and billing to blank; keep reason _Essential_ and currency = preferred currency.
-- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"`, and focus. A toast just above the Add button shows and announces the error. Each invalid field is also linked by `aria-describedby` to its own visually hidden error text, which stays until the field is valid again, so the explanation outlives the auto-hiding toast. Duplicate-name copy: _"You already have {existing name}. Add something to tell them apart, like '{existing name} Family'."_
+- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"`, and focus. A toast just above the Add button shows and announces the error. Each invalid field is also linked by `aria-describedby` to its own visually hidden error text, which stays until the field is valid again. Error toasts stay until the user changes the reported field or another toast replaces them. Duplicate-name copy: _"You already have {existing name}. Add something to tell them apart, like '{existing name} Family'."_
 - The muted helper line at the bottom of the add box says usage is estimated from the reason and can be refined in the review.
 - Layout (ticket 07b, see agreed-changes §2): one row of five fields on wide screens, two columns under 960px, one column under 560px, at the form's current width. Labels are visually hidden but present (the billing label stays _"Billing frequency"_); placeholders are _"Name e.g. Spotify"_ and _"Price"_ and return when a field is emptied; the blank select options read _"Billing"_ and _"Currency"_; Reason names are not renamed for layout; the heading _"Add a subscription"_ is visually hidden. The submit button is _"Add subscription"_.
 - The empty state shows the add form after "Add your first subscription" (progressive disclosure, as in the prototype). With subscriptions present, the add form stays visible under the card list. "Start adding" in the top bar scrolls to the section, reveals the add form if it's still hidden, then focuses the name field.
@@ -270,7 +270,7 @@ interface AppState {
 
 ### Toast
 
-- One toast component, rendered as a polite live region (`role="status"`). Validation errors are placed just above the relevant form's submit button, not in the corner. Success toasts ("Subscription added") use the same component. The toast auto-hides after a short delay but stays long enough to be read, and it doesn't steal focus.
+- One toast component, rendered as a polite live region (`role="status"`). It is centred above the relevant form's submit button, at most 360px wide including padding and border, and fills the available width on narrower screens. Validation errors stay until the user changes the reported field or another toast replaces them. Success toasts ("Subscription added") use the same component and hide after 2.5 seconds. The toast doesn't steal focus.
 
 ## Testing Decisions
 

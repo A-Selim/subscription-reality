@@ -27,7 +27,7 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 - **Name** is trimmed, required, at most 40 characters, and **unique**, compared ignoring case and surrounding spaces (`netflix ` clashes with `Netflix`). Price, billing and currency don't count. Renaming an existing subscription to a taken name is blocked too.
   - _Why:_ two accounts for the same service are told apart by name, e.g. _Netflix_ and _Netflix Family_.
 - **Price** must be greater than 0, with at most 2 decimal places.
-- **Validation errors** show as a toast just above the form's Add button, not in the bottom-right corner. The invalid field gets a red outline and receives focus, and screen readers announce the toast. Duplicate example: _"You already have Netflix. Add something to tell them apart, like 'Netflix Family'."_
+- **Validation errors** show as a centred toast just above the form's Add button, not in the bottom-right corner. It is at most 360px wide including padding and border, and fills the available width on narrower screens. The invalid field gets a red outline and receives focus, and screen readers announce the toast. Error toasts stay until the user changes the reported field or another toast replaces them; success confirmations hide after 2.5 seconds. Duplicate example: _"You already have Netflix. Add something to tell them apart, like 'Netflix Family'."_
   - _Why:_ the error appears where the user is already looking, and it's accessible.
 
 ## 3. Currency

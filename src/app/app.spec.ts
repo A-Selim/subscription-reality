@@ -192,11 +192,22 @@ describe('App page seam', () => {
       expect(document.activeElement).toBe(price);
       vi.useFakeTimers();
       try {
-        getButton(form, 'Done').click();
-        vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
+        vi.advanceTimersByTime(10_000);
+        fixture.detectChanges();
+        expect(toast.textContent).toContain('Enter a price.');
+        expectEditError(region, 'Price', 'Enter a price.');
+        setField(region, editField(region, 'Subscription name').id, 'Spotify Plus');
+        fixture.detectChanges();
+        expect(toast.classList.contains('toast-visible')).toBe(true);
+        expect(toast.textContent).toContain('Enter a price.');
+        setField(region, price.id, '12');
+        fixture.detectChanges();
+        expect(toast.classList.contains('toast-visible')).toBe(false);
+        expect(toast.textContent).toContain('Enter a price.');
+        vi.advanceTimersByTime(TOAST_FADE_MS);
         fixture.detectChanges();
         expect(toast.textContent).toBe('');
-        expectEditError(region, 'Price', 'Enter a price.');
+        expect(price.getAttribute('aria-invalid')).not.toBe('true');
       } finally {
         vi.useRealTimers();
       }
@@ -653,6 +664,8 @@ describe('App page seam', () => {
       expect(status?.getAttribute('role')).toBe('status');
       expect(status?.textContent?.trim()).toBe('');
       expect(status?.nextElementSibling).toBe(addButton);
+      expect(getComputedStyle(status!).maxWidth).toBe('360px');
+      expect(getComputedStyle(status!).boxSizing).toBe('border-box');
 
       addSubscription(fixture, region, 'First');
       expect(status?.textContent?.trim()).toBe('Subscription added');
@@ -660,7 +673,10 @@ describe('App page seam', () => {
         getRegion(fixture.nativeElement as HTMLElement, 'See the reality.').querySelector('h2'),
       );
 
-      vi.advanceTimersByTime(TOAST_DURATION_MS);
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 1);
+      fixture.detectChanges();
+      expect(status?.classList.contains('toast-visible')).toBe(true);
+      vi.advanceTimersByTime(1);
       fixture.detectChanges();
       expect(status?.classList.contains('toast-visible')).toBe(false);
       expect(status?.textContent?.trim()).toBe('Subscription added');
@@ -945,17 +961,30 @@ describe('add form validation', () => {
     expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(2);
   });
 
-  it('keeps individual error descriptions after the toast hides and removes them on correction', async () => {
+  it('keeps an add error toast until its reported field changes and preserves error descriptions', async () => {
     const { fixture, region } = await prepareAddForm();
     vi.useFakeTimers();
     try {
       clickAdd(region);
       fixture.detectChanges();
       const status = region.querySelector('[role="status"]');
-      vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
+      vi.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(status?.textContent).toContain('Enter a subscription name.');
+      expect(region.querySelector('[role="status"]')).toBe(status);
+
+      setField(region, 'subscription-reason', 'Nice to Have');
+      fixture.detectChanges();
+      expect(status?.classList.contains('toast-visible')).toBe(true);
+      expect(status?.textContent).toContain('Enter a subscription name.');
+      setField(region, 'subscription-name', ' ');
+      fixture.detectChanges();
+      expect(status?.classList.contains('toast-visible')).toBe(false);
+      expect(status?.textContent).toContain('Enter a subscription name.');
+      expectFieldError(region, 'subscription-name', 'Enter a subscription name.');
+      vi.advanceTimersByTime(TOAST_FADE_MS);
       fixture.detectChanges();
       expect(status?.textContent).toBe('');
-      expect(region.querySelector('[role="status"]')).toBe(status);
 
       for (const [id, value, message] of [
         ['subscription-name', 'Spotify', 'Enter a subscription name.'],
@@ -967,6 +996,7 @@ describe('add form validation', () => {
         const errorId = field.getAttribute('aria-describedby');
         setField(region, id, value);
         fixture.detectChanges();
+        if (id === 'subscription-name') expect(status?.textContent).toBe('');
         expect(field.getAttribute('aria-invalid')).not.toBe('true');
         expect(field.hasAttribute('aria-describedby')).toBe(false);
         expect(region.querySelector(`#${errorId}`)).toBeNull();
@@ -976,33 +1006,35 @@ describe('add form validation', () => {
     }
   });
 
-  it('replaces repeated error messages, restarts the delay and returns to the success look', async () => {
+  it('replaces a fading success toast with an error and returns to the success look', async () => {
     const { fixture, region } = await prepareAddForm();
     vi.useFakeTimers();
     try {
       const status = region.querySelector<HTMLElement>('[role="status"]')!;
+      fillValidFields(region);
       clickAdd(region);
       fixture.detectChanges();
       const firstMessage = status.firstElementChild;
-      vi.advanceTimersByTime(TOAST_DURATION_MS - 1);
+      vi.advanceTimersByTime(TOAST_DURATION_MS);
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-visible')).toBe(false);
+      vi.advanceTimersByTime(TOAST_FADE_MS / 2);
+      setField(region, 'subscription-name', '');
       clickAdd(region);
       fixture.detectChanges();
       expect(status.firstElementChild).not.toBe(firstMessage);
       expect(status.textContent).toContain('Enter a subscription name.');
       expect(status.classList.contains('toast-visible')).toBe(true);
       expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
-      vi.advanceTimersByTime(1);
+      vi.advanceTimersByTime(10_000);
       fixture.detectChanges();
       expect(status.classList.contains('toast-visible')).toBe(true);
-      vi.advanceTimersByTime(TOAST_DURATION_MS + TOAST_FADE_MS);
-      fixture.detectChanges();
-      expect(status.textContent).toBe('');
-      clickAdd(region);
-      fixture.detectChanges();
-      expect(status.classList.contains('toast-error')).toBe(true);
-      expect(status.classList.contains('toast-visible')).toBe(true);
-
+      setField(region, 'subscription-name', 'Spotify Again');
       fillValidFields(region);
+      setField(region, 'subscription-name', 'Second');
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-visible')).toBe(false);
+      expect(status.textContent).toContain('Enter a subscription name.');
       clickAdd(region);
       fixture.detectChanges();
       expect(status.textContent?.trim()).toBe('Subscription added');
@@ -1010,6 +1042,12 @@ describe('add form validation', () => {
       expect(status.querySelector('[aria-hidden="true"]')).toBeNull();
       expect(region.querySelector('[aria-invalid="true"]')).toBeNull();
       expect(region.querySelector('[aria-describedby]')).toBeNull();
+      vi.advanceTimersByTime(TOAST_DURATION_MS - 1);
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-visible')).toBe(true);
+      vi.advanceTimersByTime(1);
+      fixture.detectChanges();
+      expect(status.classList.contains('toast-visible')).toBe(false);
     } finally {
       vi.useRealTimers();
     }

@@ -73,7 +73,9 @@ export class AddSubscriptionForm {
     this.attempted.set(true);
     const firstInvalid = firstInvalidField(this.addForm);
     if (firstInvalid) {
-      this.toast().show(firstInvalid.message, 'error');
+      this.toast().showError(firstInvalid.message, () =>
+        this.addForm[firstInvalid.field]().value(),
+      );
       this.addForm[firstInvalid.field]().focusBoundControl();
       return;
     }

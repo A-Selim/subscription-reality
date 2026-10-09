@@ -126,7 +126,9 @@ export class SubscriptionCard {
     event.preventDefault();
     const firstInvalid = firstInvalidField(this.editForm);
     if (firstInvalid) {
-      this.toast()?.show(firstInvalid.message, 'error');
+      this.toast()?.showError(firstInvalid.message, () =>
+        this.editForm[firstInvalid.field]().value(),
+      );
       this.editForm[firstInvalid.field]().focusBoundControl();
       return;
     }
