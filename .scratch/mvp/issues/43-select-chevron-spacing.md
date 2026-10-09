@@ -1,6 +1,6 @@
 # 43: Space between the select chevron and the border
 
-Status: ready-for-human
+Status: resolved
 Lane: small
 Blocked by: 38
 Test seam: Manual visual check (Chrome and Safari, add form and edit dialog)
@@ -16,7 +16,7 @@ Spec: Owner decision (2026-10-09). `docs/agreed-changes.md` › 2 (custom chevro
 
 - [x] Every select in both forms shows the custom chevron with visible space from the border.
 - [x] An invalid select's "!" mark doesn't overlap the chevron, and the selected text doesn't run under either.
-- [ ] Looks right in Chrome and Safari.
+- [x] Looks right in Chrome and Safari.
 - [x] `npm run build` and `npm test -- --watch=false` pass.
 
 ## Comments
@@ -25,3 +25,4 @@ Shared select styling now gives the add form and edit dialog the same custom che
 
 - Orchestrator: added a forced-colors fallback to the native arrow. Status is ready-for-human until the browser check, which must include the add form just above 960px, where an invalid blank Billing or Currency select is narrowest.
 - Orchestrator browser check (2026-10-09, Chromium only): chevrons have clear space in both forms, and the mark and chevron never overlap. Safari is not checked yet, so this stays ready-for-human. Known edge: just above 960px, an invalid blank Billing select clips its placeholder ("Billin…") under the mark. Rebalancing the column weights is the owner's call (agreed-changes › 2).
+- Owner checked Safari on macOS (2026-10-09): the dropdowns in the add form and the edit dialog look right, with space between the arrow and the border.

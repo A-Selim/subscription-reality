@@ -9,7 +9,7 @@ Run on 2026-10-09. Codex took one ticket per run, in number order, on each ticke
 | 40 edit saves only on Done           | feature | resolved                       | 87203c5          |
 | 41 backdrop click closes card dialog | small   | resolved                       | 10eef20          |
 | 42 card dialog header                | small   | resolved                       | c882496, c3708ef |
-| 43 select chevron spacing            | small   | ready-for-human (Safari check) | 05b5fec          |
+| 43 select chevron spacing            | small   | resolved                       | 05b5fec          |
 | 44 edit field spacing                | small   | resolved                       | 3a32961          |
 | 45 cancelled not review candidates   | small   | resolved                       | 267e9c4          |
 | 46 short duplicate-name message      | small   | resolved                       | bae72e5          |
@@ -35,5 +35,5 @@ Run on 2026-10-09. Codex took one ticket per run, in number order, on each ticke
 ## End-of-run checklist
 
 - [x] Full `npm test -- --watch=false` and `npm run build` on the final tree.
-- [ ] Owner: Safari look of the dropdowns (ticket 43).
+- [x] Owner: Safari look of the dropdowns (ticket 43).
 - [ ] Owner: decide on point 2 above.
