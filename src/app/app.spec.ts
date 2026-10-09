@@ -2338,6 +2338,18 @@ describe('Subscription form accessibility on the page', () => {
 });
 
 describe('Delete in the card dialog', () => {
+  function editField(region: HTMLElement, label: string): HTMLInputElement | HTMLSelectElement {
+    const form = region.querySelector('article form');
+    const fieldLabel = Array.from(form?.querySelectorAll('label') ?? []).find(
+      (candidate) => candidate.textContent?.trim() === label,
+    );
+    const field = form?.querySelector<HTMLInputElement | HTMLSelectElement>(
+      `#${fieldLabel?.htmlFor}`,
+    );
+    if (!field) throw new Error(`Could not find edit field "${label}".`);
+    return field;
+  }
+
   async function prepareDelete() {
     const context = await prepareAddForm();
     for (const [name, currency] of [
@@ -2366,7 +2378,7 @@ describe('Delete in the card dialog', () => {
     return { ...context, open, answer };
   }
 
-  it('names the delete buttons and modal, focuses Close, and dismisses without saving', async () => {
+  it('names the delete buttons and modal, focuses Close, and only Close or Escape dismiss without saving', async () => {
     const { region, storage, fixture, open, answer } = await prepareDelete();
     const { trigger, dialog } = await open('Spotify');
     expect(trigger.previousElementSibling?.tagName).toBe('H3');
@@ -2396,7 +2408,139 @@ describe('Delete in the card dialog', () => {
     await open('Netflix');
     expect(dialog.textContent).toContain('Did you already cancel Netflix?');
     await answer(dialog, 'Not yet, keep it');
-    expect(storage.savedStates).toHaveLength(saves);
+    expect(storage.savedStates).toHaveLength(saves + 1);
+  });
+
+  it('keeps the card in Recurring cost and adds its annual cost to Potential savings', async () => {
+    const { fixture, region, storage, open, answer } = await prepareDelete();
+    const page = fixture.nativeElement as HTMLElement;
+    const reality = page.querySelector<HTMLElement>(
+      '.reality-card[aria-label="Subscription reality in USD"]',
+    )!;
+    const savings = getRegion(page, 'Potential annual savings');
+    const trigger = region.querySelector<HTMLButtonElement>('[aria-label="Delete Spotify"]')!;
+
+    const { dialog } = await open('Spotify');
+    await answer(dialog, 'Not yet, keep it');
+
+    expect(region.querySelector('[aria-label="Delete Spotify"]')).toBe(trigger);
+    expect(reality.textContent).toContain('$120');
+    expect(savings.querySelector('.savings-list')?.textContent).toContain('$120');
+    expect(document.activeElement).toBe(trigger);
+    expect(storage.savedStates.at(-1)?.subscriptions[0]).toMatchObject({ decision: 'cancel' });
+  });
+
+  it('changes each prior Review decision to Cancel once without double-counting Cancel', async () => {
+    const { fixture, region, open, answer } = await prepareDelete();
+    const page = fixture.nativeElement as HTMLElement;
+    const reviewSection = getRegion(page, 'Would you still subscribe today?');
+    const savings = getRegion(page, 'Potential annual savings');
+    const counts = () =>
+      Array.from(getList(savings, 'Review decision counts').children, (line) =>
+        line.textContent?.trim(),
+      );
+
+    for (const [name, decision, before, after] of [
+      ['Spotify', null, ['Keep 0', 'Unsure 0', 'Cancel 0'], ['Keep 0', 'Unsure 0', 'Cancel 1']],
+      ['Netflix', 'Keep', ['Keep 1', 'Unsure 0', 'Cancel 1'], ['Keep 0', 'Unsure 0', 'Cancel 2']],
+      ['Cloud', 'Unsure', ['Keep 0', 'Unsure 1', 'Cancel 2'], ['Keep 0', 'Unsure 0', 'Cancel 3']],
+    ] as const) {
+      if (decision) {
+        getButton(getRegion(reviewSection, name), decision).click();
+        fixture.detectChanges();
+        await settlePage();
+      }
+      expect(counts()).toEqual(before);
+      const { dialog } = await open(name);
+      await answer(dialog, 'Not yet, keep it');
+      expect(counts()).toEqual(after);
+      if (name === 'Spotify') expect(getRegion(reviewSection, 'Netflix')).toBeTruthy();
+    }
+
+    const { dialog } = await open('Cloud');
+    await answer(dialog, 'Not yet, keep it');
+    expect(counts()).toEqual(['Keep 0', 'Unsure 0', 'Cancel 3']);
+    expect(region.querySelectorAll('[aria-label^="Delete "]')).toHaveLength(3);
+  });
+
+  it('preserves usage state, retains another edit input, and persists Cancel after reload', async () => {
+    const { fixture, region, storage, open, answer } = await prepareDelete();
+    const page = fixture.nativeElement as HTMLElement;
+    const reviewSection = getRegion(page, 'Would you still subscribe today?');
+    const spotifyReview = getRegion(reviewSection, 'Spotify');
+    getButton(spotifyReview, 'Keep').click();
+    fixture.detectChanges();
+    await settlePage();
+
+    getButton(getList(region, 'Subscriptions'), 'Netflix').click();
+    fixture.detectChanges();
+    await settlePage();
+    const netflixName = editField(region, 'Subscription name');
+    setField(region, netflixName.id, 'Netflix Plus');
+    await settlePage();
+
+    let { dialog } = await open('Spotify');
+    await answer(dialog, 'Not yet, keep it');
+    expect(document.activeElement).toBe(
+      region.querySelector<HTMLButtonElement>('[aria-label="Delete Spotify"]'),
+    );
+    expect(netflixName.value).toBe('Netflix Plus');
+    expect((await storage.load())?.subscriptions[0]).toMatchObject({
+      decision: 'cancel',
+      usage: 'Daily',
+      usageConfirmed: true,
+    });
+
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    expect((await storage.load())?.subscriptions[0]).toMatchObject({
+      decision: 'cancel',
+      usage: 'Daily',
+      usageConfirmed: true,
+    });
+
+    dialog = (await open('Cloud')).dialog;
+    await answer(dialog, 'Not yet, keep it');
+    getButton(getList(region, 'Subscriptions'), 'Cloud').click();
+    fixture.detectChanges();
+    await settlePage();
+    setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    expect((await storage.load())?.subscriptions[2]).toMatchObject({
+      decision: 'cancel',
+      usage: 'Rarely',
+      usageConfirmed: false,
+    });
+
+    const reloaded = await renderApp(storage);
+    const reloadedRegion = getRegion(reloaded.root, 'Your recurring life.');
+    const reloadedSavings = getRegion(reloaded.root, 'Potential annual savings');
+    expect(
+      Array.from(getList(reloadedSavings, 'Review decision counts').children, (line) =>
+        line.textContent?.trim(),
+      ),
+    ).toEqual(['Keep 0', 'Unsure 0', 'Cancel 2']);
+    expect(getList(reloadedSavings, 'Potential savings per currency').textContent).toContain(
+      '$120',
+    );
+    expect(getList(reloadedRegion, 'Subscriptions').children[0].textContent).toContain(
+      'Usage: Daily',
+    );
+    expect(getList(reloadedRegion, 'Subscriptions').children[2].textContent).toContain(
+      'Usage: Rarely',
+    );
+    getButton(reloadedSavings, 'Cloud').click();
+    reloaded.fixture.detectChanges();
+    await settlePage();
+    expect(
+      getButton(
+        getRegion(getRegion(reloaded.root, 'Would you still subscribe today?'), 'Cloud'),
+        'Cancel',
+      ).getAttribute('aria-pressed'),
+    ).toBe('true');
   });
 
   it('deletes and saves, removes currency reality and Potential savings, and focuses neighbours', async () => {

@@ -145,6 +145,11 @@ export class SubscriptionsState {
     }
   }
 
+  keepAsCancel(id: string): void {
+    if (!this.subscriptions().some((subscription) => subscription.id === id)) return;
+    this.updateSubscription(id, { decision: 'cancel' });
+  }
+
   private updateSubscription(
     id: string,
     changes: Partial<

@@ -70,7 +70,7 @@
     <div cardDialogActions class="dialog-actions">
       @if (dialogSubscription()) {
         <button type="button" (click)="confirmDelete()">Yes, delete it</button>
-        <button type="button" (click)="dismissDialog()">Not yet, keep it</button>
+        <button type="button" (click)="keepAsCancel()">Not yet, keep it</button>
       }
     </div>
   </app-card-dialog>

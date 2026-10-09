@@ -68,6 +68,13 @@ export class RecurringLife {
     this.dialog().dismiss();
   }
 
+  keepAsCancel(): void {
+    const subscription = this.dialogSubscription();
+    if (!subscription) return;
+    this.subscriptionsState.keepAsCancel(subscription.id);
+    this.dialog().dismiss();
+  }
+
   private deleteSubscription(): void {
     const subscription = this.dialogSubscription();
     if (!subscription) return;
