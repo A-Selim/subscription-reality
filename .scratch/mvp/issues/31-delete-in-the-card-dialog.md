@@ -1,6 +1,6 @@
 # 31: Delete ✕, the card dialog, and Yes, delete it
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: 30
 Test seam: Page seam; manual check of native modal focus in a real browser
@@ -28,18 +28,29 @@ Update `docs/agreed-changes.md` › 11 and, in `.scratch/mvp/spec.md`, the stori
 
 ## Acceptance criteria
 
-- [ ] Every card in read view shows an ✕ named "Delete {name}". It follows the card button in tab order, has a visible focus indicator, and clicking it never opens edit.
-- [ ] The ✕ target is at least 24×24px (aim for 44×44), the icon has at least 3:1 contrast, and it doesn't overlap the price at 320px width.
-- [ ] Clicking ✕ opens the modal card dialog with the subscription's look. Its name is "Did you already cancel {name}?", its description is the payment sentence, and focus is on Close.
-- [ ] Tab and Shift+Tab stay inside the dialog; the page behind it is inert.
-- [ ] Close and Escape close the dialog with no change to the subscription and no save, and focus returns to the ✕. A backdrop click does nothing.
-- [ ] Yes, delete it removes the card, and focus moves to the next card (or the previous one if it was the last).
-- [ ] Deleting the only USD subscription removes the USD reality card and the USD savings line.
-- [ ] Deleting the last subscription returns to the empty state with the add form shown and its name field focused; the other sections are dimmed again.
-- [ ] Deleting a subscription during a _Review again_ pass drops it from the pass. Deleting the subscription shown in the review card shows what the review would show without it, without moving focus there.
-- [ ] Deleting the review candidate picked from the insight (ticket 22) clears that pick.
-- [ ] Emptying a currency and then adding a subscription in it again puts its reality card at the end.
-- [ ] An open in-place edit form on another card keeps its input while the dialog is open and after it closes.
-- [ ] A reload after deleting doesn't bring the subscription back.
-- [ ] `docs/agreed-changes.md` › 11 and the spec describe the ✕ and the card dialog.
-- [ ] `npm run build` and `npm test -- --watch=false` pass; the modal focus behaviour is checked in a real browser.
+- [x] Every card in read view shows an ✕ named "Delete {name}". It follows the card button in tab order, has a visible focus indicator, and clicking it never opens edit.
+- [x] The ✕ target is at least 24×24px (aim for 44×44), the icon has at least 3:1 contrast, and it doesn't overlap the price at 320px width.
+- [x] Clicking ✕ opens the modal card dialog with the subscription's look. Its name is "Did you already cancel {name}?", its description is the payment sentence, and focus is on Close.
+- [x] Tab and Shift+Tab stay inside the dialog; the page behind it is inert.
+- [x] Close and Escape close the dialog with no change to the subscription and no save, and focus returns to the ✕. A backdrop click does nothing.
+- [x] Yes, delete it removes the card, and focus moves to the next card (or the previous one if it was the last).
+- [x] Deleting the only USD subscription removes the USD reality card and the USD savings line.
+- [x] Deleting the last subscription returns to the empty state with the add form shown and its name field focused; the other sections are dimmed again.
+- [x] Deleting a subscription during a _Review again_ pass drops it from the pass. Deleting the subscription shown in the review card shows what the review would show without it, without moving focus there.
+- [x] Deleting the review candidate picked from the insight (ticket 22) clears that pick.
+- [x] Emptying a currency and then adding a subscription in it again puts its reality card at the end.
+- [x] An open in-place edit form on another card keeps its input while the dialog is open and after it closes.
+- [x] A reload after deleting doesn't bring the subscription back.
+- [x] `docs/agreed-changes.md` › 11 and the spec describe the ✕ and the card dialog.
+- [x] `npm run build` and `npm test -- --watch=false` pass; the modal focus behaviour is checked in a real browser.
+
+## Comments
+
+- Checked in real Chrome (Playwright):
+  - the dialog is `:modal` and named by the question
+  - focus starts on Close, and Tab stays inside the dialog (apart from the browser UI)
+  - a backdrop click does nothing
+  - Escape, a double Escape and Close each return focus to the ✕
+  - Yes moves focus to the next card
+  - the ✕ is 44×44 and fits at 320px with no horizontal scroll
+- Not yet, keep it only closes the dialog in this commit. Its keep-as-cancel behaviour lands in the next commit (ticket 32).

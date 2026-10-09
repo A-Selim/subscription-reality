@@ -132,11 +132,11 @@ Everything survives a refresh, a browser restart and reopening the app.
 
 ### Deleting
 
-81. As a user, I want to delete a subscription, so that the app reflects the payments I actually still have.
-82. As a user, I want to be asked "Did you already cancel {name}? Deleting it here doesn't stop the payment." before deleting, so that I don't mistake deleting for cancelling.
-83. As a user, I want **Yes, delete it** to remove the subscription, so that the list only shows payments I still have.
-84. As a user, I want **Not yet, keep it** to keep the subscription and set its decision to Cancel, so that it counts toward potential savings as a reminder.
-85. As a keyboard or screen-reader user, I want the delete question to take focus when it opens and give focus back sensibly when it closes, so that I can answer it without a mouse.
+81. As a user, I want an always-visible ✕ named "Delete {name}" on each read-view card to open the card dialog, so that the app reflects the payments I actually still have.
+82. As a user, I want the native modal card dialog, styled like the subscription card, to ask "Did you already cancel {name}? Deleting it here doesn't stop the payment." before deleting, so that I don't mistake deleting for cancelling.
+83. As a user, I want **Yes, delete it** to close the dialog, delete and save the subscription, so that the list only shows payments I still have.
+84. As a user, I want **Not yet, keep it** in the card dialog to keep the subscription and set its decision to Cancel, so that it counts toward potential savings as a reminder.
+85. As a keyboard or screen-reader user, I want the card dialog to focus Close on opening, trap focus, and return focus to the ✕ after Close or Escape without changes or saving; after deletion I want the next card, otherwise the previous, or the revealed add form name field focused, so that I can answer it without a mouse.
 
 ### Persistence and privacy
 
@@ -155,7 +155,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 ### Structure
 
 - One page with no router (ADR 0001). The root component composes the section components in order: the top bar as the page `header`, then inside `main` the hero, _Your recurring life_, _See the reality_, then the review area with the review card and the savings card side by side (stacked on small screens). The hero holds the page's only `h1`, so it sits inside `main`.
-- Components are standalone, small and focused: top bar, hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view, in-place edit view, delete question), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
+- Components are standalone, small and focused: top bar, hero, recurring-life section (empty state, subscription card list, add form), subscription card (read view, in-place edit view), card dialog (shared modal shell with delete body, owned by recurring-life), reality section (one reality card per currency), review card, savings card (savings lines, counts, insight), and toast. Components use `input()`/`output()`/`model()`; derived values use `computed()`.
 - Visual styling follows the prototype. The prototype's markup and scripts are never imported.
 
 ### Domain module (pure, no Angular)
@@ -212,7 +212,7 @@ interface AppState {
 
 ### State service
 
-- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, update, delete, set reason, set usage, decide (sets `decision` and `usageConfirmed`), keep-as-cancel (from the delete question; sets `decision` only).
+- One singleton state service (`@Service`, signals) owns `AppState`, exposes read-only signals and `computed()` views built on the domain module, and offers intent methods: add, edit, delete (removes the subscription, clears a deleted insight pick, and ends the Review again pass when no later subscription remains), set reason, set usage, decide (sets `decision` and `usageConfirmed`), keep-as-cancel (from the card dialog; sets `decision` only).
 - The service sets the preferred currency only in `add`, never in `update`, and never on dropdown changes.
 - Every state change is written through the storage port. Writes save the whole `AppState`; the data is tiny, so there are no per-record writes. Saves run one at a time: each waits for the previous one, and pending saves may be coalesced into the latest state, so an older save can never land after a newer one.
 - The service loads from the storage port before the page renders its sections. Until loading finishes, sections don't render, so the empty state never flashes for returning users. If loading or saving fails, the app keeps working in memory for the current visit, logs a warning, and shows a calm, persistent notice (a polite live region) saying that changes will only last for this visit. The notice stays until a later save succeeds.
@@ -241,7 +241,10 @@ interface AppState {
 - Changes apply live: whenever the whole edit form is valid, the subscription is updated and saved, so totals update as the user edits. While any field is invalid, the last valid values stay in effect and the field shows its error.
 - A **Done** button closes the edit form. If the form is invalid when Done is pressed, it stays open, the toast shows the error and focus moves to the invalid field. On close, focus returns to the card.
 - Editing never changes `decision`, `usageConfirmed` or the preferred currency. Changing the reason re-estimates usage while `usageConfirmed` is false. After that, usage is untouched.
-- **Delete** in the edit view opens an inline question on the card (focus moves to it): _"Did you already cancel {name}? Deleting it here doesn't stop the payment."_ with **Yes, delete it** and **Not yet, keep it**. Yes removes the subscription and moves focus to the next card. If none remain, the page is back in the empty state: the add form is revealed there first, then its name field gets focus. Not yet sets the decision to Cancel (usage stays unconfirmed), closes the question and editor, and returns focus to the card.
+- An always-visible **✕** button in each card’s read view opens the native modal **card dialog**, rendered once by the recurring-life section. It follows the card button in tab order, has a 44px target and visible focus, and reserves space above the price. The shell shares the card header styling and accepts a body slot for later editing.
+- The dialog’s accessible name is _"Did you already cancel {name}?"_ and its description is _"Deleting it here doesn't stop the payment."_ It offers **Yes, delete it**, **Not yet, keep it**, and **Close**. Focus starts on Close; native `showModal()` traps focus and makes the page behind it inert. Close and Escape dismiss without changes or saving and return focus to the originating ✕; backdrop clicks do nothing. Reopening has no earlier answer.
+- Yes closes the dialog before deleting and saving. Focus goes to the next card, otherwise the previous; if that card is editing, its name field gets focus. With none remaining, reveal the add form and focus its name field. Reality cards and Potential savings lines disappear when their currency is emptied; reusing that currency places its reality card at the end. Review again reads the remaining list, and deleting a selected insight Review candidate clears the pick.
+- Another card’s in-place edit input and validation state survive opening and closing the dialog. **Not yet, keep it** keeps the subscription and sets the Review decision to Cancel without confirming usage (ticket 32); it closes the dialog and returns focus to the ✕.
 
 ### Reality section
 
@@ -276,13 +279,13 @@ interface AppState {
 
 - A good test drives the app the way a user or caller does and asserts on observable outcomes: rendered text, pressed states, focus, what a reload shows. Tests don't reach into component internals, private signals or template structure beyond accessible roles, labels and text.
 - Three seams, in this order of preference:
-  1. **Page seam (primary).** Render the root App with TestBed. Provide the in-memory storage fake in place of the IndexedDB adapter, and interact through the DOM: fill the add form, click buttons, open edit, answer the delete question, select insight names. This covers every user story end to end: empty state, add and validation toasts, preferred currency behavior, per-currency reality cards, review order and _Review again_, savings lines and counts, insight copy and name selection, edit/delete flows, dimmed sections with readable text, the storage-failure notice, `aria-pressed` and focus moves.
+  1. **Page seam (primary).** Render the root App with TestBed. Provide the in-memory storage fake in place of the IndexedDB adapter, and interact through the DOM: fill the add form, click buttons, open edit, answer the card dialog, select insight names. This covers every user story end to end: empty state, add and validation toasts, preferred currency behavior, per-currency reality cards, review order and _Review again_, savings lines and counts, insight copy and name selection, edit/delete flows, dimmed sections with readable text, the storage-failure notice, `aria-pressed` and focus moves.
   2. **Storage seam.** A reload test: seed or save state through the page, destroy the fixture, create a new App on the same in-memory fake, and assert that subscriptions, decisions and the preferred currency come back and the review resumes at the first undecided subscription. Test that quick edits in a row, with the first save held pending, still land in order: release the saves, wait for them to settle, then reload and see the final state. Test that unreadable stored data leads to an empty page with the notice, and that the unreadable data is kept under the backup key. Also test that a failing fake (load or save rejects) leaves the page usable and shows the notice that changes only last for this visit.
   3. **Domain seam.** Direct unit tests on the pure domain module for the rules with many cases: monthly/annual cost, recurring cost per currency and first-used ordering, estimated usage table and re-estimation only while usage is unconfirmed, rarely used, review queue order, potential savings and "after" totals, review candidates, name normalization and uniqueness (including excluding self on rename), price validation (0, negative, 3 decimals), money formatting per currency and decimals (including a tiny non-zero annual amount that must not show as zero), and amount joining for 1/2/3+ currencies.
 - The real IndexedDB adapter isn't unit-tested (jsdom has no IndexedDB, and no new dependencies are allowed). Check it by hand in the browser: add, refresh, restart.
 - Prior art: the scaffold's root-component spec, which uses TestBed + Vitest + jsdom via `npm test -- --watch=false`. Its placeholder title assertion is replaced by page-seam tests.
 - Accessibility: page tests assert roles, accessible names (including the labelled review groups), `aria-pressed`, `aria-invalid` and the persistent `aria-describedby` error text on invalid fields, live-region presence, and focus targets (after the first add, after deleting the last subscription, after review choices and decisions).
-- Accessibility gate (repeatable, manual, no new npm dependency): run axe in the browser (DevTools or the axe extension) and get zero violations, including contrast, on each of these states: empty page; one currency; several currencies; review in progress; review complete; edit open with an invalid field; delete question open; insight with review candidates; storage-failure notice showing.
+- Accessibility gate (repeatable, manual, no new npm dependency): run axe in the browser (DevTools or the axe extension) and get zero violations, including contrast, on each of these states: empty page; one currency; several currencies; review in progress; review complete; edit open with an invalid field; card dialog open; insight with review candidates; storage-failure notice showing.
 
 ## Out of Scope
 

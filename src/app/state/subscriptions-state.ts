@@ -97,6 +97,20 @@ export class SubscriptionsState {
     this.updateSubscription(id, { reason });
   }
 
+  delete(id: string): void {
+    if (!this.subscriptions().some((subscription) => subscription.id === id)) return;
+    if (this.selectedReviewIdState() === id) this.selectedReviewIdState.set(null);
+    this.state.update((current) => ({
+      ...current,
+      subscriptions: current.subscriptions.filter((subscription) => subscription.id !== id),
+    }));
+    const afterSequence = this.reviewAgainAfterSequence();
+    if (afterSequence !== null && !nextInReviewAgainPass(this.subscriptions(), afterSequence)) {
+      this.reviewAgainAfterSequence.set(null);
+    }
+    this.persist();
+  }
+
   setUsage(id: string, usage: Usage): void {
     this.updateSubscription(id, { usage });
   }

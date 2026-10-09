@@ -2336,3 +2336,217 @@ describe('Subscription form accessibility on the page', () => {
     expectLabelsLinkedWithin(nextEditForm);
   });
 });
+
+describe('Delete in the card dialog', () => {
+  async function prepareDelete() {
+    const context = await prepareAddForm();
+    for (const [name, currency] of [
+      ['Spotify', 'USD'],
+      ['Netflix', 'EUR'],
+      ['Cloud', 'GBP'],
+    ] as const) {
+      addSubscription(context.fixture, context.region, name, currency);
+      await settlePage();
+    }
+    const open = async (name: string) => {
+      const trigger = context.region.querySelector<HTMLButtonElement>(
+        `button[aria-label="Delete ${name}"]`,
+      )!;
+      trigger.focus();
+      trigger.click();
+      context.fixture.detectChanges();
+      await settlePage();
+      return { trigger, dialog: context.region.querySelector<HTMLDialogElement>('dialog')! };
+    };
+    const answer = async (dialog: HTMLDialogElement, name: string) => {
+      getButton(dialog, name).click();
+      context.fixture.detectChanges();
+      await settlePage();
+    };
+    return { ...context, open, answer };
+  }
+
+  it('names the delete buttons and modal, focuses Close, and dismisses without saving', async () => {
+    const { region, storage, fixture, open, answer } = await prepareDelete();
+    const { trigger, dialog } = await open('Spotify');
+    expect(trigger.previousElementSibling?.tagName).toBe('H3');
+    expect(trigger.querySelector('[aria-hidden="true"]')?.textContent).toBe('✕');
+    expect(region.querySelector('article form')).toBeNull();
+    expect(dialog.open).toBe(true);
+    expect(
+      document.getElementById(dialog.getAttribute('aria-labelledby')!)?.textContent?.trim(),
+    ).toBe('Did you already cancel Spotify?');
+    expect(
+      document.getElementById(dialog.getAttribute('aria-describedby')!)?.textContent?.trim(),
+    ).toBe("Deleting it here doesn't stop the payment.");
+    expect(document.activeElement).toBe(getButton(dialog, 'Close'));
+    const saves = storage.savedStates.length;
+    dialog.click();
+    expect(dialog.open).toBe(true);
+    await answer(dialog, 'Close');
+    expect(dialog.open).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    await open('Spotify');
+    dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+    fixture.detectChanges();
+    await settlePage();
+    expect(dialog.open).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    expect(storage.savedStates).toHaveLength(saves);
+    await open('Netflix');
+    expect(dialog.textContent).toContain('Did you already cancel Netflix?');
+    await answer(dialog, 'Not yet, keep it');
+    expect(storage.savedStates).toHaveLength(saves);
+  });
+
+  it('deletes and saves, removes currency reality and Potential savings, and focuses neighbours', async () => {
+    const { fixture, region, storage, open, answer } = await prepareDelete();
+    const page = fixture.nativeElement as HTMLElement;
+    const review = getRegion(getRegion(page, 'Would you still subscribe today?'), 'Spotify');
+    getButton(review, 'Cancel').click();
+    fixture.detectChanges();
+    await settlePage();
+    const savings = getRegion(page, 'Potential annual savings');
+    expect(savings.querySelector('.savings-list')?.textContent).toContain('$120');
+    let { dialog } = await open('Spotify');
+    await answer(dialog, 'Yes, delete it');
+    expect(
+      Array.from(savings.querySelectorAll('.summary-line'))
+        .find((line) => line.textContent?.includes('Cancel'))
+        ?.querySelector('strong')?.textContent,
+    ).toBe('0');
+    expect(storage.savedStates.at(-1)?.subscriptions.map(({ name }) => name)).toEqual([
+      'Netflix',
+      'Cloud',
+    ]);
+    expect(region.querySelector('[aria-label="Delete Spotify"]')).toBeNull();
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Netflix'));
+    expect(
+      fixture.nativeElement.querySelector(
+        '.reality-card[aria-label="Subscription reality in USD"]',
+      ),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.savings-list').textContent).not.toContain('$');
+    addSubscription(fixture, region, 'New USD', 'USD');
+    await settlePage();
+    expect(
+      Array.from(fixture.nativeElement.querySelectorAll('.reality-card'), (card: Element) =>
+        card.getAttribute('aria-label'),
+      ).at(-1),
+    ).toContain('USD');
+    ({ dialog } = await open('New USD'));
+    await answer(dialog, 'Yes, delete it');
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Cloud'));
+    const reloaded = await renderApp(storage);
+    expect(reloaded.root.textContent).not.toContain('Spotify');
+    expect(reloaded.root.querySelectorAll('app-subscription-card')).toHaveLength(2);
+  });
+
+  it('reveals and focuses the add form after the last deletion and dims the other sections', async () => {
+    const { fixture, region, open, answer } = await prepareDelete();
+    for (const name of ['Spotify', 'Netflix', 'Cloud']) {
+      const { dialog } = await open(name);
+      await answer(dialog, 'Yes, delete it');
+    }
+    expect(region.textContent).toContain('What are you paying for every month?');
+    expect(document.activeElement).toBe(region.querySelector('#subscription-name'));
+    expect(
+      fixture.nativeElement
+        .querySelector('#reality-heading')
+        .closest('section')
+        .classList.contains('live'),
+    ).toBe(false);
+    expect(
+      fixture.nativeElement
+        .querySelector('#savings-heading')
+        .closest('section')
+        .classList.contains('active'),
+    ).toBe(false);
+  });
+
+  it('preserves another edit form input and validation and focuses its name after deletion', async () => {
+    const { fixture, region, open, answer } = await prepareDelete();
+    getButton(getList(region, 'Subscriptions'), 'Netflix').click();
+    fixture.detectChanges();
+    await settlePage();
+    const name = region.querySelector<HTMLInputElement>('article form input')!;
+    setField(region, name.id, '');
+    fixture.detectChanges();
+    await settlePage();
+    const { dialog } = await open('Spotify');
+    expect(name.value).toBe('');
+    await answer(dialog, 'Close');
+    expect(name.value).toBe('');
+    await open('Spotify');
+    await answer(dialog, 'Yes, delete it');
+    expect(document.activeElement).toBe(name);
+    expect(name.value).toBe('');
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('drops deleted subscriptions from Review again and clears an insight Review candidate pick', async () => {
+    const { fixture, region, open, answer } = await prepareDelete();
+    const page = fixture.nativeElement as HTMLElement;
+    const reviewSection = getRegion(page, 'Would you still subscribe today?');
+    for (const name of ['Spotify', 'Netflix', 'Cloud']) {
+      getButton(getRegion(reviewSection, name), 'Keep').click();
+      fixture.detectChanges();
+      await settlePage();
+    }
+    getButton(reviewSection, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    let { dialog } = await open('Spotify');
+    await answer(dialog, 'Yes, delete it');
+    expect(getRegion(reviewSection, 'Netflix')).toBeTruthy();
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Netflix'));
+    setField(region, 'subscription-reason', 'Occasional Use');
+    addSubscription(fixture, region, 'Adobe');
+    await settlePage();
+    getButton(getRegion(page, 'Potential annual savings'), 'Adobe').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getRegion(reviewSection, 'Adobe')).toBeTruthy();
+    ({ dialog } = await open('Adobe'));
+    await answer(dialog, 'Yes, delete it');
+    expect(TestBed.inject(SubscriptionsState).selectedReviewId()).toBeNull();
+    expect(getRegion(reviewSection, 'Netflix')).toBeTruthy();
+    getButton(reviewSection, 'Keep').click();
+    fixture.detectChanges();
+    await settlePage();
+    expect(getRegion(reviewSection, 'Cloud')).toBeTruthy();
+  });
+  it('deletes the current normal review subscription without moving focus into review and reopens fresh', async () => {
+    const { fixture, region, open, answer } = await prepareDelete();
+    const reviewSection = getRegion(
+      fixture.nativeElement as HTMLElement,
+      'Would you still subscribe today?',
+    );
+    expect(getRegion(reviewSection, 'Spotify')).toBeTruthy();
+    const { dialog } = await open('Spotify');
+    await answer(dialog, 'Yes, delete it');
+    expect(getRegion(reviewSection, 'Netflix')).toBeTruthy();
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Netflix'));
+    expect(reviewSection.contains(document.activeElement)).toBe(false);
+    await open('Cloud');
+    expect(dialog.open).toBe(true);
+    expect(document.activeElement).toBe(getButton(dialog, 'Close'));
+    expect(
+      document.getElementById(dialog.getAttribute('aria-labelledby')!)?.textContent?.trim(),
+    ).toBe('Did you already cancel Cloud?');
+    await answer(dialog, 'Close');
+    expect(region.querySelector('[aria-label="Delete Cloud"]')).not.toBeNull();
+  });
+
+  it('handles a native close event without cancel by clearing the dialog and returning focus without saving', async () => {
+    const { fixture, storage, open } = await prepareDelete();
+    const { dialog, trigger } = await open('Spotify');
+    const saves = storage.savedStates.length;
+    dialog.close();
+    fixture.detectChanges();
+    await settlePage();
+    expect(document.activeElement).toBe(trigger);
+    expect(dialog.textContent).not.toContain('Did you already cancel');
+    expect(storage.savedStates).toHaveLength(saves);
+  });
+});

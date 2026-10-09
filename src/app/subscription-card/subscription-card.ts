@@ -61,12 +61,15 @@ export class SubscriptionCard {
   private readonly injector = inject(Injector);
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private readonly cardButton = viewChild<ElementRef<HTMLButtonElement>>('cardButton');
+  private readonly deleteButton = viewChild<ElementRef<HTMLButtonElement>>('deleteButton');
   private readonly toast = viewChild(Toast);
 
   readonly subscription = input.required<Subscription>();
   readonly editing = input(false);
   readonly opened = output<void>();
   readonly closed = output<void>();
+  readonly deleteRequested = output<void>();
+
   readonly currencies = CURRENCIES;
   readonly billingFrequencies = BILLING_FREQUENCIES;
   readonly billingFrequencyLabels = BILLING_FREQUENCY_LABELS;
@@ -116,6 +119,13 @@ export class SubscriptionCard {
         }
       });
     });
+  }
+
+  focusCard(): void {
+    (this.editing() ? this.nameInput()?.nativeElement : this.cardButton()?.nativeElement)?.focus();
+  }
+  focusDeleteButton(): void {
+    this.deleteButton()?.nativeElement.focus();
   }
 
   errorText(field: ValidatedField): string | null {

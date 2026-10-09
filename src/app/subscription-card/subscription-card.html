@@ -63,6 +63,15 @@
         {{ subscription().name }}
       </button>
     </h3>
+    <button
+      #deleteButton
+      type="button"
+      class="delete-button"
+      [attr.aria-label]="'Delete ' + subscription().name"
+      (click)="deleteRequested.emit()"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
     <p class="yearly">Annual cost {{ annualCostText() }}</p>
     <div class="card-details">
       <span class="reason">Reason: {{ subscription().reason }}</span>

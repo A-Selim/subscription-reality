@@ -39,10 +39,12 @@
         @for (subscription of subscriptions(); track subscription.id) {
           <li>
             <app-subscription-card
+              #card
               [subscription]="subscription"
               [editing]="editingId() === subscription.id"
               (opened)="editingId.set(subscription.id)"
               (closed)="editingId.set(null)"
+              (deleteRequested)="openDelete(subscription, card)"
             />
           </li>
         }
@@ -53,4 +55,23 @@
       <app-add-subscription-form (firstSubscriptionAdded)="firstSubscriptionAdded.emit()" />
     }
   </div>
+  <app-card-dialog
+    [subscription]="dialogSubscription()"
+    labelledBy="delete-question"
+    describedBy="delete-description"
+    (dismissed)="closeDialog()"
+  >
+    <div cardDialogBody class="dialog-body">
+      @if (dialogSubscription(); as subscription) {
+        <h2 id="delete-question">Did you already cancel {{ subscription.name }}?</h2>
+        <p id="delete-description">Deleting it here doesn't stop the payment.</p>
+      }
+    </div>
+    <div cardDialogActions class="dialog-actions">
+      @if (dialogSubscription()) {
+        <button type="button" (click)="confirmDelete()">Yes, delete it</button>
+        <button type="button" (click)="dismissDialog()">Not yet, keep it</button>
+      }
+    </div>
+  </app-card-dialog>
 </section>

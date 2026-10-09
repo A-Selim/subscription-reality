@@ -1,0 +1,30 @@
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.monogram {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.card-price {
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.card-price small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
