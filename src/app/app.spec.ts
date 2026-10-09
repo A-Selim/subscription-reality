@@ -120,7 +120,9 @@ describe('App page seam', () => {
     const fieldLabel = Array.from(form?.querySelectorAll('label') ?? []).find(
       (candidate) => candidate.textContent?.trim() === label,
     );
-    const field = form?.querySelector<HTMLInputElement | HTMLSelectElement>(`#${fieldLabel?.htmlFor}`);
+    const field = form?.querySelector<HTMLInputElement | HTMLSelectElement>(
+      `#${fieldLabel?.htmlFor}`,
+    );
     if (!field) throw new Error(`Could not find edit field "${label}".`);
     return field;
   }
@@ -336,7 +338,9 @@ describe('App page seam', () => {
     await settlePage();
     expect(region.querySelector('article form')).toBeNull();
     expect(region.querySelector('article')?.textContent).toContain('€12.00');
-    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify Family'));
+    expect(document.activeElement).toBe(
+      getButton(getList(region, 'Subscriptions'), 'Spotify Family'),
+    );
   });
 
   it('reloads live edited values even before Done', async () => {
@@ -747,9 +751,7 @@ describe('App page seam', () => {
     expect(reality.textContent).toContain('Add a subscription first');
     expect(reality.textContent).toContain('0 every month');
     expect(definitionValue(reality, 'Before review')).toBe('0 / year');
-    expect(definitionValue(reality, 'If you cancel the ones you no longer value')).toBe(
-      '0 / year',
-    );
+    expect(definitionValue(reality, 'If you cancel the ones you no longer value')).toBe('0 / year');
     expect(review.textContent).toContain(
       'Your review will start here once there is something to reflect on.',
     );
@@ -1011,7 +1013,9 @@ describe('add form validation', () => {
       clickAdd(region);
       fixture.detectChanges();
       await settlePage();
-      expect(getList(region, 'Subscriptions').querySelector('h3 button')?.textContent?.trim()).toBe(name);
+      expect(getList(region, 'Subscriptions').querySelector('h3 button')?.textContent?.trim()).toBe(
+        name,
+      );
       // The saved state also keeps the trimmed name.
       const storage = TestBed.inject(AppStorage);
       expect((await storage.load())?.subscriptions[0].name).toBe(name);
@@ -1423,7 +1427,9 @@ describe('Subscription reality', () => {
     await decide(fixture, review, 'Cancel');
 
     const euroCard = page.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!;
-    const dollarCard = page.querySelector<HTMLElement>('[aria-label="Subscription reality in USD"]')!;
+    const dollarCard = page.querySelector<HTMLElement>(
+      '[aria-label="Subscription reality in USD"]',
+    )!;
     expect(definitionValue(euroCard, 'Before review')).toBe('€120 / year');
     expect(definitionValue(euroCard, 'If you cancel the ones you no longer value')).toBe(
       '€0 / year',

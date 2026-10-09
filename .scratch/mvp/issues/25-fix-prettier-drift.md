@@ -1,6 +1,6 @@
 # 25: Fix the Prettier drift
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 24
 Test seam: None (formatting only); the existing tests must still pass
@@ -12,6 +12,10 @@ Two files fail `npx prettier --check` since before ticket 21: `src/app/app.spec.
 
 ## Acceptance criteria
 
-- [ ] `npx prettier --check src/app` reports no files.
-- [ ] The diff is formatting only: no test, selector or value changes.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] `npx prettier --check src/app` reports no files.
+- [x] The diff is formatting only: no test, selector or value changes.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+- A third file, `src/app/review-area/review-area.html`, had also drifted. It was formatted too, so that `npx prettier --check src/app` is clean.
