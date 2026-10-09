@@ -2,7 +2,12 @@
 
 .edit-fields {
   display: grid;
-  gap: 8px;
+  gap: 15px;
+}
+
+.edit-field {
+  display: grid;
+  gap: 5px;
 }
 
 .edit-fields input,
