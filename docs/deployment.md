@@ -16,7 +16,7 @@ Saved data lives in the browser's IndexedDB, which belongs to one origin (scheme
 
 The policy has two parts. The browser enforces both.
 
-1. **Scripts: already in the build.** The production build sets `security.autoCsp` in `angular.json`. The CLI hashes every inline script and adds a `<meta http-equiv="Content-Security-Policy">` tag to `index.html` (`script-src 'strict-dynamic' 'sha256-…'`, `object-src 'none'`, `base-uri 'self'`). It needs no nonce and works on any static host.
+1. **Scripts: already in the build.** The production build sets `security.autoCsp` in `angular.json`. The CLI hashes every inline script and adds a `<meta http-equiv="Content-Security-Policy">` tag to `index.html` (`script-src 'strict-dynamic' 'sha256-…' https: 'unsafe-inline'`, `object-src 'none'`, `base-uri 'self'`; browsers that support hashes ignore the `https:` and `'unsafe-inline'` fallbacks). It needs no nonce and works on any static host.
    - What it blocks: injected HTML with inline handlers (`<img onerror=…>`), `javascript:` URLs and inline scripts it didn't hash. What it allows: a script created by code that already runs (`'strict-dynamic'`). So the CSP is a second line of defence. The first is the AGENTS.md rule: never bind user text as HTML.
 2. **Everything else: send it as an HTTP header from the host.** Some directives (`frame-ancestors`) only work in a header, and Angular adds component styles as inline `<style>` elements, so styles need `'unsafe-inline'`:
 

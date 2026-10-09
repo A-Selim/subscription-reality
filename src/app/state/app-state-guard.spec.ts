@@ -42,4 +42,18 @@ describe('isAppState', () => {
 
     expect(isAppState(state)).toBe(false);
   });
+
+  it('rejects a stored price with more than two decimal places', () => {
+    const state = validState();
+    state.subscriptions[0].price = 10.123;
+
+    expect(isAppState(state)).toBe(false);
+  });
+
+  it('accepts a stored price with two decimal places', () => {
+    const state = validState();
+    state.subscriptions[0].price = 10.12;
+
+    expect(isAppState(state)).toBe(true);
+  });
 });

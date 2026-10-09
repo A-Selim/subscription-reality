@@ -94,5 +94,5 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Security
 
 - Never bind user text as HTML (`[innerHTML]`, `outerHTML`, `insertAdjacentHTML`, `document.write`) and never use `DomSanitizer.bypassSecurityTrust*`. Use normal interpolation and bindings.
-- Validate everything loaded from storage against the same rules the forms enforce (`src/app/state/app-state-guard.ts`).
+- Validate every field loaded from storage with the same per-field rules the forms use (`isValidName`, `isValidPrice`, the allowed lists) in `src/app/state/app-state-guard.ts`. Don't reject a whole stored state over cross-record rules such as duplicate names.
 - Keep `security.autoCsp` in the production build. Do not add a CSP `<meta>` tag to `src/index.html`. Deploy headers live in `docs/deployment.md`.

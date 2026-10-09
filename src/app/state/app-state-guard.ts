@@ -2,6 +2,7 @@ import {
   BILLING_FREQUENCIES,
   CURRENCIES,
   isValidName,
+  isValidPrice,
   REASONS,
   REVIEW_DECISIONS,
   USAGES,
@@ -36,8 +37,7 @@ export function isAppState(value: unknown): value is AppState {
       isValidName(subscription['name']) &&
       isNonNegativeInteger(subscription['sequence']) &&
       typeof subscription['price'] === 'number' &&
-      Number.isFinite(subscription['price']) &&
-      subscription['price'] > 0 &&
+      isValidPrice(subscription['price']) &&
       isOneOf(subscription['billingFrequency'], BILLING_FREQUENCIES) &&
       isOneOf(subscription['currency'], CURRENCIES) &&
       isOneOf(subscription['reason'], REASONS) &&
