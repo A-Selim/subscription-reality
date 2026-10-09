@@ -2250,23 +2250,27 @@ describe('Insight', () => {
     expect(savings.textContent).not.toContain('You spend');
   });
 
-  it('shows estimated Rarely candidates with joined amounts and separated names', async () => {
+  it('shows estimated Rarely candidates with joined amounts and separate pill buttons', async () => {
     const { savings, add } = await prepareInsight();
     await add('Adobe', '10', 'EUR');
     expect(savings.textContent).toContain(sentence('€120'));
-    expect(
-      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
-    ).toBe('Adobe');
+    expect(getList(savings, 'Review candidates').querySelectorAll('button')).toHaveLength(1);
+    expect(getButton(savings, 'Adobe')).toBeDefined();
     await add('Headspace', '5', 'USD');
     expect(savings.textContent).toContain(sentence('€120 and $60'));
     expect(
-      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
-    ).toBe('Adobe · Headspace');
+      Array.from(getList(savings, 'Review candidates').querySelectorAll('button'), (button) =>
+        button.textContent?.trim(),
+      ),
+    ).toEqual(['Adobe', 'Headspace']);
     await add('Audible', '40', 'GBP', 'yearly');
     expect(savings.textContent).toContain(sentence('€120, $60 and £40'));
     expect(
-      savings.querySelector('.candidate-names')?.textContent?.replace(/\s+/g, ' ').trim(),
-    ).toBe('Adobe · Headspace · Audible');
+      Array.from(getList(savings, 'Review candidates').querySelectorAll('button'), (button) =>
+        button.textContent?.trim(),
+      ),
+    ).toEqual(['Adobe', 'Headspace', 'Audible']);
+    expect(savings.textContent).not.toContain(' · ');
     expect(getFocusableElements(savings)).toHaveLength(3);
     expect(savings.textContent).not.toContain(placeholder);
   });
@@ -2356,7 +2360,7 @@ describe('Insight', () => {
     expect(getRegion(reviewSection, 'Review complete')).toBe(review);
   });
 
-  it('uses focusable native buttons named for the subscriptions and hides separators from AT', async () => {
+  it('uses focusable native pill buttons named for the Review candidates without separators', async () => {
     const { savings } = await prepareNameSelection();
     for (const name of ['Adobe', 'Audible']) {
       const button = getButton(savings, name);
@@ -2367,8 +2371,9 @@ describe('Insight', () => {
       button.focus();
       expect(document.activeElement).toBe(button);
     }
-    const separator = savings.querySelector('.candidate-names [aria-hidden="true"]');
-    expect(separator?.textContent).toBe(' · ');
+    expect(getList(savings, 'Review candidates').querySelectorAll('li')).toHaveLength(2);
+    expect(savings.querySelector('.candidate-names [aria-hidden="true"]')).toBeNull();
+    expect(savings.textContent).not.toContain(' · ');
   });
 
   it('removes a Review candidate immediately when usage changes to Weekly', async () => {

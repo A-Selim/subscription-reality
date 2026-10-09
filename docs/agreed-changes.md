@@ -90,9 +90,9 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 - The only rule is the brief's **review candidate** rule. No other rules for the MVP.
 - It appears in the existing insight box on the savings card:
   - one sentence, with the currency amounts joined: _"You spend €120 and $60 per year on subscriptions you describe as optional and rarely use."_
-  - below it, one muted line of names: _Adobe · Headspace · Audible_. Selecting a name brings that subscription up in the review.
+  - below it, a wrapping row of Review candidate name pills, name only and no separators: _Adobe_, _Headspace_ and _Audible_. Each pill has a rounded border and selecting it brings that subscription up in the review.
 - With no review candidates, the box shows the prototype's placeholder text.
-  - _Why:_ a total with no names doesn't point the user at any subscription. The names line adds very little to the screen.
+  - _Why:_ a total with no names doesn't point the user at any subscription. The pill row adds very little to the screen.
 
 ## 11. CRUD
 

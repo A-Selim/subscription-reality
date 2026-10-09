@@ -115,8 +115,8 @@ Everything survives a refresh, a browser restart and reopening the app.
 ### Insight
 
 69. As a user, I want one plain-language insight when I have **Review candidates** (reason Nice to Have, Convenience or Occasional Use, and usage Rarely or Almost Never), e.g. "You spend €120 and $60 per year on subscriptions you describe as optional and rarely use.", so that I see what my optional, unused subscriptions cost.
-70. As a user, I want the names of those review candidates listed underneath in a muted line (e.g. "Adobe · Headspace · Audible"), so that the insight points at specific subscriptions.
-71. As a user, I want to select a name in that line to bring that subscription up in the review, so that I can act on the insight straight away.
+70. As a user, I want the names of those review candidates listed underneath as separate rounded pill buttons (e.g. "Adobe", "Headspace" and "Audible"), so that the insight points at specific subscriptions.
+71. As a user, I want to select a review candidate pill to bring that subscription up in the review, so that I can act on the insight straight away.
 72. As a user with subscriptions but no review candidates, I want a gentle placeholder saying the review will surface subscriptions that look out of line with how I use them, so that the box isn't empty.
 73. As a user with no subscriptions, I want the insight box to tell me to add subscriptions first, so that I know what unlocks it.
 
@@ -269,7 +269,7 @@ interface AppState {
 - Insight box:
   - no subscriptions → "Add your subscriptions first. Your review insights will appear here."
   - subscriptions but no review candidates → "As you review, we'll surface the subscriptions that look least aligned with how you actually use them."
-  - review candidates → "You spend {amounts joined with ', ' and ' and '} per year on subscriptions you describe as optional and rarely use." plus a muted line of candidate names separated by " · ", each a button.
+  - review candidates → "You spend {amounts joined with ', ' and ' and '} per year on subscriptions you describe as optional and rarely use." plus a wrapping row of review candidate name pills (a labelled list of buttons, name only, rounded border, no separators).
 
 ### Toast
 

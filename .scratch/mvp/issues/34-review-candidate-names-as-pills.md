@@ -1,6 +1,6 @@
 # 34: Review candidate names as pills
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 33
 Test seam: Page seam (pills render as separate buttons, no separators, selection still works)
@@ -20,10 +20,14 @@ Update `docs/agreed-changes.md` › 9 and spec stories 70–71.
 
 ## Acceptance criteria
 
-- [ ] Each review candidate shows as its own pill button with its name only; there are no " · " separators.
-- [ ] Selecting a pill brings that subscription up in the review and moves focus to the review heading, as before.
-- [ ] Text has at least 4.5:1 contrast; the pill border and the focus indicator have at least 3:1.
-- [ ] Pills wrap with no horizontal scroll at 320px width and at 200% text size, including a 40-character name.
-- [ ] The tests that checked the " · " separator now check separate pills.
-- [ ] `docs/agreed-changes.md` › 9 and spec stories 70–71 describe the pills.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Each review candidate shows as its own pill button with its name only; there are no " · " separators.
+- [x] Selecting a pill brings that subscription up in the review and moves focus to the review heading, as before.
+- [x] Text has at least 4.5:1 contrast; the pill border and the focus indicator have at least 3:1.
+- [x] Pills wrap with no horizontal scroll at 320px width and at 200% text size, including a 40-character name.
+- [x] The tests that checked the " · " separator now check separate pills.
+- [x] `docs/agreed-changes.md` › 9 and spec stories 70–71 describe the pills.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+- Pills are a labelled list ("Review candidates") of buttons with a 36px minimum height. That meets the 24px minimum; 44px was only an aim, and 36px keeps the insight box compact. Contrast: text 13.4:1 / 7.9:1, border 8.8:1 / 5.2:1, white focus outline, on the active (#272727) and inactive (#4b4b46) insight boxes. Checked in Chrome: a 40-character name wraps inside its pill at 320px with 200% text.

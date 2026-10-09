@@ -96,26 +96,42 @@ section.active {
 }
 
 .insight .candidate-names {
-  margin-top: 8px;
-  color: #aaa;
-  font-size: 14px;
-  overflow-wrap: anywhere;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.candidate-names li {
+  display: flex;
+  max-width: 100%;
 }
 
 .candidate-names button {
-  padding: 0;
-  border: 0;
-  border-radius: 2px;
+  box-sizing: border-box;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #c7c7c1;
+  border-radius: 999px;
   background: transparent;
-  color: inherit;
+  color: #f3f3ed;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
   overflow-wrap: anywhere;
 }
 
 .candidate-names button:hover {
-  text-decoration: underline;
+  border-color: #f3f3ed;
+  background: #5c5c57;
 }
 
 .candidate-names button:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
