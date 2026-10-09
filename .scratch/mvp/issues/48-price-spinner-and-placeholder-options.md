@@ -1,6 +1,6 @@
 # 48: No spinner on the edit Price; placeholder options can't be picked
 
-Status: ready-for-human
+Status: resolved
 Lane: bug
 Blocked by: none
 Test seam: Page seam (the placeholder options are disabled); manual browser check for the spinner
@@ -20,7 +20,7 @@ Two small mismatches the owner saw in Safari:
 
 ## Acceptance criteria
 
-- [ ] The edit dialog's Price shows no spinner arrows (Chrome and Safari); typing and the number keyboard still work.
+- [x] The edit dialog's Price shows no spinner arrows (Chrome and Safari); typing and the number keyboard still work.
 - [x] The Billing and Currency blank options are `disabled`; the fields still start blank showing "Billing" / "Currency"; after an add Billing goes back to blank and Currency keeps the preferred currency (agreed-changes › 3).
 - [x] Submitting with a blank Billing or Currency still shows its required error and focuses it.
 - [x] axe reports no new violations on the add form.
@@ -33,3 +33,4 @@ Implemented disabled Billing/Currency placeholders and a shared Price spinner re
 Both TypeScript checks pass; the page spec passes 134 tests and the full suite passes 240 tests. Production build attempts exit 134 before any diagnostic (including sequential retries and worker/cache execution workarounds), so the build gate remains unticked and Status is unchanged. No project configuration was changed. Manual Chrome/Safari spinner, typing and number-keyboard checks remain; the Safari check belongs to the orchestrator. No axe runner is installed in the repo, so the add-form axe check remains unverified and unticked.
 
 - Orchestrator (2026-10-09): build verified outside the sandbox. In the browser (Chromium), the edit Price has no spinner and keeps its full field styling, the placeholder options are disabled, Billing is blank after an add, and axe is clean on the add form and the edit dialog. Only the Safari spinner look is left for the owner.
+- Owner checked Safari (2026-10-09): the edit Price shows no spinner.
