@@ -126,6 +126,16 @@ h2 {
     padding: 22px;
     border-radius: 26px;
   }
+
+  .subscription-list {
+    display: grid;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .subscription-list li {
+    min-width: 0;
+  }
 }
 
 .dialog-body h2 {

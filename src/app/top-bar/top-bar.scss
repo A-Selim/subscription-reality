@@ -1,13 +1,16 @@
 .topbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 12px;
   padding: 22px 0;
 }
 
 .brand {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 10px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -25,6 +28,7 @@
 }
 
 .ghost {
+  max-width: 100%;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.65);
