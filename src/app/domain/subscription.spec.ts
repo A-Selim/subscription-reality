@@ -484,6 +484,7 @@ describe('Potential savings and Review decision counts', () => {
 });
 
 describe('Review candidates', () => {
+  const reviewDecisions = [null, 'keep', 'unsure', 'cancel'] as const;
   const candidate: Subscription = {
     id: 'candidate',
     sequence: 0,
@@ -503,14 +504,28 @@ describe('Review candidates', () => {
       const expected =
         ['Nice to Have', 'Convenience', 'Occasional Use'].includes(reason) &&
         ['Rarely', 'Almost Never'].includes(usage);
-      expect(isReviewCandidate({ reason, usage })).toBe(expected);
+      expect(isReviewCandidate({ reason, usage, decision: null })).toBe(expected);
     },
   );
 
-  it('lists candidates in insertion order regardless of Review decision or usage confirmation', () => {
+  it.each(reviewDecisions)('checks %s as the Review decision for a candidate', (decision) => {
+    expect(isReviewCandidate({ reason: 'Nice to Have', usage: 'Rarely', decision })).toBe(
+      decision !== 'cancel',
+    );
+  });
+
+  it('lists undecided, Keep and Unsure candidates in insertion order, but excludes Cancel', () => {
     const later = { ...candidate, sequence: 2, decision: 'keep' as const, usageConfirmed: true };
-    const subscriptions = [later, { ...candidate, usage: 'Daily' as const }, candidate];
-    expect(reviewCandidates(subscriptions)).toEqual([candidate, later]);
+    const unsure = { ...candidate, id: 'unsure', sequence: 3, decision: 'unsure' as const };
+    const cancelled = { ...candidate, id: 'cancelled', sequence: 1, decision: 'cancel' as const };
+    const subscriptions = [
+      later,
+      cancelled,
+      { ...candidate, usage: 'Daily' as const },
+      candidate,
+      unsure,
+    ];
+    expect(reviewCandidates(subscriptions)).toEqual([candidate, later, unsure]);
     expect(subscriptions[0]).toBe(later);
     expect(reviewCandidates([])).toEqual([]);
   });

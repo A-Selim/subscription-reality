@@ -2425,7 +2425,7 @@ describe('Insight', () => {
   it('returns to the first undecided subscription or Review complete after a selected decision', async () => {
     const { fixture, reviewSection, review, select } = await prepareNameSelection();
     await select('Adobe');
-    await decide(fixture, review, 'Cancel');
+    await decide(fixture, review, 'Keep');
     expect(getRegion(reviewSection, 'Cloud')).toBe(review);
     await decide(fixture, review, 'Keep');
     await decide(fixture, review, 'Unsure');
@@ -2437,7 +2437,7 @@ describe('Insight', () => {
 
   it('preserves the Review again pass position after selected candidate decisions', async () => {
     const { fixture, reviewSection, review, select } = await prepareNameSelection();
-    for (const label of ['Keep', 'Unsure', 'Cancel']) await decide(fixture, review, label);
+    for (const label of ['Keep', 'Unsure', 'Keep']) await decide(fixture, review, label);
     getButton(review, 'Review again').click();
     fixture.detectChanges();
     await settlePage();
@@ -2495,6 +2495,48 @@ describe('Insight', () => {
     expect(savings.textContent).toContain(placeholder);
     expect(savings.textContent).not.toContain('You spend');
     expect(savings.textContent).not.toContain('Adobe');
+  });
+
+  it('removes Cancelled candidates from the insight and restores them on Review again', async () => {
+    const { fixture, page, savings, add } = await prepareInsight();
+    await add('Adobe', '10', 'EUR');
+    await add('Headspace', '5', 'USD');
+    const review = getRegion(getRegion(page, 'Would you still subscribe today?'), 'Adobe');
+
+    await decide(fixture, review, 'Cancel');
+    expect(savings.textContent).toContain(sentence('$60'));
+    expect(savings.textContent).not.toContain('Adobe');
+    expect(getButton(savings, 'Headspace')).toBeDefined();
+
+    const decisionCounts = Array.from(getList(savings, 'Review decision counts').children, (line) =>
+      line.textContent?.trim(),
+    );
+    const rarelyUsed = definitionValue(
+      page.querySelector<HTMLElement>('[aria-label="Subscription reality in EUR"]')!,
+      'Rarely used',
+    );
+    expect(decisionCounts).toEqual(['Keep 0', 'Unsure 0', 'Cancel 1']);
+    const potentialSavings = Array.from(
+      getList(savings, 'Potential savings per currency').children,
+      (line) => {
+        const visibleLine = line.cloneNode(true) as HTMLElement;
+        visibleLine.querySelectorAll('.visually-hidden').forEach((text) => text.remove());
+        return visibleLine.textContent?.replace(/\s+/g, ' ').trim();
+      },
+    );
+    expect(potentialSavings).toEqual(['€120 / year', '$0 / year']);
+    expect(rarelyUsed).toBe('1');
+
+    await decide(fixture, review, 'Cancel');
+    expect(savings.textContent).toContain(placeholder);
+    getButton(review, 'Review again').click();
+    fixture.detectChanges();
+    await settlePage();
+    await decide(fixture, review, 'Keep');
+    expect(savings.textContent).toContain(sentence('€120'));
+    await decide(fixture, review, 'Unsure');
+    expect(savings.textContent).toContain(sentence('€120 and $60'));
+    expect(getButton(savings, 'Adobe')).toBeDefined();
   });
 });
 
@@ -2776,15 +2818,10 @@ describe('Delete in the card dialog', () => {
     expect(getList(reloadedRegion, 'Subscriptions').children[2].textContent).toContain(
       'Usage: Rarely',
     );
-    getButton(reloadedSavings, 'Cloud').click();
-    reloaded.fixture.detectChanges();
-    await settlePage();
-    expect(
-      getButton(
-        getRegion(getRegion(reloaded.root, 'Would you still subscribe today?'), 'Cloud'),
-        'Cancel',
-      ).getAttribute('aria-pressed'),
-    ).toBe('true');
+    expect(reloadedSavings.textContent).toContain(
+      "As you review, we'll surface the subscriptions that look least aligned with how you actually use them.",
+    );
+    expect(reloadedSavings.textContent).not.toContain('Cloud');
   });
 
   it('deletes and saves, removes currency reality and Potential savings, and focuses neighbours', async () => {

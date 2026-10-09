@@ -253,8 +253,14 @@ export function decisionCounts(
   );
 }
 
-export function isReviewCandidate(subscription: Pick<Subscription, 'reason' | 'usage'>): boolean {
-  return REVIEW_CANDIDATE_REASONS.includes(subscription.reason) && isRarelyUsed(subscription);
+export function isReviewCandidate(
+  subscription: Pick<Subscription, 'reason' | 'usage' | 'decision'>,
+): boolean {
+  return (
+    subscription.decision !== 'cancel' &&
+    REVIEW_CANDIDATE_REASONS.includes(subscription.reason) &&
+    isRarelyUsed(subscription)
+  );
 }
 
 export function reviewCandidates(subscriptions: readonly Subscription[]): Subscription[] {
