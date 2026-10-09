@@ -1,6 +1,6 @@
 # 40: Edit saves only when Done is pressed
 
-Status: ready-for-agent
+Status: resolved
 Lane: feature
 Blocked by: none
 Test seam: Page seam (migrate the edit dialog tests from ticket 33)
@@ -20,12 +20,20 @@ Today `EditSubscriptionForm` applies and saves every valid change while the user
 
 ## Acceptance criteria
 
-- [ ] Changing the price to a valid value doesn't change the totals or save until Done is pressed. After Done, both update and a reload shows the new price.
-- [ ] Change the price, then press Close (and separately Escape): the dialog closes, nothing changed, nothing saved.
-- [ ] Done with an invalid field keeps the dialog open, shows the toast and focuses the first invalid field.
-- [ ] Reopening shows saved values with no errors.
-- [ ] The hint reads "Changes save when you press Done."
-- [ ] Every close returns focus to the card button.
-- [ ] Ticket 30's rules still hold.
-- [ ] The live-save and restore-on-close tests are replaced, not just deleted.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Changing the price to a valid value doesn't change the totals or save until Done is pressed. After Done, both update and a reload shows the new price.
+- [x] Change the price, then press Close (and separately Escape): the dialog closes, nothing changed, nothing saved.
+- [x] Done with an invalid field keeps the dialog open, shows the toast and focuses the first invalid field.
+- [x] Reopening shows saved values with no errors.
+- [x] The hint reads "Changes save when you press Done."
+- [x] Every close returns focus to the card button.
+- [x] Ticket 30's rules still hold.
+- [x] The live-save and restore-on-close tests are replaced, not just deleted.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Implemented a local edit draft: only changed fields are applied on valid Done; Close, Escape and native close discard without saving. Removed the live-apply effect, opening snapshot and restore-on-destroy callback. The existing annual-cost line previews a valid draft and falls back to saved cost for invalid drafts. Updated the hint and migrated the live-save/restore tests; review decision, usage confirmation and preferred currency remain preserved.
+
+Verified both TypeScript checks, all 131 page-seam tests and the full 230-test suite. The build gate remains unchecked: repeated `npm run build` attempts exit 134 (abort signal) before any diagnostic, including single-worker and development-build attempts. Status remains ready-for-agent until the build gate can be verified. No acceptance criterion requires a separate visual check; native browser Escape/focus behavior is covered at the page seam using the existing jsdom dialog simulation. Backdrop dismissal and header redesign remain outside this change.
+
+- Orchestrator: build verified outside the sandbox (it aborts with exit 134 only inside the Codex sandbox). After review, the unused `SubscriptionsState.restore()` was removed and the rename test checks storage again.

@@ -3,7 +3,6 @@ import {
   computed,
   effect,
   ElementRef,
-  DestroyRef,
   inject,
   input,
   output,
@@ -69,7 +68,9 @@ export class EditSubscriptionForm {
     const saved =
       this.state.subscriptions().find(({ id }) => id === this.subscription().id) ??
       this.subscription();
-    return formatAnnualMoney(annualCost(saved), saved.currency);
+    const draft = this.validDraft();
+    const preview = draft ?? saved;
+    return formatAnnualMoney(annualCost(preview), preview.currency);
   });
   private readonly editModel = signal<SubscriptionFormFields>({
     name: '',
@@ -83,34 +84,19 @@ export class EditSubscriptionForm {
     createSubscriptionFormSchema(this.state.subscriptions, () => this.subscription().id),
   );
 
-  private snapshot: Subscription | null = null;
-  private appliedEditFields!: SubscriptionDetails;
+  private readonly validDraft = computed<SubscriptionDetails | null>(() => {
+    if (this.editForm().invalid()) return null;
+    const { name, price, billingFrequency, currency, reason } = this.editModel();
+    if (price === null || !billingFrequency || !currency) return null;
+    return { name: name.trim(), price, billingFrequency, currency, reason };
+  });
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      if (this.snapshot && this.editForm().invalid()) {
-        this.state.restore(this.snapshot.id, this.snapshot);
-      }
-    });
+    // Deliberately load opening values once; the form is recreated on each open.
     effect(() => {
       untracked(() => {
-        this.snapshot = this.subscription();
-        const { name, price, billingFrequency, currency, reason } = this.snapshot;
-        this.appliedEditFields = this.snapshot;
+        const { name, price, billingFrequency, currency, reason } = this.subscription();
         this.editForm().reset({ name, price, billingFrequency, currency, reason });
-      });
-    });
-    effect(() => {
-      if (this.editForm().invalid()) return;
-      const { name, price, billingFrequency, currency, reason } = this.editModel();
-      if (price === null || !billingFrequency || !currency) return;
-      untracked(() => {
-        const fields = { name: name.trim(), price, billingFrequency, currency, reason };
-        const changes = changedEditFields(this.appliedEditFields, fields);
-        this.appliedEditFields = fields;
-        if (Object.keys(changes).length > 0) {
-          this.state.edit(this.subscription().id, changes);
-        }
       });
     });
   }
@@ -132,6 +118,13 @@ export class EditSubscriptionForm {
       );
       this.editForm[firstInvalid.field]().focusBoundControl();
       return;
+    }
+    const draft = this.validDraft();
+    // Defensive guard in case draft validation changes.
+    if (!draft) return;
+    const changes = changedEditFields(this.subscription(), draft);
+    if (Object.keys(changes).length > 0) {
+      this.state.edit(this.subscription().id, changes);
     }
     this.closed.emit();
   }

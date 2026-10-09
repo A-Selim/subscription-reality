@@ -93,13 +93,6 @@ export class SubscriptionsState {
     });
   }
 
-  // Undo details and usage together: re-estimation must not replace the opening usage.
-  // Review decision, usage confirmation and preferred currency remain untouched.
-  restore(id: string, snapshot: SubscriptionDetails & Pick<Subscription, 'usage'>): void {
-    const { name, price, billingFrequency, currency, reason, usage } = snapshot;
-    this.updateSubscription(id, { name, price, billingFrequency, currency, reason, usage });
-  }
-
   setReason(id: string, reason: Reason): void {
     this.updateSubscription(id, { reason });
   }

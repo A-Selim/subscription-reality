@@ -146,7 +146,7 @@ describe('App page seam', () => {
     return field;
   }
 
-  it('keeps the last valid price in Recurring cost and persistently describes an empty edit price', async () => {
+  it('keeps the saved price in Recurring cost and persistently describes an empty edit price', async () => {
     const { fixture, region, storage } = await openEdit();
     const reality = getRegion(fixture.nativeElement, 'See the reality.');
     const before = reality.textContent;
@@ -161,9 +161,9 @@ describe('App page seam', () => {
     setField(region, editField(region, 'Price').id, '12');
     await settlePage();
     expect(editField(region, 'Price').hasAttribute('aria-describedby')).toBe(false);
-    expect(reality.querySelector('.annual')?.textContent?.trim()).toBe('€264');
-    expect(reality.querySelector('.monthly')?.textContent?.trim()).toBe('€21.99 every month');
-    expect((await storage.load())?.subscriptions[0].price).toBe(12);
+    expect(reality.textContent).toBe(before);
+    expect(region.querySelector('dialog .yearly')?.textContent).toContain('€144');
+    expect((await storage.load())?.subscriptions[0].price).toBe(10);
   });
 
   it.each(['Done', 'Enter'])(
@@ -256,25 +256,25 @@ describe('App page seam', () => {
     setField(region, name.id, 'NETFLIX');
     await settlePage();
     expect(name.getAttribute('aria-invalid')).not.toBe('true');
-    expect((await storage.load())?.subscriptions[1].name).toBe('NETFLIX');
+    expect((await storage.load())?.subscriptions[1].name).toBe('Netflix');
     const editForm = region.querySelector('dialog form')!;
     expect(editForm.hasAttribute('aria-label')).toBe(false);
     expect(editForm.getAttribute('aria-labelledby')).toBe('edit-title');
-    expect(region.querySelector('#edit-title')?.textContent).toBe('Edit NETFLIX');
+    expect(region.querySelector('#edit-title')?.textContent).toBe('Edit Netflix');
     getButton(region, 'Done').click();
     fixture.detectChanges();
     await settlePage();
     expect(getButton(getList(region, 'Subscriptions'), 'NETFLIX')).toBeDefined();
+    expect((await storage.load())?.subscriptions[1].name).toBe('NETFLIX');
   });
 
   for (const close of ['Close', 'Escape', 'native close']) {
-    it(`undoes the whole invalid edit on ${close}, saves, returns focus and reopens clean`, async () => {
+    it(`discards the whole invalid draft on ${close} without saving, returns focus and reopens clean`, async () => {
       const { fixture, region, storage } = await openEdit();
+      const savesBefore = storage.savedStates.length;
       const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
       expect(dialog.open).toBe(true);
-      expect(dialog.textContent).toContain(
-        'Changes save as you type. If you close with an error, all changes are undone.',
-      );
+      expect(dialog.textContent).toContain('Changes save when you press Done.');
       expect(
         Array.from(dialog.querySelectorAll('button'), (button) => button.textContent?.trim()),
       ).toEqual(['Done', 'Close']);
@@ -286,8 +286,8 @@ describe('App page seam', () => {
       setField(region, editField(region, 'Price').id, '12');
       setField(region, editField(region, 'Reason').id, 'Occasional Use');
       await settlePage();
-      expect((await storage.load())?.subscriptions[0].price).toBe(12);
-      expect(dialog.querySelector('.card-price')?.textContent).toContain('12');
+      expect((await storage.load())?.subscriptions[0].price).toBe(10);
+      expect(dialog.querySelector('.yearly')?.textContent).toContain('€144');
       setField(region, editField(region, 'Subscription name').id, '');
       await settlePage();
       getButton(region, 'Done').click();
@@ -298,6 +298,7 @@ describe('App page seam', () => {
       else dialog.close();
       await settlePage();
       expect(dialog.open).toBe(false);
+      expect(storage.savedStates).toHaveLength(savesBefore);
       expect(
         getRegion(fixture.nativeElement as HTMLElement, 'See the reality.').textContent,
       ).toContain('€240');
@@ -328,8 +329,9 @@ describe('App page seam', () => {
         reloadedRegion.querySelector('dialog [role="status"]')?.textContent?.trim(),
       ).toBeFalsy();
     });
-    it(`keeps valid live edits on ${close} and returns focus`, async () => {
+    it(`discards valid drafts on ${close} without saving and returns focus`, async () => {
       const { region, storage } = await openEdit();
+      const savesBefore = storage.savedStates.length;
       setField(region, editField(region, 'Price').id, '12');
       await settlePage();
       const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
@@ -338,16 +340,17 @@ describe('App page seam', () => {
       else dialog.close();
       await settlePage();
       expect(dialog.open).toBe(false);
-      expect((await storage.load())?.subscriptions[0].price).toBe(12);
+      expect(storage.savedStates).toHaveLength(savesBefore);
+      expect((await storage.load())?.subscriptions[0].price).toBe(10);
       expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify'));
       getButton(getList(region, 'Subscriptions'), 'Spotify').click();
       await settlePage();
-      expect(editField(region, 'Price').value).toBe('12');
+      expect(editField(region, 'Price').value).toBe('10');
       expect(region.querySelector('dialog [role="status"]')?.textContent?.trim()).toBeFalsy();
     });
   }
 
-  it('restores all opening details and the original unconfirmed Usage without changing review or currency preferences', async () => {
+  it('discards all draft details and preserves the original unconfirmed Usage without changing review or currency preferences', async () => {
     const { fixture, region, storage } = await prepareEdit();
     const review = getRegion(
       getRegion(fixture.nativeElement, 'Would you still subscribe today?'),
@@ -368,7 +371,7 @@ describe('App page seam', () => {
       setField(region, editField(region, label).id, value);
       await settlePage();
     }
-    expect((await storage.load())?.subscriptions[0].usage).toBe('Rarely');
+    expect(await storage.load()).toEqual(snapshot);
     setField(region, editField(region, 'Price').id, '');
     await settlePage();
     getButton(region, 'Close').click();
@@ -412,15 +415,26 @@ describe('App page seam', () => {
     expect(editField(region, 'Subscription name').value).toBe('Netflix');
   });
 
-  it('updates the reality annual total to €144 while editing a €10 monthly price to €12', async () => {
-    const { fixture, region } = await prepareEdit();
+  it('previews €144 but updates Recurring cost and storage only on Done', async () => {
+    const { fixture, region, storage } = await prepareEdit();
     getButton(getList(region, 'Subscriptions'), 'Spotify').click();
     fixture.detectChanges();
     await settlePage();
+    const savesBefore = storage.savedStates.length;
     setField(region, editField(region, 'Price').id, '12');
     await settlePage();
+    expect(getRegion(fixture.nativeElement, 'See the reality.').textContent).toContain('€120');
+    expect(region.querySelector('dialog .yearly')?.textContent).toContain('€144');
+    expect(storage.savedStates).toHaveLength(savesBefore);
+    getButton(region, 'Done').click();
+    await settlePage();
     expect(getRegion(fixture.nativeElement, 'See the reality.').textContent).toContain('€144');
-    expect(region.querySelector('dialog form')).not.toBeNull();
+    expect(storage.savedStates).toHaveLength(savesBefore + 1);
+    expect((await storage.load())?.subscriptions[0].price).toBe(12);
+    const { root } = await renderApp(storage);
+    expect(getList(getRegion(root, 'Your recurring life.'), 'Subscriptions').textContent).toContain(
+      '€12.00',
+    );
   });
 
   it('preserves a reason changed in Review when the open edit form changes price', async () => {
@@ -435,6 +449,8 @@ describe('App page seam', () => {
     getButton(review, 'Convenience').click();
     await settlePage();
     setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+    getButton(region, 'Done').click();
     await settlePage();
     const saved = await storage.load();
     expect(saved?.subscriptions[0].reason).toBe('Convenience');
@@ -502,6 +518,8 @@ describe('App page seam', () => {
     setField(region, editField(region, 'Price').id, '12');
     setField(region, editField(region, 'Reason').id, 'Occasional Use');
     await settlePage();
+    getButton(region, 'Done').click();
+    await settlePage();
     expect(counts.textContent).toBe(before);
     expect((await storage.load())?.subscriptions[0].decision).toBe('keep');
     getButton(review, 'Review again').click();
@@ -514,6 +532,8 @@ describe('App page seam', () => {
     const { fixture, region, storage } = await openEdit();
     setField(region, editField(region, 'Currency').id, 'USD');
     await settlePage();
+    getButton(region, 'Done').click();
+    await settlePage();
     expect((await storage.load())?.subscriptions[0].currency).toBe('USD');
     fixture.destroy();
     const { root } = await renderApp(storage);
@@ -523,14 +543,18 @@ describe('App page seam', () => {
     expect(addCurrency?.value).toBe('EUR');
   });
 
-  it('updates the subscription annual cost immediately when billing frequency changes', async () => {
+  it('previews draft annual cost and falls back to saved cost when invalid', async () => {
     const { fixture, region } = await prepareEdit();
     getButton(getList(region, 'Subscriptions'), 'Spotify').click();
     fixture.detectChanges();
     await settlePage();
     setField(region, editField(region, 'Billing frequency').id, 'yearly');
     await settlePage();
-    expect(region.querySelector('article')?.textContent).toContain('Annual cost €10');
+    expect(region.querySelector('dialog .yearly')?.textContent).toContain('Annual cost €10');
+    expect(region.querySelector('article')?.textContent).toContain('Annual cost €120');
+    setField(region, editField(region, 'Subscription name').id, '');
+    await settlePage();
+    expect(region.querySelector('dialog .yearly')?.textContent).toContain('Annual cost €120');
   });
 
   it('closes with Done, shows edited values and returns focus to the card button', async () => {
@@ -551,7 +575,7 @@ describe('App page seam', () => {
     );
   });
 
-  it('reloads live edited values even before Done', async () => {
+  it('reloads saved values when a draft has not been submitted', async () => {
     const { fixture, region, storage } = await prepareEdit();
     getButton(getList(region, 'Subscriptions'), 'Spotify').click();
     fixture.detectChanges();
@@ -561,8 +585,8 @@ describe('App page seam', () => {
     fixture.destroy();
     const { root } = await renderApp(storage);
     const card = getList(getRegion(root, 'Your recurring life.'), 'Subscriptions');
-    expect(card.textContent).toContain('€12.00');
-    expect(card.textContent).toContain('Annual cost €144');
+    expect(card.textContent).toContain('€10.00');
+    expect(card.textContent).toContain('Annual cost €120');
   });
 
   it('shows aria-hidden invalid marks only beside invalid add and edit fields', async () => {
@@ -2649,6 +2673,8 @@ describe('Delete in the card dialog', () => {
     fixture.detectChanges();
     await settlePage();
     setField(region, editField(region, 'Reason').id, 'Occasional Use');
+    await settlePage();
+    getButton(region, 'Done').click();
     await settlePage();
     expect((await storage.load())?.subscriptions[2]).toMatchObject({
       decision: 'cancel',
