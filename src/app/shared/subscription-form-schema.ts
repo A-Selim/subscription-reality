@@ -63,7 +63,7 @@ export function createSubscriptionFormSchema(
       return matchingSubscription
         ? {
             kind: 'name',
-            message: `You already have ${matchingSubscription.name}. Add something to tell them apart, like '${matchingSubscription.name} Family'.`,
+            message: `You already have ${matchingSubscription.name}.`,
           }
         : null;
     });

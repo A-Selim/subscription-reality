@@ -1,6 +1,6 @@
 # 46: Short duplicate-name message
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: none
 Test seam: Page seam (add and rename)
@@ -12,6 +12,10 @@ In `shared/subscription-form-schema.ts`, change the duplicate-name message to **
 
 ## Acceptance criteria
 
-- [ ] Adding "netflix " when "Netflix" exists shows "You already have Netflix."
-- [ ] Renaming another subscription to "Netflix" shows the same message.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Adding "netflix " when "Netflix" exists shows "You already have Netflix."
+- [x] Renaming another subscription to "Netflix" shows the same message.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Shortened the shared duplicate-name validation message, with page-seam coverage for adding and renaming. All automated checks pass.

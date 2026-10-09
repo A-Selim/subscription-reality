@@ -263,11 +263,7 @@ describe('App page seam', () => {
     const { region, storage } = await openEdit();
     setField(region, editField(region, 'Subscription name').id, ' netflix ');
     await settlePage();
-    expectEditError(
-      region,
-      'Subscription name',
-      "You already have Netflix. Add something to tell them apart, like 'Netflix Family'.",
-    );
+    expectEditError(region, 'Subscription name', 'You already have Netflix.');
     expect((await storage.load())?.subscriptions.map(({ name }) => name)).toEqual([
       'Spotify',
       'Netflix',
@@ -1251,8 +1247,7 @@ describe('add form validation', () => {
     clickAdd(region);
     fixture.detectChanges();
 
-    const duplicateMessage =
-      "You already have Netflix. Add something to tell them apart, like 'Netflix Family'.";
+    const duplicateMessage = 'You already have Netflix.';
     const name = region.querySelector<HTMLElement>('#subscription-name')!;
     expect(getList(region, 'Subscriptions').querySelectorAll('article')).toHaveLength(1);
     expect(document.activeElement).toBe(name);
