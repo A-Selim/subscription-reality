@@ -45,8 +45,11 @@
             errorText('billingFrequency') ? 'edit-billing-error-' + subscription().id : null
           "
         >
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly</option>
+          @for (billingFrequency of billingFrequencies; track billingFrequency) {
+            <option [value]="billingFrequency">
+              {{ billingFrequencyLabels[billingFrequency] }}
+            </option>
+          }
         </select>
         @if (errorText('billingFrequency'); as error) {
           <span [id]="'edit-billing-error-' + subscription().id" class="visually-hidden">{{

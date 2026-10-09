@@ -9,7 +9,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
-import { CURRENCIES, REASONS, type Currency } from '../domain/subscription';
+import {
+  BILLING_FREQUENCIES,
+  BILLING_FREQUENCY_LABELS,
+  CURRENCIES,
+  REASONS,
+  type Currency,
+} from '../domain/subscription';
 import { SubscriptionsState } from '../state/subscriptions-state';
 import { Toast } from '../toast/toast';
 import {
@@ -18,7 +24,7 @@ import {
   firstInvalidField,
   type ValidatedField,
   type SubscriptionFormFields,
-} from './subscription-form-schema';
+} from '../shared/subscription-form-schema';
 
 function createEmptyFields(preferredCurrency: Currency | null): SubscriptionFormFields {
   return {
@@ -45,6 +51,8 @@ export class AddSubscriptionForm {
   readonly firstSubscriptionAdded = output<void>();
 
   readonly currencies = CURRENCIES;
+  readonly billingFrequencies = BILLING_FREQUENCIES;
+  readonly billingFrequencyLabels = BILLING_FREQUENCY_LABELS;
   readonly reasons = REASONS;
   readonly addModel = signal<SubscriptionFormFields>(
     createEmptyFields(this.subscriptionsState.preferredCurrency()),

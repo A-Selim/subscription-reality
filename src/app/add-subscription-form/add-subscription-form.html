@@ -45,8 +45,9 @@
         "
       >
         <option value="">Billing</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
+        @for (billingFrequency of billingFrequencies; track billingFrequency) {
+          <option [value]="billingFrequency">{{ billingFrequencyLabels[billingFrequency] }}</option>
+        }
       </select>
       @if (errorText('billingFrequency'); as error) {
         <span id="subscription-billing-error" class="visually-hidden">{{ error }}</span>

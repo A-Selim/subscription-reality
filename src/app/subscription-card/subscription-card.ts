@@ -19,9 +19,11 @@ import {
   firstInvalidField,
   type ValidatedField,
   type SubscriptionFormFields,
-} from '../add-subscription-form/subscription-form-schema';
+} from '../shared/subscription-form-schema';
 import {
   annualCost,
+  BILLING_FREQUENCIES,
+  BILLING_FREQUENCY_LABELS,
   billingUnitLabel,
   CURRENCIES,
   formatAnnualMoney,
@@ -31,13 +33,13 @@ import {
   type Subscription,
 } from '../domain/subscription';
 import { Toast } from '../toast/toast';
-import { type NewSubscription, SubscriptionsState } from '../state/subscriptions-state';
+import { type SubscriptionDetails, SubscriptionsState } from '../state/subscriptions-state';
 
 function changedEditFields(
-  previous: NewSubscription,
-  current: NewSubscription,
-): Partial<NewSubscription> {
-  const changes: Partial<NewSubscription> = {};
+  previous: SubscriptionDetails,
+  current: SubscriptionDetails,
+): Partial<SubscriptionDetails> {
+  const changes: Partial<SubscriptionDetails> = {};
   if (current.name !== previous.name) changes.name = current.name;
   if (current.price !== previous.price) changes.price = current.price;
   if (current.billingFrequency !== previous.billingFrequency)
@@ -65,6 +67,8 @@ export class SubscriptionCard {
   readonly opened = output<void>();
   readonly closed = output<void>();
   readonly currencies = CURRENCIES;
+  readonly billingFrequencies = BILLING_FREQUENCIES;
+  readonly billingFrequencyLabels = BILLING_FREQUENCY_LABELS;
   readonly reasons = REASONS;
   readonly monogram = monogram;
   readonly billingUnitLabel = billingUnitLabel;
@@ -86,7 +90,7 @@ export class SubscriptionCard {
     createSubscriptionFormSchema(this.state.subscriptions, () => this.subscription().id),
   );
 
-  private appliedEditFields: NewSubscription | null = null;
+  private appliedEditFields: SubscriptionDetails | null = null;
 
   constructor() {
     effect(() => {

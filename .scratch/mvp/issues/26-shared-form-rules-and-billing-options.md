@@ -1,6 +1,6 @@
 # 26: Shared form rules and billing options
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 25
 Test seam: Page seam (existing add and edit tests stay green, unchanged)
@@ -16,8 +16,8 @@ A mechanical cleanup before more edit-form work. Nothing the user sees changes.
 
 ## Acceptance criteria
 
-- [ ] No file outside the add form imports the form rules from the add form's folder.
-- [ ] Neither template hard-codes the Monthly or Yearly option; the option labels stay "Monthly" and "Yearly".
-- [ ] No `NewSubscription` is left in the code; `SubscriptionDetails` is used for both add and edit.
-- [ ] The existing add and edit tests pass without edits.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] No file outside the add form imports the form rules from the add form's folder.
+- [x] Neither template hard-codes the Monthly or Yearly option; the option labels stay "Monthly" and "Yearly".
+- [x] No `NewSubscription` is left in the code; `SubscriptionDetails` is used for both add and edit.
+- [x] The existing add and edit tests pass without edits.
+- [x] `npm run build` and `npm test -- --watch=false` pass.

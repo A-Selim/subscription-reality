@@ -11,7 +11,7 @@ import {
 } from '../domain/subscription';
 import { AppStorage, UnreadableStateError } from './app-storage';
 
-export type NewSubscription = Pick<
+export type SubscriptionDetails = Pick<
   Subscription,
   'name' | 'price' | 'billingFrequency' | 'currency' | 'reason'
 >;
@@ -62,7 +62,7 @@ export class SubscriptionsState {
     void this.load();
   }
 
-  add(input: NewSubscription): void {
+  add(input: SubscriptionDetails): void {
     this.state.update((current) => ({
       ...current,
       subscriptions: [
@@ -82,7 +82,7 @@ export class SubscriptionsState {
     this.persist();
   }
 
-  edit(id: string, fields: Partial<NewSubscription>): void {
+  edit(id: string, fields: Partial<SubscriptionDetails>): void {
     this.updateSubscription(id, fields);
   }
 
@@ -126,7 +126,9 @@ export class SubscriptionsState {
 
   private updateSubscription(
     id: string,
-    changes: Partial<NewSubscription & Pick<Subscription, 'usage' | 'decision' | 'usageConfirmed'>>,
+    changes: Partial<
+      SubscriptionDetails & Pick<Subscription, 'usage' | 'decision' | 'usageConfirmed'>
+    >,
   ): void {
     this.state.update((current) => ({
       ...current,

@@ -2,6 +2,10 @@ export const CURRENCIES = ['EUR', 'USD', 'GBP', 'EGP'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 export const BILLING_FREQUENCIES = ['monthly', 'yearly'] as const;
 export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
+export const BILLING_FREQUENCY_LABELS: Record<BillingFrequency, string> = {
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+};
 export const REASONS = [
   'Essential',
   'High Value',
