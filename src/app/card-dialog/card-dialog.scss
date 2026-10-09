@@ -21,18 +21,26 @@ dialog::backdrop {
 }
 
 .name {
-  font-size: 18px;
+  margin: 18px 0 0;
+  font-size: 22px;
   font-weight: 800;
   overflow-wrap: anywhere;
 }
 
-.answers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.price-stack {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: end;
 }
 
-button {
+.other-unit {
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+button:not(.close) {
   min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--muted);
@@ -43,8 +51,21 @@ button {
 }
 
 .close {
-  border-color: transparent;
-  text-decoration: underline;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+}
+
+.dialog-close-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 button:focus-visible {

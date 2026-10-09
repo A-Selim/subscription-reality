@@ -20,11 +20,9 @@ import {
   type SubscriptionFormFields,
 } from '../shared/subscription-form-schema';
 import {
-  annualCost,
   BILLING_FREQUENCIES,
   BILLING_FREQUENCY_LABELS,
   CURRENCIES,
-  formatAnnualMoney,
   REASONS,
   type Subscription,
 } from '../domain/subscription';
@@ -64,14 +62,6 @@ export class EditSubscriptionForm {
   readonly billingFrequencies = BILLING_FREQUENCIES;
   readonly billingFrequencyLabels = BILLING_FREQUENCY_LABELS;
   readonly reasons = REASONS;
-  readonly annualCostText = computed(() => {
-    const saved =
-      this.state.subscriptions().find(({ id }) => id === this.subscription().id) ??
-      this.subscription();
-    const draft = this.validDraft();
-    const preview = draft ?? saved;
-    return formatAnnualMoney(annualCost(preview), preview.currency);
-  });
   private readonly editModel = signal<SubscriptionFormFields>({
     name: '',
     price: null,

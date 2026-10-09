@@ -1,6 +1,6 @@
 # 42: Card dialog header: corner Close, larger name, cost in the other unit
 
-Status: ready-for-agent
+Status: ready-for-human
 Lane: small
 Blocked by: 40
 Test seam: Page seam (accessible names unchanged, other-unit text); manual visual check at 1280px and 320px
@@ -18,8 +18,14 @@ Changes to the shared `CardDialog` (affects both edit and delete) and the edit b
 ## Acceptance criteria
 
 - [ ] Both dialogs show a ✕ in the top-right corner with space below it; its accessible name is "Close".
-- [ ] The edit dialog's accessible name is still "Edit {name}", with no visible "Edit {name}" text.
+- [x] The edit dialog's accessible name is still "Edit {name}", with no visible "Edit {name}" text.
 - [ ] The header name is larger in both dialogs and long names don't overflow at 320px.
-- [ ] A monthly subscription shows its annual cost under the price; a yearly one shows its monthly cost.
-- [ ] The delete dialog still focuses Close first.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] A monthly subscription shows its annual cost under the price; a yearly one shows its monthly cost.
+- [x] The delete dialog still focuses Close first.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Built the icon-only Close header, visually hidden edit title, larger dialog name, and saved other-unit cost in the edit header. Page tests cover accessible naming, saved-value updates after Done, yearly/monthly cost conversion, and delete-dialog focus. Check the top-right spacing and long-name wrapping manually at 1280px and 320px.
+
+- Orchestrator: after review, the other-unit cost sits under the header price, comes from the domain helper `otherUnitCostText` (monthly cost keeps cents, e.g. "€8.33 / month"), and the `.answers` wrapper is gone. Status is ready-for-human until the browser check.

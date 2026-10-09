@@ -57,12 +57,15 @@
     [subscription]="savedDialogSubscription()"
     [labelledBy]="dialogConfig().titleId"
     [describedBy]="dialogConfig().descriptionId"
+    [showOtherUnit]="dialogMode() === 'edit'"
     (dismissed)="closeDialog()"
   >
     <div cardDialogBody class="dialog-body">
       @if (dialogSubscription(); as subscription) {
         @if (dialogMode() === 'edit') {
-          <h2 id="edit-title">Edit {{ savedDialogSubscription()?.name }}</h2>
+          <h2 id="edit-title" class="visually-hidden">
+            Edit {{ savedDialogSubscription()?.name }}
+          </h2>
           <app-edit-subscription-form [subscription]="subscription" (closed)="dismissDialog()" />
         } @else {
           <h2 id="delete-question">Did you already cancel {{ subscription.name }}?</h2>

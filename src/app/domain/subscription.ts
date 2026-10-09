@@ -61,6 +61,7 @@ export function billingUnitLabel(frequency: BillingFrequency): string {
 }
 
 type CostInput = Pick<Subscription, 'price' | 'billingFrequency'>;
+type CurrencyCostInput = CostInput & Pick<Subscription, 'currency'>;
 
 export function monthlyCost(subscription: CostInput): number {
   return subscription.billingFrequency === 'monthly' ? subscription.price : subscription.price / 12;
@@ -92,6 +93,12 @@ export function formatMoney(amount: number, currency: Currency): string {
 
 export function formatAnnualMoney(amount: number, currency: Currency): string {
   return formatAmount(amount, currency, amount !== 0 && Math.abs(amount) < 0.5 ? 2 : 0);
+}
+
+export function otherUnitCostText(subscription: CurrencyCostInput): string {
+  return subscription.billingFrequency === 'monthly'
+    ? `${formatAnnualMoney(annualCost(subscription), subscription.currency)} / year`
+    : `${formatMoney(monthlyCost(subscription), subscription.currency)} / month`;
 }
 
 export function estimateUsage(reason: Reason): Usage {

@@ -1,5 +1,11 @@
 import { Component, ElementRef, computed, input, output, viewChild } from '@angular/core';
-import { billingUnitLabel, formatMoney, monogram, type Subscription } from '../domain/subscription';
+import {
+  billingUnitLabel,
+  formatMoney,
+  monogram,
+  otherUnitCostText,
+  type Subscription,
+} from '../domain/subscription';
 
 @Component({
   selector: 'app-card-dialog',
@@ -11,11 +17,18 @@ export class CardDialog {
   readonly dismissed = output<void>();
   readonly labelledBy = input.required<string>();
   readonly describedBy = input<string | null>(null);
+  readonly showOtherUnit = input(false);
   readonly monogram = monogram;
   readonly billingUnitLabel = billingUnitLabel;
   readonly price = computed(() => {
     const subscription = this.subscription();
     return subscription ? formatMoney(subscription.price, subscription.currency) : '';
+  });
+  readonly otherUnit = computed(() => {
+    const subscription = this.subscription();
+    if (!subscription) return '';
+
+    return otherUnitCostText(subscription);
   });
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');

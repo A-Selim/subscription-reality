@@ -9,23 +9,33 @@
 >
   <div class="dialog-body">
     @if (subscription(); as subscription) {
+      <div class="dialog-close-row">
+        <button
+          #closeButton
+          type="button"
+          class="close"
+          autofocus
+          aria-label="Close"
+          (click)="dismiss()"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
       <div class="card-top">
         <span class="monogram" aria-hidden="true">{{ monogram(subscription.name) }}</span>
-        <span class="card-price"
-          >{{ price() }}
-          <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
-        >
+        <div class="price-stack">
+          <span class="card-price"
+            >{{ price() }}
+            <small>/ {{ billingUnitLabel(subscription.billingFrequency) }}</small></span
+          >
+          @if (showOtherUnit()) {
+            <span class="other-unit">{{ otherUnit() }}</span>
+          }
+        </div>
       </div>
       <p class="name">{{ subscription.name }}</p>
     }
     <ng-content select="[cardDialogBody]" />
-    @if (subscription()) {
-      <div class="answers">
-        <ng-content select="[cardDialogActions]" />
-        <button #closeButton type="button" class="close" autofocus (click)="dismiss()">
-          Close
-        </button>
-      </div>
-    }
+    <ng-content select="[cardDialogActions]" />
   </div>
 </dialog>

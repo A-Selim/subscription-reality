@@ -25,6 +25,7 @@ import {
   formatMoney,
   monthlyCost,
   monogram,
+  otherUnitCostText,
   type Currency,
   type Reason,
   type Subscription,
@@ -75,6 +76,26 @@ describe('money formatting', () => {
 
   it('groups thousands in en-US style', () => {
     expect(formatMoney(1234.5, 'EUR')).toBe('€1,234.50');
+  });
+});
+
+describe('other-unit cost text', () => {
+  it('shows annual cost for monthly billing', () => {
+    expect(otherUnitCostText({ price: 10, billingFrequency: 'monthly', currency: 'EUR' })).toBe(
+      '€120 / year',
+    );
+  });
+
+  it('keeps cents in monthly cost for yearly billing', () => {
+    expect(otherUnitCostText({ price: 100, billingFrequency: 'yearly', currency: 'EUR' })).toBe(
+      '€8.33 / month',
+    );
+  });
+
+  it('formats an evenly divided yearly cost with cents', () => {
+    expect(otherUnitCostText({ price: 120, billingFrequency: 'yearly', currency: 'EUR' })).toBe(
+      '€10.00 / month',
+    );
   });
 });
 
