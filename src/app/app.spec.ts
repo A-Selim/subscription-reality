@@ -102,6 +102,19 @@ function setField(root: HTMLElement, id: string, value: string): void {
   }
 }
 
+function stubDialogRect(dialog: HTMLDialogElement): void {
+  vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(new DOMRect(100, 100, 420, 300));
+}
+
+function clickDialogBackdrop(dialog: HTMLDialogElement): void {
+  clickDialogAt(dialog, 50, 50);
+}
+
+function clickDialogAt(dialog: HTMLDialogElement, clientX: number, clientY: number): void {
+  dialog.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX, clientY }));
+  dialog.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX, clientY }));
+}
+
 describe('App page seam', () => {
   async function prepareEdit() {
     const { fixture, region, storage } = await prepareAddForm();
@@ -349,6 +362,42 @@ describe('App page seam', () => {
       expect(region.querySelector('dialog [role="status"]')?.textContent?.trim()).toBeFalsy();
     });
   }
+
+  it('discards an edit draft on a backdrop click and returns focus to the card', async () => {
+    const { region, storage } = await openEdit();
+    const savesBefore = storage.savedStates.length;
+    const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
+    stubDialogRect(dialog);
+    setField(region, editField(region, 'Price').id, '12');
+    await settlePage();
+
+    clickDialogBackdrop(dialog);
+    await settlePage();
+
+    expect(dialog.open).toBe(false);
+    expect(storage.savedStates).toHaveLength(savesBefore);
+    expect(document.activeElement).toBe(getButton(getList(region, 'Subscriptions'), 'Spotify'));
+    getButton(getList(region, 'Subscriptions'), 'Spotify').click();
+    await settlePage();
+    expect(editField(region, 'Price').value).toBe('10');
+  });
+
+  it('does not close an edit dialog from its padding or a field drag ending on the backdrop', async () => {
+    const { region } = await openEdit();
+    const dialog = region.querySelector<HTMLDialogElement>('dialog')!;
+    stubDialogRect(dialog);
+
+    clickDialogAt(dialog, 110, 110);
+    expect(dialog.open).toBe(true);
+
+    const name = editField(region, 'Subscription name');
+    name.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true, clientX: 120, clientY: 120 }),
+    );
+    dialog.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 50, clientY: 50 }));
+    await settlePage();
+    expect(dialog.open).toBe(true);
+  });
 
   it('discards all draft details and preserves the original unconfirmed Usage without changing review or currency preferences', async () => {
     const { fixture, region, storage } = await prepareEdit();
@@ -2539,7 +2588,7 @@ describe('Delete in the card dialog', () => {
     return { ...context, open, answer };
   }
 
-  it('names the delete buttons and modal, focuses Close, and only Close or Escape dismiss without saving', async () => {
+  it('names the delete buttons and modal, focuses Close, and dismisses without saving', async () => {
     const { region, storage, fixture, open, answer } = await prepareDelete();
     const { trigger, dialog } = await open('Spotify');
     expect(trigger.previousElementSibling?.tagName).toBe('H3');
@@ -2554,8 +2603,13 @@ describe('Delete in the card dialog', () => {
     ).toBe("Deleting it here doesn't stop the payment.");
     expect(document.activeElement).toBe(getButton(dialog, 'Close'));
     const saves = storage.savedStates.length;
-    dialog.click();
-    expect(dialog.open).toBe(true);
+    stubDialogRect(dialog);
+    clickDialogBackdrop(dialog);
+    await settlePage();
+    expect(dialog.open).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    expect(storage.savedStates).toHaveLength(saves);
+    await open('Spotify');
     await answer(dialog, 'Close');
     expect(dialog.open).toBe(false);
     expect(document.activeElement).toBe(trigger);

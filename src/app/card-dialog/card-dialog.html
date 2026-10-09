@@ -4,6 +4,8 @@
   [attr.aria-describedby]="subscription() ? describedBy() : null"
   (cancel)="dismiss($event)"
   (close)="dismissed.emit()"
+  (pointerdown)="recordBackdropPointerDown($event)"
+  (click)="dismissOnBackdropClick($event)"
 >
   <div class="dialog-body">
     @if (subscription(); as subscription) {

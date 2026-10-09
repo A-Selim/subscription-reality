@@ -1,6 +1,6 @@
 # 41: A click outside the card dialog closes it
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: 40
 Test seam: Page seam (backdrop click closes; drag from an input ending outside does not)
@@ -17,8 +17,12 @@ Only treat it as a backdrop click when **both** the pointerdown and the click la
 
 ## Acceptance criteria
 
-- [ ] Clicking the backdrop closes the edit dialog without saving and returns focus to the card button.
-- [ ] Clicking the backdrop closes the delete dialog without changes and returns focus to the ✕.
-- [ ] Clicks inside the dialog (including its padding) don't close it.
-- [ ] Pressing inside a field and releasing over the backdrop doesn't close it.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] Clicking the backdrop closes the edit dialog without saving and returns focus to the card button.
+- [x] Clicking the backdrop closes the delete dialog without changes and returns focus to the ✕.
+- [x] Clicks inside the dialog (including its padding) don't close it.
+- [x] Pressing inside a field and releasing over the backdrop doesn't close it.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Card dialogs now close through the existing dismiss path only when both pointerdown and click land outside the dialog rectangle. Page-seam coverage verifies edit and delete dismissal, padding clicks, and field drags ending on the backdrop.

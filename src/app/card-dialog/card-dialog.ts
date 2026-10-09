@@ -19,6 +19,7 @@ export class CardDialog {
   });
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');
+  private pointerDownOnBackdrop = false;
 
   open(): void {
     this.dialog().nativeElement.showModal();
@@ -28,5 +29,28 @@ export class CardDialog {
   dismiss(event?: Event): void {
     event?.preventDefault();
     this.dialog().nativeElement.close();
+  }
+
+  // The press must also start on the backdrop, so a drag that ends there doesn't close the dialog.
+  recordBackdropPointerDown(event: MouseEvent): void {
+    this.pointerDownOnBackdrop = this.isBackdropEvent(event);
+  }
+
+  dismissOnBackdropClick(event: MouseEvent): void {
+    const pointerDownOnBackdrop = this.pointerDownOnBackdrop;
+    this.pointerDownOnBackdrop = false;
+    if (pointerDownOnBackdrop && this.isBackdropEvent(event)) this.dismiss();
+  }
+
+  private isBackdropEvent(event: MouseEvent): boolean {
+    const dialog = this.dialog().nativeElement;
+    if (event.target !== dialog) return false;
+    const bounds = dialog.getBoundingClientRect();
+    return (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    );
   }
 }
