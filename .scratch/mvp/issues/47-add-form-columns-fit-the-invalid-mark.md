@@ -1,9 +1,9 @@
 # 47: Add form columns fit their text next to the invalid mark
 
-Status: ready-for-agent
+Status: resolved
 Lane: small
 Blocked by: none
-Test seam: Manual (browser measurement at 961–1300px in the invalid state); existing tests must pass
+Test seam: Manual (browser measurement at 981–1300px in the invalid state); existing tests must pass
 Spec: Owner decision (2026-10-09): "fix narrow add form by decreasing subscription name form field". `docs/agreed-changes.md` › 2 (Layout).
 
 ## Why
@@ -21,6 +21,12 @@ Nothing else changes.
 
 ## Acceptance criteria
 
-- [ ] From 981px up, with every field invalid, "Name e.g. Spotify", "Billing", "Monthly", "Currency" and "Work / Learning" are not clipped by the mark, the chevron or the field edge.
-- [ ] At 980px and below the form uses two columns, and under 560px one column, with no horizontal scroll.
-- [ ] `npm run build` and `npm test -- --watch=false` pass.
+- [x] From 981px up, with every field invalid, "Name e.g. Spotify", "Billing", "Monthly", "Currency" and "Work / Learning" are not clipped by the mark, the chevron or the field edge.
+- [x] At 980px and below the form uses two columns, and under 560px one column, with no horizontal scroll.
+- [x] `npm run build` and `npm test -- --watch=false` pass.
+
+## Comments
+
+Updated the one-row add-form column weights and moved the two-column breakpoint to 980px. The invalid-state layout at 981–1300px and responsive layout without horizontal scroll need a manual browser check.
+
+- Orchestrator browser check (2026-10-09, Chromium): with every field invalid, the tightest width is 981px. Name, Billing, Monthly and Work / Learning fit with room to spare, and Currency fits by 0.5px. 980px and 561px give two columns, 559px and 375px give one, with no horizontal scroll.

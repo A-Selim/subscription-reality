@@ -37,8 +37,8 @@
 .form-grid {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.7fr) minmax(0, 0.75fr)
-    minmax(0, 1fr);
+    minmax(0, 1.1fr) minmax(0, 0.85fr) minmax(0, 0.85fr) minmax(0, 0.88fr)
+    minmax(0, 1.02fr);
   gap: 10px;
 }
 
@@ -119,7 +119,7 @@
   text-align: center;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 980px) {
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
