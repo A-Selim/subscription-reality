@@ -43,8 +43,8 @@ let nextFieldId = 0;
     .invalid-field-mark {
       position: absolute;
       top: 50%;
-      /* Keeps the mark clear of the select chevron. */
-      inset-inline-end: 36px;
+      /* Chevron: 18px inset + 12px width; this leaves a 10px gap before the mark. */
+      inset-inline-end: 40px;
       display: grid;
       width: 18px;
       height: 18px;
@@ -90,5 +90,6 @@ export class SubscriptionControl {
   private readonly element = inject(ElementRef<HTMLInputElement | HTMLSelectElement>);
   readonly isTextInput = this.element.nativeElement.tagName === 'INPUT';
 
-  private readonly invalidEndPadding = this.isTextInput ? '42px' : '64px';
+  // Select padding leaves 10px after the 18px mark at its 40px inset.
+  private readonly invalidEndPadding = this.isTextInput ? '42px' : '68px';
 }

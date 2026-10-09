@@ -1,3 +1,5 @@
+@use '../shared/subscription-select' as subscription-select;
+
 .edit-fields {
   display: grid;
   gap: 8px;
@@ -14,6 +16,10 @@
   background: white;
   color: var(--ink);
   font-size: max(1rem, 16px);
+}
+
+.edit-fields select {
+  @include subscription-select.control;
 }
 
 .edit-fields input:focus,
