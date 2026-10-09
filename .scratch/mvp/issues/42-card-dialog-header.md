@@ -13,7 +13,7 @@ Changes to the shared `CardDialog` (affects both edit and delete) and the edit b
 - **Close** becomes a ✕ icon button with `aria-label="Close"`, alone on its own row in the top-right corner, with space below it before the card header. It keeps its role: focused first in the delete dialog, closes the dialog. Touch target at least 44px.
 - **Name** in the header is larger (about 22px, was 18px), in both dialogs. Long names still wrap.
 - **Edit title:** "Edit {name}" (`#edit-title`) is visually hidden, not removed. It stays the dialog's accessible name.
-- **Other unit under the price (edit dialog only):** under the header price, show "€120 / year" when billing is monthly and "€10 / month" when billing is yearly. It uses the draft when valid, otherwise the saved values (the preview from ticket 40). Remove the old "Annual cost …" line at the bottom of the edit form.
+- **Other unit under the price (edit dialog only):** under the header price, show "€120 / year" when billing is monthly and "€10 / month" when billing is yearly. Like the price above it, it shows the **saved** values and updates after Done (orchestrator decision, 2026-10-09: a draft preview under a saved price would mix two states). Remove the old "Annual cost …" line at the bottom of the edit form, and with it the draft preview from ticket 40.
 
 ## Acceptance criteria
 
