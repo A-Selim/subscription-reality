@@ -74,6 +74,7 @@ export class RecurringLife {
     trigger: SubscriptionCard,
   ): void {
     if (this.dialogSubscription()) return;
+    this.deleteOnClose = false;
     this.dialogMode.set(mode);
     this.dialogTrigger = trigger;
     this.dialogSubscription.set(subscription);
