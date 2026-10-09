@@ -36,4 +36,4 @@ Run on 2026-10-09. Codex took one ticket per run, in number order, on each ticke
 
 - [x] Full `npm test -- --watch=false` and `npm run build` on the final tree.
 - [x] Owner: Safari look of the dropdowns (ticket 43).
-- [ ] Owner: decide on point 2 above.
+- [x] Owner: decide on point 2 above (fixed in ticket 47, a7b45f5).
