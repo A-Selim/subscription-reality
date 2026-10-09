@@ -105,6 +105,7 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
   - **Yes, delete it:** closes the dialog, deletes the subscription and saves. Focus moves to the next card, otherwise the previous. If none remain, reveal the add form and focus its name field.
   - **Not yet, keep it:** keeps it and sets its decision to _Cancel_, so it counts toward potential savings.
   - **Close** and Escape close without changes or saving and return focus to the originating ✕. Focus starts on Close; the modal traps focus and makes the page inert. A backdrop click closes it like Close (owner decision, 2026-10-09).
+  - **Button layout:** _Yes, delete it_ sits on the left edge and _Not yet, keep it_ on the right, with the free space between them (they stack when the dialog is too narrow). _Yes, delete it_ uses the theme's soft red (`--red` text and border on `--red-soft`, as the prototype's review Cancel button), because it removes something; _Not yet, keep it_ stays neutral (owner decision, 2026-10-09).
   - _Why:_ deleting from the app doesn't cancel the real subscription.
 
 ## Storage (new)

@@ -151,6 +151,7 @@ h2 {
 .dialog-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: 10px;
 }
 
@@ -162,6 +163,17 @@ h2 {
   background: var(--paper);
   color: var(--ink);
   font-weight: 700;
+}
+
+.dialog-actions .delete {
+  border-color: var(--red);
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.dialog-actions .delete:hover {
+  background: var(--red);
+  color: white;
 }
 
 .dialog-actions button:focus-visible {
