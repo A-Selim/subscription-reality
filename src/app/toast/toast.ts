@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 
-export const TOAST_DURATION_MS = 2500;
+export const TOAST_DURATION_MS = 1500;
 export const TOAST_FADE_MS = 180;
 
 export type ToastVariant = 'success' | 'error';

@@ -278,7 +278,7 @@ interface AppState {
 
 ### Toast
 
-- One toast component, rendered as a polite live region (`role="status"`). It sits above the relevant form's submit button, aligned with its left edge, at most 360px wide including padding and border, and fills the available width on narrower screens. Validation errors stay until the user changes the reported field or another toast replaces them. Success toasts ("Subscription added") use the same component and hide after 2.5 seconds. The toast doesn't steal focus.
+- One toast component, rendered as a polite live region (`role="status"`). It sits above the relevant form's submit button, aligned with its left edge, at most 360px wide including padding and border, and fills the available width on narrower screens. Validation errors stay until the user changes the reported field or another toast replaces them. Success toasts ("Subscription added") use the same component and hide after 1.5 seconds. The toast doesn't steal focus.
 
 ## Testing Decisions
 
