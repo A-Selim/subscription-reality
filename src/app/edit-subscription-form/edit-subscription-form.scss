@@ -1,4 +1,5 @@
 @use '../shared/subscription-select' as subscription-select;
+@use '../shared/subscription-price' as subscription-price;
 
 .edit-fields {
   display: grid;
@@ -21,6 +22,10 @@
   background: white;
   color: var(--ink);
   font-size: max(1rem, 16px);
+}
+
+.edit-fields input[type='number'] {
+  @include subscription-price.control;
 }
 
 .edit-fields select {

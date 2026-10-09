@@ -47,7 +47,7 @@
           [class.is-empty]="!addModel().billingFrequency"
           [formField]="addForm.billingFrequency"
         >
-          <option value="">Billing</option>
+          <option value="" disabled>Billing</option>
           @for (billingFrequency of billingFrequencies; track billingFrequency) {
             <option [value]="billingFrequency">
               {{ billingFrequencyLabels[billingFrequency] }}
@@ -68,7 +68,7 @@
           [class.is-empty]="!addModel().currency"
           [formField]="addForm.currency"
         >
-          <option value="">Currency</option>
+          <option value="" disabled>Currency</option>
           @for (currency of currencies; track currency) {
             <option [value]="currency">{{ currency }}</option>
           }

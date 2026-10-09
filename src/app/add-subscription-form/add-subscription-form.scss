@@ -1,4 +1,5 @@
 @use '../shared/subscription-select' as subscription-select;
+@use '../shared/subscription-price' as subscription-price;
 
 .primary {
   display: inline-flex;
@@ -68,14 +69,7 @@
 }
 
 .field-group input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.field-group input[type='number']::-webkit-inner-spin-button,
-.field-group input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  @include subscription-price.control;
 }
 
 .field-group select {

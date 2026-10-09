@@ -858,7 +858,7 @@ describe('App page seam', () => {
     }
   });
 
-  it('shows the compact form placeholders and blank select options', async () => {
+  it('shows the compact form placeholders with disabled blank select options selected', async () => {
     const { region } = await prepareAddForm();
     const name = region.querySelector<HTMLInputElement>('#subscription-name');
     const price = region.querySelector<HTMLInputElement>('#subscription-price');
@@ -869,8 +869,14 @@ describe('App page seam', () => {
     expect(price?.placeholder).toBe('Price');
     expect(billing?.options[0]?.text).toBe('Billing');
     expect(billing?.options[0]?.value).toBe('');
+    expect(billing?.options[0]?.disabled).toBe(true);
+    expect(billing?.options[0]?.selected).toBe(true);
+    expect(billing?.value).toBe('');
     expect(currency?.options[0]?.text).toBe('Currency');
     expect(currency?.options[0]?.value).toBe('');
+    expect(currency?.options[0]?.disabled).toBe(true);
+    expect(currency?.options[0]?.selected).toBe(true);
+    expect(currency?.value).toBe('');
   });
 
   it('updates blank select styling as values are selected and after adding', async () => {
@@ -894,8 +900,12 @@ describe('App page seam', () => {
     await settlePage();
 
     expect(billing?.value).toBe('');
+    expect(billing?.selectedOptions[0]?.text).toBe('Billing');
+    expect(billing?.selectedOptions[0]?.disabled).toBe(true);
     expect(billing?.classList.contains('is-empty')).toBe(true);
     expect(currency?.value).toBe('EUR');
+    expect(currency?.selectedOptions[0]?.text).toBe('EUR');
+    expect(currency?.options[0]?.disabled).toBe(true);
     expect(currency?.classList.contains('is-empty')).toBe(false);
   });
 
