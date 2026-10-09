@@ -244,7 +244,6 @@ interface AppState {
 ### Edit and delete
 
 - Selecting a card (a button, keyboard-operable) opens the native card dialog named "Edit {name}" with the five creation fields. Its header shows saved values and focus starts on the name field. Every list card stays in read view with its ✕.
-- Changes apply live: whenever the whole edit form is valid, the subscription is updated and saved, so totals update as the user edits. While any field is invalid, the last valid values stay in effect and the field shows its error.
 - Edits are a draft until **Done**. Done with a valid form applies, saves and closes; with an invalid form it stays open, the toast shows the error and focus moves to the invalid field. Close, Escape and a backdrop click always close and discard the draft. Every close returns focus to the card button; reopening shows saved values without errors. The hint reads: "Changes save when you press Done."
 - Editing never changes `decision`, `usageConfirmed` or the preferred currency. Changing the reason re-estimates usage while `usageConfirmed` is false. After that, usage is untouched.
 - An always-visible **✕** button in each card’s read view opens the native modal **card dialog**, rendered once by the recurring-life section. It follows the card button in tab order, has a 44px target and visible focus, and reserves space above the price. The shell shares the card header styling and projects either the edit or delete body.
