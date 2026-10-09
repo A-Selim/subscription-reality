@@ -12,7 +12,7 @@ Run on 2026-10-09. Codex took one ticket per run, in number order, on each ticke
 | 43 select chevron spacing            | small   | ready-for-human (Safari check) | 05b5fec          |
 | 44 edit field spacing                | small   | resolved                       | 3a32961          |
 | 45 cancelled not review candidates   | small   | resolved                       | 267e9c4          |
-| 46 short duplicate-name message      | small   | resolved                       | (this commit)    |
+| 46 short duplicate-name message      | small   | resolved                       | bae72e5          |
 
 ## Review notes
 
