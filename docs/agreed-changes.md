@@ -27,7 +27,7 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 - **Name** is trimmed, required, at most 40 characters, and **unique**, compared ignoring case and surrounding spaces (`netflix ` clashes with `Netflix`). Price, billing and currency don't count. Renaming an existing subscription to a taken name is blocked too.
   - _Why:_ two accounts for the same service are told apart by name, e.g. _Netflix_ and _Netflix Family_.
 - **Price** must be greater than 0, with at most 2 decimal places.
-- **Validation errors** show as a centred toast just above the form's Add button, not in the bottom-right corner. It is at most 360px wide including padding and border, and fills the available width on narrower screens. The invalid field gets a red outline and receives focus, and screen readers announce the toast. Error toasts stay until the user changes the reported field or another toast replaces them; success confirmations hide after 2.5 seconds. Duplicate example: _"You already have Netflix. Add something to tell them apart, like 'Netflix Family'."_
+- **Validation errors** show as a toast just above the form's Add button, aligned with its left edge, not in the bottom-right corner (owner decision, 2026-10-09; the edit dialog's toast likewise sits left-aligned above Done). It is at most 360px wide including padding and border, and fills the available width on narrower screens. The invalid field gets a red outline and a red round "!" mark (white glyph, regular weight; at the end of Name and Price, just before the chevron on selects) and receives focus, and screen readers announce the toast. Error toasts stay until the user changes the reported field or another toast replaces them; success confirmations hide after 2.5 seconds. Duplicate example: _"You already have Netflix."_ (shortened by the owner, 2026-10-09: the outlined, focused field already shows what to fix).
   - _Why:_ the error appears where the user is already looking, and it's accessible.
 
 ## 3. Currency
@@ -88,6 +88,7 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 ## 9. Simple insights
 
 - The only rule is the brief's **review candidate** rule. No other rules for the MVP.
+- A subscription with the _Cancel_ decision is never a review candidate: the user has already acted on it (owner decision, 2026-10-09). Undecided, _Keep_ and _Unsure_ ones still qualify. When every one is cancelled, the box goes back to the placeholder.
 - It appears in the existing insight box on the savings card:
   - one sentence, with the currency amounts joined: _"You spend €120 and $60 per year on subscriptions you describe as optional and rarely use."_
   - below it, a wrapping row of Review candidate name pills, name only and no separators: _Adobe_, _Headspace_ and _Audible_. Each pill has a rounded border and selecting it brings that subscription up in the review.
@@ -96,13 +97,14 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 
 ## 11. CRUD
 
-- **Edit:** selecting a card opens the native modal card dialog named "Edit {name}", showing the fields entered at creation (name, price, billing, currency and reason). Totals update as the user edits.
-- The edit dialog header shows saved values; focus starts on the name field. Done closes only when valid; otherwise it shows the error toast and focuses the first invalid field. Close and Escape always close: valid changes stay; with any invalid field, all details and usage return to the values from opening and are saved. Reopening starts with saved values and no errors. Every close returns focus to the card button. The hint reads: "Changes save as you type. If you close with an error, all changes are undone."
+- **Edit:** selecting a card opens the native modal card dialog named "Edit {name}", showing the fields entered at creation (name, price, billing, currency and reason). The "Edit {name}" heading is visually hidden (it stays as the dialog's accessible name); the subscription name in the header is larger.
+- **Changes save only on Done** (owner decision, 2026-10-09, replacing save-as-you-type). Done applies and saves when valid; otherwise it shows the error toast and focuses the first invalid field. Close, Escape and a backdrop click always close and discard the draft. Totals update only after Done. Reopening starts with saved values and no errors. Every close returns focus to the card button. The hint reads: "Changes save when you press Done."
+- **Card dialog header** (both dialogs): a ✕ Close button (accessible name "Close") sits alone in the top-right corner with space below it. Under the price, the edit dialog shows the other unit: _"€120 / year"_ under a monthly price, _"€10 / month"_ under a yearly one, updating live from a valid draft.
 - Editing keeps the review decision, usage confirmation and preferred currency.
 - **Delete:** every card in read view has an always-visible ✕ button named _"Delete {name}"_, separate from the edit button. It opens a native modal **card dialog** owned by the recurring-life section, with the card’s monogram, price and name. It asks _"Did you already cancel {name}? Deleting it here doesn't stop the payment."_
   - **Yes, delete it:** closes the dialog, deletes the subscription and saves. Focus moves to the next card, otherwise the previous. If none remain, reveal the add form and focus its name field.
   - **Not yet, keep it:** keeps it and sets its decision to _Cancel_, so it counts toward potential savings.
-  - **Close** and Escape close without changes or saving and return focus to the originating ✕. Focus starts on Close; the modal traps focus and makes the page inert. Backdrop clicks do nothing.
+  - **Close** and Escape close without changes or saving and return focus to the originating ✕. Focus starts on Close; the modal traps focus and makes the page inert. A backdrop click closes it like Close (owner decision, 2026-10-09).
   - _Why:_ deleting from the app doesn't cancel the real subscription.
 
 ## Storage (new)

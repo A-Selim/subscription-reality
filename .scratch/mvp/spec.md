@@ -46,7 +46,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 16. As a user, I want to change the currency on any subscription I add, so that I can track payments in EUR, USD, GBP and EGP.
 17. As a user, I want the preferred currency to change only when I actually create a subscription, not when I just change the dropdown, so that abandoned input doesn't change my default.
 18. As a user, I want the name trimmed and limited to 40 characters, so that cards stay tidy.
-19. As a user, I want to be stopped from adding a name I already have (ignoring case and surrounding spaces), with the message "You already have Netflix. Add something to tell them apart, like 'Netflix Family'.", so that I don't create accidental duplicates but can still track two accounts.
+19. As a user, I want to be stopped from adding a name I already have (ignoring case and surrounding spaces), with the short message "You already have Netflix.", so that I don't create accidental duplicates but can still track two accounts.
 20. As a user, I want the price to be required, greater than 0 and to have at most 2 decimal places, so that my totals are meaningful.
 21. As a user, I want name, price, billing frequency and currency to be required, so that every subscription can be costed.
 22. As a user, I want validation errors to appear as a toast just above the form's Add button, so that the error appears where I'm already looking.
@@ -114,7 +114,7 @@ Everything survives a refresh, a browser restart and reopening the app.
 
 ### Insight
 
-69. As a user, I want one plain-language insight when I have **Review candidates** (reason Nice to Have, Convenience or Occasional Use, and usage Rarely or Almost Never), e.g. "You spend €120 and $60 per year on subscriptions you describe as optional and rarely use.", so that I see what my optional, unused subscriptions cost.
+69. As a user, I want one plain-language insight when I have **Review candidates** (reason Nice to Have, Convenience or Occasional Use, usage Rarely or Almost Never, and no Cancel decision), e.g. "You spend €120 and $60 per year on subscriptions you describe as optional and rarely use.", so that I see what my optional, unused subscriptions cost.
 70. As a user, I want the names of those review candidates listed underneath as separate rounded pill buttons (e.g. "Adobe", "Headspace" and "Audible"), so that the insight points at specific subscriptions.
 71. As a user, I want to select a review candidate pill to bring that subscription up in the review, so that I can act on the insight straight away.
 72. As a user with subscriptions but no review candidates, I want a gentle placeholder saying the review will surface subscriptions that look out of line with how I use them, so that the box isn't empty.
@@ -181,20 +181,26 @@ Data shape (a decision shape, adapted from the prototype's stored state):
 ```ts
 type Currency = 'EUR' | 'USD' | 'GBP' | 'EGP';
 type BillingFrequency = 'monthly' | 'yearly';
-type Reason = 'Essential' | 'High Value' | 'Convenience' | 'Nice to Have' | 'Occasional Use' | 'Work / Learning';
+type Reason =
+  | 'Essential'
+  | 'High Value'
+  | 'Convenience'
+  | 'Nice to Have'
+  | 'Occasional Use'
+  | 'Work / Learning';
 type Usage = 'Daily' | 'Weekly' | 'Monthly' | 'Rarely' | 'Almost Never';
 type ReviewDecision = 'keep' | 'unsure' | 'cancel';
 
 interface Subscription {
   id: string;
-  sequence: number;           // insertion order; never reused. Drives ordering, not timestamps
-  name: string;               // trimmed
+  sequence: number; // insertion order; never reused. Drives ordering, not timestamps
+  name: string; // trimmed
   price: number;
   billingFrequency: BillingFrequency;
   currency: Currency;
   reason: Reason;
   usage: Usage;
-  usageConfirmed: boolean;    // true only once the user records a decision in the review
+  usageConfirmed: boolean; // true only once the user records a decision in the review
   decision: ReviewDecision | null; // null = undecided
 }
 
@@ -229,7 +235,7 @@ interface AppState {
 - Built with Signal Forms and schema-based validation. The same form model and schema are reused for editing.
 - Initial values: name empty, price empty, billing frequency blank, currency = preferred currency (blank if none), reason _Essential_.
 - On a successful add: create the subscription with estimated usage and `decision: null`; set the preferred currency to its currency; show a "Subscription added" toast; reset name, price and billing to blank; keep reason _Essential_ and currency = preferred currency.
-- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"`, and focus. A toast just above the Add button shows and announces the error. Each invalid field is also linked by `aria-describedby` to its own visually hidden error text, which stays until the field is valid again. Error toasts stay until the user changes the reported field or another toast replaces them. Duplicate-name copy: _"You already have {existing name}. Add something to tell them apart, like '{existing name} Family'."_
+- On validation failure: nothing is added. The first invalid field (in form order) gets a red outline, `aria-invalid="true"`, and focus. A toast just above the Add button shows and announces the error. Each invalid field is also linked by `aria-describedby` to its own visually hidden error text, which stays until the field is valid again. Error toasts stay until the user changes the reported field or another toast replaces them. Duplicate-name copy: _"You already have {existing name}."_
 - The muted helper line at the bottom of the add box says usage is estimated from the reason and can be refined in the review.
 - Layout (ticket 07b, see agreed-changes §2): one row of five fields on wide screens, two columns under 960px, one column under 560px, at the form's current width. Labels are visually hidden but present (the billing label stays _"Billing frequency"_); placeholders are _"Name e.g. Spotify"_ and _"Price"_ and return when a field is emptied; the blank select options read _"Billing"_ and _"Currency"_; Reason names are not renamed for layout; the heading _"Add a subscription"_ is visually hidden. The submit button is _"Add subscription"_.
 - The empty state shows the add form after "Add your first subscription" (progressive disclosure, as in the prototype). With subscriptions present, the add form stays visible under the card list. "Start adding" in the top bar scrolls to the section, reveals the add form if it's still hidden, then focuses the name field.
@@ -239,10 +245,10 @@ interface AppState {
 
 - Selecting a card (a button, keyboard-operable) opens the native card dialog named "Edit {name}" with the five creation fields. Its header shows saved values and focus starts on the name field. Every list card stays in read view with its ✕.
 - Changes apply live: whenever the whole edit form is valid, the subscription is updated and saved, so totals update as the user edits. While any field is invalid, the last valid values stay in effect and the field shows its error.
-- A **Done** button closes the edit form. If the form is invalid when Done is pressed, it stays open, the toast shows the error and focus moves to the invalid field. Close and Escape always close. With a valid form, changes stay; with any invalid field, all details and usage return to their opening values and are saved. Every close returns focus to the card button; reopening shows saved values without errors. The hint reads: "Changes save as you type. If you close with an error, all changes are undone."
+- Edits are a draft until **Done**. Done with a valid form applies, saves and closes; with an invalid form it stays open, the toast shows the error and focus moves to the invalid field. Close, Escape and a backdrop click always close and discard the draft. Every close returns focus to the card button; reopening shows saved values without errors. The hint reads: "Changes save when you press Done."
 - Editing never changes `decision`, `usageConfirmed` or the preferred currency. Changing the reason re-estimates usage while `usageConfirmed` is false. After that, usage is untouched.
 - An always-visible **✕** button in each card’s read view opens the native modal **card dialog**, rendered once by the recurring-life section. It follows the card button in tab order, has a 44px target and visible focus, and reserves space above the price. The shell shares the card header styling and projects either the edit or delete body.
-- The dialog’s accessible name is _"Did you already cancel {name}?"_ and its description is _"Deleting it here doesn't stop the payment."_ It offers **Yes, delete it**, **Not yet, keep it**, and **Close**. Focus starts on Close; native `showModal()` traps focus and makes the page behind it inert. Close and Escape dismiss without changes or saving and return focus to the originating ✕; backdrop clicks do nothing. Reopening has no earlier answer.
+- The dialog’s accessible name is _"Did you already cancel {name}?"_ and its description is _"Deleting it here doesn't stop the payment."_ It offers **Yes, delete it**, **Not yet, keep it**, and **Close**. Focus starts on Close; native `showModal()` traps focus and makes the page behind it inert. Close and Escape dismiss without changes or saving and return focus to the originating ✕; a backdrop click does the same. Reopening has no earlier answer.
 - Yes closes the dialog before deleting and saving. Focus goes to the next card, otherwise the previous. With none remaining, reveal the add form and focus its name field. Reality cards and Potential savings lines disappear when their currency is emptied; reusing that currency places its reality card at the end. Review again reads the remaining list, and deleting a selected insight Review candidate clears the pick.
 - **Not yet, keep it** keeps the subscription and sets the Review decision to Cancel without confirming usage (ticket 32); it closes the dialog and returns focus to the ✕.
 
@@ -273,7 +279,7 @@ interface AppState {
 
 ### Toast
 
-- One toast component, rendered as a polite live region (`role="status"`). It is centred above the relevant form's submit button, at most 360px wide including padding and border, and fills the available width on narrower screens. Validation errors stay until the user changes the reported field or another toast replaces them. Success toasts ("Subscription added") use the same component and hide after 2.5 seconds. The toast doesn't steal focus.
+- One toast component, rendered as a polite live region (`role="status"`). It sits above the relevant form's submit button, aligned with its left edge, at most 360px wide including padding and border, and fills the available width on narrower screens. Validation errors stay until the user changes the reported field or another toast replaces them. Success toasts ("Subscription added") use the same component and hide after 2.5 seconds. The toast doesn't steal focus.
 
 ## Testing Decisions
 
@@ -305,12 +311,12 @@ The agreed documents leave these points open. The spec settles them as below, af
 
 1. **Reason change in the review** never re-estimates usage. Only the edit form does, and only while `usageConfirmed` is false.
 2. **Usage confirmation is stored** as `usageConfirmed` and set only by a decision in the review. _Not yet, keep it_ sets Cancel without confirming usage.
-3. **Edits apply live** whenever the whole edit form is valid. **Done** closes the dialog and is blocked while the form is invalid. Close and Escape keep valid edits, or undo the whole session (including usage) when any field is invalid.
+3. **Edits save only on Done** (owner decision, 2026-10-09). Done is blocked while the form is invalid. Close, Escape and a backdrop click discard the draft.
 4. **Currency card order** is first-used among _current_ subscriptions. Deleting every subscription in a currency drops its card, and reusing that currency later puts its card at the end.
 5. **Before the first subscription**, the reality section, the review section and the savings card are dimmed, not `inert`. Their text stays readable to screen readers and meets AA contrast.
 6. **Insight name selection** can bring up an already-decided subscription. After the next decision, the review goes back to where it was: an active _Review again_ pass continues from its position, otherwise the first undecided one.
 7. **Amount joining** for 3+ currencies uses commas and a final "and": "€120, $60 and £40".
-8. **Duplicate-name toast** uses the existing subscription's name in both places ("You already have Netflix. … like 'Netflix Family'.").
+8. **Duplicate-name toast** is short and names the existing subscription ("You already have Netflix.").
 9. **Zero savings** shows one zero line for each currency that has subscriptions.
 10. **Annual rounding** uses whole units, except that a non-zero amount that would round to zero shows cents (decided by the owner).
 11. **Review again** reads the live list: a subscription added mid-pass appears at the end of the same pass.

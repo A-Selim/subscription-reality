@@ -67,7 +67,7 @@ The annual cost of all subscriptions with the Cancel decision, per currency.
 _Avoid_: Savings, saved
 
 **Review candidate**:
-A subscription whose reason is Nice to Have, Convenience or Occasional Use and whose usage is Rarely or Almost Never.
+A subscription whose reason is Nice to Have, Convenience or Occasional Use, whose usage is Rarely or Almost Never, and whose review decision is not Cancel.
 _Avoid_: Wasteful subscription, flagged
 
 ### Storage

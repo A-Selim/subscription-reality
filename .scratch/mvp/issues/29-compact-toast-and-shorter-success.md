@@ -30,3 +30,5 @@ Update the toast wording in `docs/agreed-changes.md` › 2 and in `.scratch/mvp/
 ## Comments
 
 - Open for the owner: at desktop width the toast (at most 360px) is centred in the form, while the Add subscription button is left-aligned, so the toast doesn't sit right over the button. If it should line up with the button instead, change `justify-self` in `toast.scss`.
+
+- 2026-10-09: The owner chose a left-aligned toast instead of a centred one. Tracked in ticket 39, which will tick the open box above.
