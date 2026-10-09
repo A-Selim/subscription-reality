@@ -24,3 +24,4 @@ Spec: Owner decision (2026-10-09). `docs/agreed-changes.md` › 2 (custom chevro
 Shared select styling now gives the add form and edit dialog the same custom chevron and spacing. The invalid select marker and end padding were retuned to keep a visible gap. Chrome and Safari still need a manual visual check.
 
 - Orchestrator: added a forced-colors fallback to the native arrow. Status is ready-for-human until the browser check, which must include the add form just above 960px, where an invalid blank Billing or Currency select is narrowest.
+- Orchestrator browser check (2026-10-09, Chromium only): chevrons have clear space in both forms, and the mark and chevron never overlap. Safari is not checked yet, so this stays ready-for-human. Known edge: just above 960px, an invalid blank Billing select clips its placeholder ("Billin…") under the mark. Rebalancing the column weights is the owner's call (agreed-changes › 2).
