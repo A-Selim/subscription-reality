@@ -122,4 +122,4 @@ Decided on 2026-09-30, after ticket 09 and the research in [`research/browser-st
 ## Later (out of MVP scope)
 
 - **One total in a chosen currency:** let the user pick a currency and show every total converted into it. This needs exchange rates, and the source is still open. The brief lists currency conversion as out of scope for the MVP.
-- **Export and import a JSON file:** let the user download their data as a file and load it back. It's the only way, with no server, to keep a copy that survives clearing site data. The UI and the logic (merge or replace, validation, where the buttons go) still need a discussion. Tracked as ticket 29, at the end of the project.
+- **Export and import a JSON file:** let the user download their data as a file and load it back. It's the only way, with no server, to keep a copy that survives clearing site data. The UI and the logic (merge or replace, validation, where the buttons go) still need a discussion. Tracked as ticket 36, at the end of the project.

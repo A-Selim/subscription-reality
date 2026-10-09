@@ -1,8 +1,8 @@
-# 25: Edit keeps decisions and currency
+# 30: Edit keeps decisions and currency
 
 Status: ready-for-agent
 Lane: feature
-Blocked by: 24
+Blocked by: 29
 Test seam: Page seam; domain seam for re-estimating usage
 Spec: `.scratch/mvp/spec.md` › User Stories 34–35, 78–79; Implementation Decisions › Edit and delete (fourth bullet), Domain module (re-estimating usage); Further Notes 2
 

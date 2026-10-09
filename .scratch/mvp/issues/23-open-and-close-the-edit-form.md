@@ -12,7 +12,7 @@ Selecting a subscription card (a keyboard-operable button) turns that card into 
 
 Changes apply live: while the whole form is valid, each change updates and saves the subscription, so totals update as the user edits. A **Done** button closes the form, and focus returns to the card.
 
-In this ticket, assume valid input. Invalid input and Done blocking are ticket 24. Decision, usage and preferred-currency rules are ticket 25.
+In this ticket, assume valid input. Invalid input and Done blocking are ticket 24. Decision, usage and preferred-currency rules are ticket 30.
 
 ## Acceptance criteria
 

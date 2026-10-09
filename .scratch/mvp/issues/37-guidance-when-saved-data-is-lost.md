@@ -1,4 +1,4 @@
-# 30: Guidance when saved data can't be loaded
+# 37: Guidance when saved data can't be loaded
 
 Status: needs-info
 Blocked by: 09
@@ -15,7 +15,7 @@ The owner's idea (2026-09-30): when the app can't load the saved data, the stora
   - The data is unreadable, with or without a backup copy.
   - The backup copy failed.
 - Should the notice suggest reloading the page first, before re-adding?
-- If the user re-adds subscriptions and the old data comes back later, what happens? This connects to ticket 29 (import, merge or replace).
+- If the user re-adds subscriptions and the old data comes back later, what happens? This connects to ticket 36 (import, merge or replace).
 - Should the notice include an action, for example a button that focuses the add form, or stay text only?
 - What copy works for each case, and does it stay calm and short?
 - Note: data that the browser or the user cleared can't be detected. It looks like a first visit, so no notice can show for it.

@@ -1,7 +1,7 @@
-# 29: Export and import a JSON file
+# 36: Export and import a JSON file
 
 Status: needs-info
-Blocked by: 28
+Blocked by: 35
 Spec: `docs/agreed-changes.md` › Later (Export and import a JSON file); research in `docs/research/browser-storage.md` (section on options beyond browser storage)
 
 ## Why
