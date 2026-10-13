@@ -8,7 +8,7 @@ Researched 2026-09-30 for the question: "Which is best, localStorage or IndexedD
 - **Switching between localStorage and IndexedDB doesn't change that.** Both live in the same origin storage and follow the same eviction and persistence rules [[MDN-quota]](#sources) [[web.dev]](#sources).
 - **Keep IndexedDB.** It's already built, it's async, and it stores objects directly. localStorage is strings only and has no locking between tabs [[HTML]](#sources) [[MDN-ls]](#sources).
 - **Call `navigator.storage.persist()` after the first successful save.** Don't call it on page load, because Firefox shows a permission prompt [[MDN-quota]](#sources). This protects against automatic eviction, not against the user clearing data [[web.dev]](#sources).
-- **For a real safety net, add Export/Import of a JSON file.** It needs no dependencies. Only a backend with sync gives a stronger guarantee, and it adds a lot of complexity.
+- **Only a copy outside the browser is fully safe.** That means a file the user saves, or a backend with sync. Both are outside the MVP scope.
 
 ## 1. localStorage vs IndexedDB
 
@@ -67,8 +67,7 @@ Options beyond browser storage:
    - Data is present but unreadable: show the "couldn't be read" notice. The current adapter already does the backup.
    - `persist()` returns `false`: no notice.
    - Silent eviction or user clearing: can't be detected, so no notice is possible.
-5. **Consider a later ticket for Export/Import JSON.** It's the only zero-dependency way to give users a copy that survives clearing site data, and it reuses the existing `isAppState` validator on import.
-6. **Known risks, not ticket-09 work:**
+5. **Known risks, not ticket-09 work:**
    - Two open tabs each `put` the whole state under `current`, so the last write wins and silently overwrites the other tab. Neither API prevents this.
    - The adapter has no `onblocked` or `onversionchange` handler. That will matter the first time the database version is bumped [[MDN-idb]](#sources).
 

@@ -10,7 +10,7 @@ The host is not connected yet (2026-10-13). This file lists what any host must d
 
 ## Keep one origin
 
-Saved data lives in the browser's IndexedDB, which belongs to one origin (scheme + domain + port). If the app later moves to another domain or subdomain, users open an empty app and their data stays behind at the old address. Choose the final domain before people start using it. If it must change, plan the move first (a JSON export, listed under Later in `docs/agreed-changes.md`, would be the only way to carry data over).
+Saved data lives in the browser's IndexedDB, which belongs to one origin (scheme + domain + port). If the app later moves to another domain or subdomain, users open an empty app and their data stays behind at the old address. Choose the final domain before people start using it.
 
 ## Content-Security-Policy
 

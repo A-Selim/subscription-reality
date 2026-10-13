@@ -296,7 +296,7 @@ interface AppState {
 
 - Authentication, backend, sync across devices.
 - Bank connections and automatic subscription detection.
-- Currency conversion, and one combined total in a chosen currency (listed under _Later_ in agreed-changes).
+- Currency conversion, and one combined total in a chosen currency.
 - Payments, notifications, AI, complex analytics, charts, social sharing.
 - Routing or multiple pages.
 - Insight rules other than the review candidate rule.

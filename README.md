@@ -69,9 +69,3 @@ src/app/
 | [`docs/deployment.md`](docs/deployment.md)               | Hosting requirements, security headers, caching         |
 | [`docs/research/`](docs/research/)                       | Background research (browser storage)                   |
 | [`docs/prototype/index.html`](docs/prototype/index.html) | Visual reference prototype                              |
-
-## Roadmap
-
-- Export and import your data as a JSON file, the only way to keep a backup with no server.
-- Clearer guidance when saved data can't be loaded.
-- Optional single total converted into one chosen currency.
