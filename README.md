@@ -10,7 +10,7 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
-![Demo: adding subscriptions, a yearly total of €828, cancelling two in the review for €660 of potential annual savings, then reloading with the data still there](docs/images/demo.gif)
+![Demo in four steps: add your subscriptions, see the real yearly cost of €828, review them one by one (keep one, cancel two), and see €660 of potential annual savings](docs/images/demo.gif)
 
 ## The problem
 
