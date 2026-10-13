@@ -10,6 +10,9 @@ Sections follow the brief's numbering. Each change carries a one-line reason. Te
 
 - The app is one scrolling page, as in the prototype: hero, _Your recurring life_, _See the reality_, then the review next to the savings card. It has no router. See [ADR 0001](adr/0001-single-page-no-routing.md).
   - _Why:_ the brief asks for no dashboard navigation, and the flow reads as one story.
+- **Top bar brand is bigger than the prototype:** the name is 20px with a 38px mark on desktop, and 18px with a 34px mark at 560px wide and below (owner decision, 2026-10-14).
+  - _Why:_ at body size the name looked small next to the hero.
+- **The tab icon is the brand mark:** a white "S" on the `--ink` rounded square (`public/favicon.svg`), with a square 180px `apple-touch-icon.png` for iOS. If `--ink` changes, update both files by hand.
 
 ## 2. Subscription: the add form
 
