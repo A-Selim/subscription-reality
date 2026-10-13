@@ -1,14 +1,12 @@
 # Subscription Reality
 
-> Small monthly payments feel cheap. Annual recurring spending often tells a different story.
+**Small monthly payments feel cheap. Annual recurring spending often tells a different story.**
 
 A small, privacy-first web app that shows what your subscriptions really cost per year and helps you decide which ones are still worth keeping. No account, no backend, no bank connection: your data never leaves the browser.
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
-<p align="center">
-  <img src="docs/images/app-overview.png" alt="Subscription Reality: subscription cards, a yearly total of €1,539, and the review card next to €826 of potential annual savings" width="720">
-</p>
+![Subscription Reality: subscription cards, a yearly total of €1,539, and the review card next to €826 of potential annual savings](docs/images/app-overview.png)
 
 ## The problem
 
