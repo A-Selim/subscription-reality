@@ -6,7 +6,7 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
-![Subscription Reality: subscription cards, a yearly total of €1,539, and the review card next to €826 of potential annual savings](docs/images/app-overview.png)
+![The yearly total of €1,539 with a before and after comparison, the review card for one subscription, and €826 of potential annual savings with an insight](docs/images/app-overview.png)
 
 ## The problem
 
@@ -20,6 +20,8 @@ People pay for many small subscriptions. Each one feels cheap on its own, so the
 - **Potential savings:** subscriptions marked Cancel add up to an annual savings figure per currency. A rule-based insight names subscriptions you describe as optional and rarely use.
 - **Edit and delete in place:** deleting asks whether you've actually cancelled with the provider, because removing a subscription from the app doesn't stop the payment.
 - **Persistent and accessible:** data is saved in IndexedDB and survives refreshes and restarts. The UI targets WCAG AA and passes axe checks.
+
+![Subscription cards with monthly price, annual cost, reason and usage, above the quick add form](docs/images/subscription-cards.png)
 
 ## Engineering highlights
 
