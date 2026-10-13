@@ -1,5 +1,7 @@
 # Subscription Reality
 
+[![CI](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml/badge.svg)](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml)
+
 **Small monthly payments feel cheap. Annual recurring spending often tells a different story.**
 
 A small, privacy-first web app that shows what your subscriptions really cost per year and helps you decide which ones are still worth keeping. No account, no backend, no bank connection: your data never leaves the browser.
@@ -8,7 +10,7 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
-![The yearly total of €1,539 with a before and after comparison, the review card for one subscription, and €826 of potential annual savings with an insight](docs/images/app-overview.png)
+![Demo: adding a subscription, then reviewing each one with Keep, Unsure or Cancel while potential annual savings grow to €826](docs/images/demo.gif)
 
 ## The problem
 
@@ -24,6 +26,8 @@ People pay for many small subscriptions. Each one feels cheap on its own, so the
 - **Persistent and accessible:** data is saved in IndexedDB and survives refreshes and restarts. The UI targets WCAG AA and passes axe checks.
 
 ![Subscription cards with monthly price, annual cost, reason and usage, above the quick add form](docs/images/subscription-cards.png)
+
+![The yearly total of €1,539 with a before and after comparison, the review card for one subscription, and €826 of potential annual savings with an insight](docs/images/app-overview.png)
 
 ## Engineering highlights
 
@@ -45,6 +49,15 @@ npm test -- --watch=false
 - Most tests render the whole page and use it as a user would: they find regions, buttons and fields by their accessible names, so a broken label fails a test. A shared helper renders the app on the in-memory storage, and rendering it again on the same storage simulates a reload.
 - The domain rules and the load-time validation have their own unit tests.
 - Accessibility is checked by hand with axe on each key state (empty, several currencies, review in progress, dialog open, storage notice).
+
+## How it was built
+
+This project was built with an AI-assisted workflow. I acted as the product owner and made every product decision. AI agents did the planning support, the implementation and the review, under written rules.
+
+1. **Brief and decisions.** I wrote the [product brief](docs/project-brief.md) and a [visual prototype](docs/prototype/index.html). Decisions made after the brief are recorded in [`docs/agreed-changes.md`](docs/agreed-changes.md), and the domain words in [`CONTEXT.md`](CONTEXT.md).
+2. **Plan.** Claude Code turned them into a [spec with user stories](.scratch/mvp/spec.md) and 51 small tickets in [`.scratch/mvp/issues/`](.scratch/mvp/issues/), each with acceptance criteria and an agreed test seam.
+3. **Build.** OpenAI Codex implemented one ticket at a time, test first, following the rules in [`AGENTS.md`](AGENTS.md).
+4. **Review.** Claude Code re-ran the tests and the build, checked each change against the coding rules and against its ticket, and checked layout, keyboard use and axe results in a real browser before committing.
 
 ## Tech stack
 
@@ -92,6 +105,8 @@ src/app/
 | [`docs/deployment.md`](docs/deployment.md)               | Hosting requirements, security headers, caching         |
 | [`docs/research/`](docs/research/)                       | Background research (browser storage)                   |
 | [`docs/prototype/index.html`](docs/prototype/index.html) | Visual reference prototype                              |
+| [`AGENTS.md`](AGENTS.md)                                 | Rules the AI agents follow in this repo                 |
+| [`.scratch/mvp/`](.scratch/mvp/)                         | Spec and the resolved tickets                           |
 
 ## License
 
