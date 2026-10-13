@@ -90,3 +90,7 @@ src/app/
 | [`docs/deployment.md`](docs/deployment.md)               | Hosting requirements, security headers, caching         |
 | [`docs/research/`](docs/research/)                       | Background research (browser storage)                   |
 | [`docs/prototype/index.html`](docs/prototype/index.html) | Visual reference prototype                              |
+
+## License
+
+[MIT](LICENSE) © 2026 Ahmed Selim
