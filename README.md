@@ -10,7 +10,7 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
-![Demo: adding a subscription, then reviewing each one with Keep, Unsure or Cancel while potential annual savings grow to €826](docs/images/demo.gif)
+![Demo: adding subscriptions, a yearly total of €828, cancelling two in the review for €660 of potential annual savings, then reloading with the data still there](docs/images/demo.gif)
 
 ## The problem
 
@@ -34,7 +34,7 @@ People pay for many small subscriptions. Each one feels cheap on its own, so the
 - **Pure domain layer.** Costs, usage estimates, the review queue, savings and insights are plain TypeScript functions in `domain/subscription.ts`, with no Angular imports. They are tested directly and reused by every component.
 - **Signals end to end.** One `SubscriptionsState` service owns the state in signals. Components derive what they show with `computed()`, and the app runs zoneless with OnPush by default.
 - **Ports and adapters for storage.** Components never touch IndexedDB. They go through an `AppStorage` port: IndexedDB in the app, an in-memory fake in tests. Saves run one at a time, so an older save can never overwrite a newer one.
-- **No silent data loss.** Stored data is validated field by field on load with the same rules the forms use. Unreadable data is copied to a backup key before anything overwrites it, and a calm notice tells the user. If storage fails, the app keeps working for the visit and says so.
+- **Careful with stored data.** Stored data is validated field by field on load with the same rules the forms use. If it can't be read, the app copies it to a separate safety key in IndexedDB and a calm notice tells the user. If storage fails, the app keeps working for the visit and says so.
 - **Accessibility by design.** Every control has a real label. Focus moves on purpose: to the totals after the first add, and back to the card after a dialog closes. Native `<dialog>` traps focus, and status changes are announced through live regions.
 - **Security.** User text is only rendered through Angular's escaping bindings. The production build ships a hash-based Content-Security-Policy (`security.autoCsp`), and [`public/_headers`](public/_headers) adds the rest of the policy and the security headers on the host.
 - **Small and fast.** No runtime dependencies beyond Angular. The initial bundle is about 75 kB compressed.
