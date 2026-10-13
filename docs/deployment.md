@@ -1,6 +1,6 @@
 # Deployment
 
-The host is not chosen yet (2026-10-09). This file lists what any host must do, so the choice only adds the host's own config syntax. When a host is picked, add its config file to the repo and record the choice here.
+The host is not connected yet (2026-10-13). This file lists what any host must do. The headers and caching below are already in [`public/_headers`](../public/_headers), a file Cloudflare and Netlify read from the build output. The build copies it to `dist/subscription-reality/browser/_headers`. If a header changes, update both files. Record the host here when it is connected.
 
 ## What we deploy
 
@@ -10,7 +10,7 @@ The host is not chosen yet (2026-10-09). This file lists what any host must do, 
 
 ## Keep one origin
 
-Saved data lives in the browser's IndexedDB, which belongs to one origin (scheme + domain + port). If the app later moves to another domain or subdomain, users open an empty app and their data stays behind at the old address. Choose the final domain before people start using it. If it must change, plan the move first (the JSON export in ticket 36 is the only way to carry data over).
+Saved data lives in the browser's IndexedDB, which belongs to one origin (scheme + domain + port). If the app later moves to another domain or subdomain, users open an empty app and their data stays behind at the old address. Choose the final domain before people start using it. If it must change, plan the move first (a JSON export, listed under Later in `docs/agreed-changes.md`, would be the only way to carry data over).
 
 ## Content-Security-Policy
 

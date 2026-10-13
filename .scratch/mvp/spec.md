@@ -1,6 +1,6 @@
 # Spec — Subscription Reality MVP
 
-Status: ready-for-agent
+Status: resolved
 
 Sources: `docs/project-brief.md`, `docs/agreed-changes.md` (wins on conflict), `docs/prototype/index.html` (visual reference), `CONTEXT.md` (vocabulary), ADR 0001 (single page, no router).
 
