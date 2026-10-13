@@ -1,6 +1,6 @@
 # Deployment
 
-The host is not connected yet (2026-10-13). This file lists what any host must do. The headers and caching below are already in [`public/_headers`](../public/_headers), a file Cloudflare and Netlify read from the build output. The build copies it to `dist/subscription-reality/browser/_headers`. If a header changes, update both files. Record the host here when it is connected.
+Hosted on **Cloudflare Pages** at https://subscription-reality.pages.dev/ (connected 2026-10-14). Every push to `main` builds and deploys; other branches get a preview URL. Pages settings: framework preset None, build command `npm run build`, build output directory `dist/subscription-reality/browser`, environment variable `NODE_VERSION=24.21.0` (the project needs Node `^22.22.3`, `^24.15.0` or `>=26`; the first build failed without an exact version). The headers and caching below are in [`public/_headers`](../public/_headers), which the build copies to the output folder. If a header changes, update both files.
 
 ## What we deploy
 
