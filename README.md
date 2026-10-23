@@ -6,7 +6,7 @@
 
 A small, privacy-first web app that shows what your subscriptions really cost per year and helps you decide which ones are still worth keeping. No account, no backend, no bank connection: your data never leaves the browser.
 
-**Live demo: [subscription-reality.pages.dev](https://subscription-reality.pages.dev/)**
+**Live demo: [a-selim.github.io/subscription-reality](https://a-selim.github.io/subscription-reality/)**
 
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
@@ -36,7 +36,7 @@ People pay for many small subscriptions. Each one feels cheap on its own, so the
 - **Ports and adapters for storage.** Components never touch IndexedDB. They go through an `AppStorage` port: IndexedDB in the app, an in-memory fake in tests. Saves run one at a time, so an older save can never overwrite a newer one.
 - **Careful with stored data.** Stored data is validated field by field on load with the same rules the forms use. If it can't be read, the app copies it to a separate safety key in IndexedDB and a calm notice tells the user. If storage fails, the app keeps working for the visit and says so.
 - **Accessibility by design.** Every control has a real label. Focus moves on purpose: to the totals after the first add, and back to the card after a dialog closes. Native `<dialog>` traps focus, and status changes are announced through live regions.
-- **Security.** User text is only rendered through Angular's escaping bindings. The production build ships a hash-based Content-Security-Policy (`security.autoCsp`), and [`public/_headers`](public/_headers) adds the rest of the policy and the security headers on the host.
+- **Security.** User text is only rendered through Angular's escaping bindings. The production build ships a hash-based Content-Security-Policy (`security.autoCsp`). The static host sends no extra security headers; see [hosting and headers](docs/deployment.md).
 - **Small and fast.** No runtime dependencies beyond Angular. The initial bundle is about 75 kB compressed.
 
 ## Testing
