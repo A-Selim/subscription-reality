@@ -10,7 +10,7 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 Try it: add three subscriptions you pay for and see your yearly total. Nothing to sign up for.
 
-Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
+Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
 ![Demo in four steps: add your subscriptions, see the real yearly cost of €828, review them one by one (keep one, cancel two), and see €660 of potential annual savings](docs/images/demo.gif)
 
@@ -45,8 +45,8 @@ On a phone:
 
 - **Modern Angular 22.** Standalone components, signals end to end, Signal Forms, zoneless change detection with OnPush by default.
 - **Clean architecture.** Business rules are pure TypeScript in `domain/subscription.ts` with no Angular imports. Storage sits behind an `AppStorage` port: IndexedDB in the app, an in-memory fake in tests.
-- **Tested like a user.** 248 tests. Most render the whole page and find controls by their accessible names, so a broken label fails a test.
-- **Accessible.** WCAG AA target and axe-clean: real labels, focus that moves on purpose, native `<dialog>` and live regions for status changes.
+- **Tested at page level.** 248 tests. Most render the whole page and check what a user sees, from adding a subscription to the review. They find sections by their headings and buttons by their names, and separate tests check that every add and edit field has a real label.
+- **Accessible.** WCAG AA target, checked by hand with axe: real labels, focus that moves on purpose, native `<dialog>` and live regions for status changes.
 - **Safe with data.** Stored data is validated field by field on load. Unreadable data is backed up, never overwritten, and saves run in order so an older save can't win.
 - **Secure by default.** User text only goes through Angular's escaping bindings, and the build ships a hash-based Content-Security-Policy (`security.autoCsp`). See [hosting and headers](docs/deployment.md).
 - **Small and fast.** No runtime dependencies beyond Angular. The initial bundle is about 75 kB compressed.
@@ -58,7 +58,7 @@ npm test -- --watch=false
 ```
 
 - **248 tests** with Vitest and jsdom, through `@angular/build:unit-test`.
-- Most tests render the whole page and use it as a user would: they find regions, buttons and fields by their accessible names, so a broken label fails a test. A shared helper renders the app on the in-memory storage, and rendering it again on the same storage simulates a reload.
+- Most tests render the whole page in jsdom and check what a user sees: totals, savings, dialogs and where focus goes. They find sections by their headings and buttons by their names, and fill form fields directly. Separate tests check that every add and edit field has a real label, so a broken label fails a test. A shared helper renders the app on the in-memory storage, and rendering it again on the same storage simulates a reload.
 - The domain rules and the load-time validation have their own unit tests.
 - Accessibility is checked by hand with axe on each key state (empty, several currencies, review in progress, dialog open, storage notice).
 
@@ -76,7 +76,7 @@ This project was built with an AI-assisted workflow. I acted as the product owne
 | Area      | Choice                                                             |
 | --------- | ------------------------------------------------------------------ |
 | Framework | Angular 22: standalone components, signals, Signal Forms, zoneless |
-| Language  | TypeScript (strict)                                                |
+| Language  | TypeScript                                                         |
 | Styling   | SCSS                                                               |
 | Storage   | IndexedDB, behind an `AppStorage` port                             |
 | Tests     | Vitest + jsdom via `@angular/build:unit-test`                      |
