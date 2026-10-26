@@ -67,7 +67,7 @@ npm test -- --watch=false
 This project was built with an AI-assisted workflow. I acted as the product owner and made every product decision. AI agents did the planning support, the implementation and the review, under written rules.
 
 1. **Brief and decisions.** I wrote the [product brief](docs/project-brief.md) and made a [visual prototype](docs/prototype/index.html) with AI. Decisions made after the brief are recorded in [`docs/agreed-changes.md`](docs/agreed-changes.md), and the domain words in [`CONTEXT.md`](CONTEXT.md). Decisions that are hard to undo are recorded as ADRs, such as [hosting on GitHub Pages](docs/adr/0002-host-on-github-pages.md).
-2. **Plan.** Claude Code turned them into a [spec with user stories](.scratch/mvp/spec.md) and small tickets in [`.scratch/mvp/issues/`](.scratch/mvp/issues/), each with acceptance criteria and an agreed test seam. There are 53 so far: 50 for the first version, then follow-ups after launch such as the move to GitHub Pages.
+2. **Plan.** Claude Code turned them into a [spec with user stories](.scratch/mvp/spec.md) and small tickets in [`.scratch/mvp/issues/`](.scratch/mvp/issues/), each with acceptance criteria and an agreed test seam.
 3. **Build.** OpenAI Codex implemented one ticket at a time, test first, following the rules in [`AGENTS.md`](AGENTS.md).
 4. **Review.** Claude Code re-ran the tests and the build, checked each change against the coding rules and against its ticket, and checked layout, keyboard use and axe results in a real browser before committing.
 
