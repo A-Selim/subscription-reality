@@ -8,6 +8,8 @@ A small, privacy-first web app that shows what your subscriptions really cost pe
 
 **Live demo: [a-selim.github.io/subscription-reality](https://a-selim.github.io/subscription-reality/)**
 
+Try it: add three subscriptions you pay for and see your yearly total. Nothing to sign up for.
+
 Built with **Angular 22** (standalone components, signals, Signal Forms, zoneless), **TypeScript (strict)** and **IndexedDB**, with 248 tests and a WCAG AA target.
 
 ![Demo in four steps: add your subscriptions, see the real yearly cost of €828, review them one by one (keep one, cancel two), and see €660 of potential annual savings](docs/images/demo.gif)
@@ -38,16 +40,15 @@ On a phone:
 - Data lives only in this browser on this device. There is no account and no sync between devices.
 - Clearing site data in the browser deletes your subscriptions. There is no export or import yet.
 - Currencies are never converted, so each currency has its own totals.
-- Other projects on the same `a-selim.github.io` address [share browser storage with this app](docs/deployment.md#keep-one-origin).
 
 ## Engineering highlights
 
-- **Pure domain layer.** Costs, usage estimates, the review queue, savings and insights are plain TypeScript functions in `domain/subscription.ts`, with no Angular imports. They are tested directly and reused by every component.
-- **Signals end to end.** One `SubscriptionsState` service owns the state in signals. Components derive what they show with `computed()`, and the app runs zoneless with OnPush by default.
-- **Ports and adapters for storage.** Components never touch IndexedDB. They go through an `AppStorage` port: IndexedDB in the app, an in-memory fake in tests. Saves run one at a time, so an older save can never overwrite a newer one.
-- **Careful with stored data.** Stored data is validated field by field on load with the same rules the forms use. If it can't be read, the app copies it to a separate safety key in IndexedDB and a calm notice tells the user. If storage fails, the app keeps working for the visit and says so.
-- **Accessibility by design.** Every control has a real label. Focus moves on purpose: to the totals after the first add, and back to the card after a dialog closes. Native `<dialog>` traps focus, and status changes are announced through live regions.
-- **Security.** User text is only rendered through Angular's escaping bindings. The production build ships a hash-based Content-Security-Policy (`security.autoCsp`). The static host sends no extra security headers; see [hosting and headers](docs/deployment.md).
+- **Modern Angular 22.** Standalone components, signals end to end, Signal Forms, zoneless change detection with OnPush by default.
+- **Clean architecture.** Business rules are pure TypeScript in `domain/subscription.ts` with no Angular imports. Storage sits behind an `AppStorage` port: IndexedDB in the app, an in-memory fake in tests.
+- **Tested like a user.** 248 tests. Most render the whole page and find controls by their accessible names, so a broken label fails a test.
+- **Accessible.** WCAG AA target and axe-clean: real labels, focus that moves on purpose, native `<dialog>` and live regions for status changes.
+- **Safe with data.** Stored data is validated field by field on load. Unreadable data is backed up, never overwritten, and saves run in order so an older save can't win.
+- **Secure by default.** User text only goes through Angular's escaping bindings, and the build ships a hash-based Content-Security-Policy (`security.autoCsp`). See [hosting and headers](docs/deployment.md).
 - **Small and fast.** No runtime dependencies beyond Angular. The initial bundle is about 75 kB compressed.
 
 ## Testing
