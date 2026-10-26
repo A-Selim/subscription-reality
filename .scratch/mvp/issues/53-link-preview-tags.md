@@ -41,8 +41,9 @@ When someone shares the live demo link, LinkedIn (and Slack, X, WhatsApp and oth
 - [x] `npm run build -- --base-href /subscription-reality/` output `index.html` keeps the tags, the `autoCsp` meta tag and `<base href="/subscription-reality/">`, and `og-image.png` is in the output folder.
 - [x] `docs/deployment.md` has the "Link previews" section and the new check step.
 - [x] `npm test -- --watch=false` and `npm run build` pass.
-- [ ] After deploy, LinkedIn Post Inspector shows the image, title and description with no warnings. (Orchestrator check.)
+- [x] After deploy, LinkedIn Post Inspector shows the image, title and description with no warnings. (Orchestrator check.)
 
 ## Comments
 
 - 2026-10-26: Implemented by Codex, reviewed by Claude. Tests (248) and both builds pass; sub-path build keeps the tags, autoCsp meta and base href, and ships og-image.png. Standards and spec reviews: no blocking findings.
+- 2026-10-26: Deployed. LinkedIn Post Inspector shows the image, title and description with no warnings.
