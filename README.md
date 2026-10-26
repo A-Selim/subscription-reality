@@ -1,6 +1,6 @@
 # Subscription Reality
 
-[![CI](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml/badge.svg)](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml)
+[![CI](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml/badge.svg)](https://github.com/A-Selim/subscription-reality/actions/workflows/ci.yml) [![Deploy](https://github.com/A-Selim/subscription-reality/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/A-Selim/subscription-reality/actions/workflows/deploy-pages.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Angular 22](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)](https://angular.dev)
 
 **Small monthly payments feel cheap. Annual recurring spending often tells a different story.**
 
@@ -29,6 +29,17 @@ People pay for many small subscriptions. Each one feels cheap on its own, so the
 
 ![The yearly total of €1,539 with a before and after comparison, the review card for one subscription, and €826 of potential annual savings with an insight](docs/images/app-overview.png)
 
+On a phone:
+
+<p><img src="docs/images/mobile-subscriptions.png" alt="Subscription cards stacked on a phone screen, each with its monthly price, annual cost, reason and usage" width="260"> <img src="docs/images/mobile-reality.png" alt="The yearly total of €1,667 on a phone screen, with the before and after comparison" width="260"></p>
+
+## Limits
+
+- Data lives only in this browser on this device. There is no account and no sync between devices.
+- Clearing site data in the browser deletes your subscriptions. There is no export or import yet.
+- Currencies are never converted, so each currency has its own totals.
+- Other projects on the same `a-selim.github.io` address [share browser storage with this app](docs/deployment.md#keep-one-origin).
+
 ## Engineering highlights
 
 - **Pure domain layer.** Costs, usage estimates, the review queue, savings and insights are plain TypeScript functions in `domain/subscription.ts`, with no Angular imports. They are tested directly and reused by every component.
@@ -54,8 +65,8 @@ npm test -- --watch=false
 
 This project was built with an AI-assisted workflow. I acted as the product owner and made every product decision. AI agents did the planning support, the implementation and the review, under written rules.
 
-1. **Brief and decisions.** I wrote the [product brief](docs/project-brief.md) and made a [visual prototype](docs/prototype/index.html) with AI. Decisions made after the brief are recorded in [`docs/agreed-changes.md`](docs/agreed-changes.md), and the domain words in [`CONTEXT.md`](CONTEXT.md).
-2. **Plan.** Claude Code turned them into a [spec with user stories](.scratch/mvp/spec.md) and 50 small tickets in [`.scratch/mvp/issues/`](.scratch/mvp/issues/), each with acceptance criteria and an agreed test seam.
+1. **Brief and decisions.** I wrote the [product brief](docs/project-brief.md) and made a [visual prototype](docs/prototype/index.html) with AI. Decisions made after the brief are recorded in [`docs/agreed-changes.md`](docs/agreed-changes.md), and the domain words in [`CONTEXT.md`](CONTEXT.md). Decisions that are hard to undo are recorded as ADRs, such as [hosting on GitHub Pages](docs/adr/0002-host-on-github-pages.md).
+2. **Plan.** Claude Code turned them into a [spec with user stories](.scratch/mvp/spec.md) and small tickets in [`.scratch/mvp/issues/`](.scratch/mvp/issues/), each with acceptance criteria and an agreed test seam. There are 53 so far: 50 for the first version, then follow-ups after launch such as the move to GitHub Pages.
 3. **Build.** OpenAI Codex implemented one ticket at a time, test first, following the rules in [`AGENTS.md`](AGENTS.md).
 4. **Review.** Claude Code re-ran the tests and the build, checked each change against the coding rules and against its ticket, and checked layout, keyboard use and axe results in a real browser before committing.
 
@@ -102,11 +113,18 @@ src/app/
 | [`docs/agreed-changes.md`](docs/agreed-changes.md)       | Decisions made after the brief; these take precedence   |
 | [`CONTEXT.md`](CONTEXT.md)                               | Domain glossary (Review decision, Potential savings, …) |
 | [`docs/adr/`](docs/adr/)                                 | Architecture decision records                           |
-| [`docs/deployment.md`](docs/deployment.md)               | Hosting requirements, security headers, caching         |
+| [`docs/deployment.md`](docs/deployment.md)               | Hosting on GitHub Pages, link previews, caching         |
 | [`docs/research/`](docs/research/)                       | Background research (browser storage)                   |
 | [`docs/prototype/index.html`](docs/prototype/index.html) | Visual reference prototype                              |
 | [`AGENTS.md`](AGENTS.md)                                 | Rules the AI agents follow in this repo                 |
 | [`.scratch/mvp/`](.scratch/mvp/)                         | Spec and the resolved tickets                           |
+
+## Credits
+
+- **OpenAI Codex**: wrote the implementation, one ticket at a time, test first.
+- **Claude Code** (Anthropic): planning support, tickets, and review of every change.
+
+Product decisions, the brief and the final call on every change: Ahmed Selim. See [How it was built](#how-it-was-built).
 
 ## License
 
