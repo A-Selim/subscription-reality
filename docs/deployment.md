@@ -53,8 +53,13 @@ For a future host that can set headers, use these values. They are not sent toda
 - `index.html`: `Cache-Control: no-cache`, so a new deploy is picked up on the next visit. The CSP hashes live in this file, so a stale copy can't load newer scripts.
 - Hashed files (`main-*.js`, `styles-*.css`, `chunk-*.js`): `Cache-Control: public, max-age=31536000, immutable`.
 
+## Link previews
+
+The Open Graph tags in `src/index.html` use absolute URLs on `https://a-selim.github.io/subscription-reality/`. Update them if the site moves. `public/og-image.png` is a 1200×627 screenshot of the hero.
+
 ## Check after each deploy
 
 1. Open the site with the browser console open. There must be no CSP errors, and the app must load.
 2. Add a subscription and reload. It must still be there.
 3. Confirm the site responds over HTTPS with `curl -I https://a-selim.github.io/subscription-reality/`.
+4. After a change to the tags or the image, run the site URL through [LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/) so LinkedIn fetches the new preview.
